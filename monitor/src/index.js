@@ -181,8 +181,6 @@ function jsonResponse(obj, status = 200, headers = {}) {
 
 async function handleCreateMonitor(request, env, ctx) {
   const headers = corsFor(request, env);
-  const rate = await checkRateLimit(env.FEEDMONITOR_RATE_LIMIT, 'signup', clientIp(request), { limit: 5, windowSeconds: 3600 });
-  if (!rate.allowed) return jsonResponse({ error: 'rate_limited' }, 429, headers);
 
   let body;
   try {
@@ -191,7 +189,17 @@ async function handleCreateMonitor(request, env, ctx) {
     return jsonResponse({ error: 'invalid_json' }, 400, headers);
   }
 
+  // Validation runs before the rate limit on purpose: a typo in the e-mail or a
+  // private feed host should say what is wrong instead of eating one of the five
+  // hourly signups. Only a request that would actually create a row is counted.
   const { feedUrl, email } = validateMonitorInput({ feedUrl: body && body.feed_url, email: body && body.email });
+
+  // The admin token (used by our own verification runs) skips the per-IP limit.
+  const isAdmin = Boolean(env.ADMIN_TOKEN) && (request.headers.get('X-Admin-Token') || '') === env.ADMIN_TOKEN;
+  if (!isAdmin) {
+    const rate = await checkRateLimit(env.FEEDMONITOR_RATE_LIMIT, 'signup', clientIp(request), { limit: 5, windowSeconds: 3600 });
+    if (!rate.allowed) return jsonResponse({ error: 'rate_limited' }, 429, headers);
+  }
 
   const existing = await getMonitorByEmail(env.DB, email);
   if (existing) {
