@@ -651,7 +651,7 @@
     <tr>
       <td><span class="sev-pill ${esc(r.severity)}">${esc(r.severity)}</span></td>
       <td class="rid">${esc(r.id)}</td>
-      <td class="rfield">${r.spec ? esc(r.spec) : '&mdash;'}</td>
+      <td class="rfield">${r.spec ? esc(r.spec) : '-'}</td>
       <td class="rdesc">${esc(r.title)}</td>
     </tr>`).join('');
 
