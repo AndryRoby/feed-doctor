@@ -116,6 +116,35 @@ test('POST /v1/monitors is rate limited to 5 per IP per hour', async () => {
   assert.equal(sixth.status, 429);
 });
 
+test('a rate limited IP still gets a 400 for invalid input, so a typo never eats a signup', async () => {
+  const env = makeEnv();
+  const ip = '9.9.9.9';
+  for (let i = 0; i < 5; i++) {
+    await worker.fetch(req('/v1/monitors', { method: 'POST', body: { feed_url: 'https://shop.sk/feed.xml', email: `v${i}@shop.sk` }, headers: { 'CF-Connecting-IP': ip } }), env, {});
+  }
+  const badEmail = await worker.fetch(req('/v1/monitors', { method: 'POST', body: { feed_url: 'https://shop.sk/feed.xml', email: 'nope' }, headers: { 'CF-Connecting-IP': ip } }), env, {});
+  assert.equal(badEmail.status, 400);
+  assert.equal((await badEmail.json()).error, 'validation_failed');
+  const privateHost = await worker.fetch(req('/v1/monitors', { method: 'POST', body: { feed_url: 'http://192.168.1.1/feed.xml', email: 'ok@shop.sk' }, headers: { 'CF-Connecting-IP': ip } }), env, {});
+  assert.equal(privateHost.status, 400);
+  const valid = await worker.fetch(req('/v1/monitors', { method: 'POST', body: { feed_url: 'https://shop.sk/feed.xml', email: 'v9@shop.sk' }, headers: { 'CF-Connecting-IP': ip } }), env, {});
+  assert.equal(valid.status, 429, 'a valid signup from the same IP is still refused');
+});
+
+test('the admin token skips the per-IP signup limit (used by our own live verification)', async () => {
+  const env = makeEnv();
+  const ip = '8.8.8.8';
+  for (let i = 0; i < 5; i++) {
+    await worker.fetch(req('/v1/monitors', { method: 'POST', body: { feed_url: 'https://shop.sk/feed.xml', email: `w${i}@shop.sk` }, headers: { 'CF-Connecting-IP': ip } }), env, {});
+  }
+  const blocked = await worker.fetch(req('/v1/monitors', { method: 'POST', body: { feed_url: 'https://shop.sk/feed.xml', email: 'w9@shop.sk' }, headers: { 'CF-Connecting-IP': ip } }), env, {});
+  assert.equal(blocked.status, 429);
+  const withAdmin = await worker.fetch(req('/v1/monitors', { method: 'POST', body: { feed_url: 'https://shop.sk/feed.xml', email: 'w9@shop.sk' }, headers: { 'CF-Connecting-IP': ip, 'X-Admin-Token': env.ADMIN_TOKEN } }), env, {});
+  assert.equal(withAdmin.status, 201);
+  const wrongAdmin = await worker.fetch(req('/v1/monitors', { method: 'POST', body: { feed_url: 'https://shop.sk/feed.xml', email: 'w10@shop.sk' }, headers: { 'CF-Connecting-IP': ip, 'X-Admin-Token': 'not-the-token' } }), env, {});
+  assert.equal(wrongAdmin.status, 429);
+});
+
 test('checkRateLimit fails open when the KV binding errors', async () => {
   const brokenKv = { get: async () => { throw new Error('kv down'); }, put: async () => {} };
   const result = await checkRateLimit(brokenKv, 'signup', '1.2.3.4', { limit: 5 });
