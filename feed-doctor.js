@@ -24,7 +24,8 @@
 // Works as an ES module (import { analyze } from './feed-doctor.js') and,
 // when loaded with <script type="module">, also publishes
 // window.FeedDoctor = { analyze, parseFeed, detectFormat, checkProducts,
-// gtinChecksumValid, RULES, SAMPLE_FEED }.
+// gtinChecksumValid, issuesToCsv, reportToJson, asistentHandoffUrl, RULES,
+// SAMPLE_FEED }.
 
 // ───────────────────────── small helpers ─────────────────────────
 
@@ -1048,6 +1049,28 @@ export function reportToJson(report) {
   );
 }
 
+// ───────────────────────── handoff to ARLing Asistent ─────────────────────────
+// The results panel ends with one line offering to try the same feed in
+// ARLing Asistent (a shopping assistant built from a product feed). When the
+// feed came from a URL the visitor typed, that URL travels along as ?feed=
+// so the Asistent trial form is prefilled; pasted or uploaded content has no
+// URL, so the link is the plain Asistent page. Only http(s) URLs qualify.
+
+export const ASISTENT_URL = 'https://arling.sk/asistent/';
+
+export function asistentHandoffUrl(sourceUrl) {
+  const raw = typeof sourceUrl === 'string' ? sourceUrl.trim() : '';
+  if (!raw) return ASISTENT_URL;
+  let parsed;
+  try {
+    parsed = new URL(raw);
+  } catch (e) {
+    return ASISTENT_URL;
+  }
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return ASISTENT_URL;
+  return ASISTENT_URL + '?feed=' + encodeURIComponent(parsed.href) + '#playground';
+}
+
 // ───────────────────────── sample feed ─────────────────────────
 // A small, self-contained Google Shopping RSS 2.0 feed: 12 items, 6
 // deliberately broken in one distinct way each (everything else about them
@@ -1236,6 +1259,8 @@ if (typeof window !== 'undefined') {
     gtinChecksumValid,
     issuesToCsv,
     reportToJson,
+    asistentHandoffUrl,
+    ASISTENT_URL,
     RULES,
     SAMPLE_FEED,
   };

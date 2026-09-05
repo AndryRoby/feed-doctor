@@ -10,9 +10,12 @@ import {
   gtinChecksumValid,
   issuesToCsv,
   reportToJson,
+  asistentHandoffUrl,
+  ASISTENT_URL,
   RULES,
   SAMPLE_FEED,
 } from './feed-doctor.js';
+import { readFileSync } from 'node:fs';
 
 let pass = 0;
 let fail = 0;
@@ -830,6 +833,37 @@ eq('computeScore: never goes below 0', computeScore([{ severity: 'error', count:
   has('sample feed: gtin_checksum_invalid', r.problems, 'gtin_checksum_invalid');
   lacks('sample feed: shipping is present on every item, so no shipping_missing noise', r.problems, 'shipping_missing');
   ok('sample feed: score is below 100', r.score < 100);
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// 30. sample-feed.xml next to the page is the built-in sample, byte for byte,
+//     so "Fetch & analyze" can be tried with a real URL.
+// ─────────────────────────────────────────────────────────────────────────
+
+{
+  const onDisk = readFileSync(new URL('./sample-feed.xml', import.meta.url), 'utf8');
+  eq('sample-feed.xml matches SAMPLE_FEED', onDisk, SAMPLE_FEED);
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// 31. handoff link to ARLing Asistent: the fetched feed URL travels along
+//     encoded as ?feed=, pasted/uploaded input links to the plain page.
+// ─────────────────────────────────────────────────────────────────────────
+
+{
+  eq('handoff: plain URL is encoded into ?feed= with #playground', asistentHandoffUrl('https://shop.example/feed.xml'), 'https://arling.sk/asistent/?feed=https%3A%2F%2Fshop.example%2Ffeed.xml#playground');
+  eq('handoff: query string in the feed URL is fully encoded', asistentHandoffUrl('https://shop.example/products.json?limit=250&page=2'), 'https://arling.sk/asistent/?feed=https%3A%2F%2Fshop.example%2Fproducts.json%3Flimit%3D250%26page%3D2#playground');
+  eq('handoff: surrounding whitespace is trimmed', asistentHandoffUrl('  https://shop.example/feed.xml  '), 'https://arling.sk/asistent/?feed=https%3A%2F%2Fshop.example%2Ffeed.xml#playground');
+  eq('handoff: http URL is accepted', asistentHandoffUrl('http://shop.example/feed.xml'), 'https://arling.sk/asistent/?feed=http%3A%2F%2Fshop.example%2Ffeed.xml#playground');
+  ok('handoff: decoded ?feed= round-trips to the original URL', new URL(asistentHandoffUrl('https://shop.example/a b?x=1&y=2')).searchParams.get('feed') === 'https://shop.example/a%20b?x=1&y=2');
+  eq('handoff: pasted input (null) links to the plain Asistent page', asistentHandoffUrl(null), ASISTENT_URL);
+  eq('handoff: pasted input (empty string) links to the plain Asistent page', asistentHandoffUrl(''), ASISTENT_URL);
+  eq('handoff: uploaded input (undefined) links to the plain Asistent page', asistentHandoffUrl(undefined), ASISTENT_URL);
+  eq('handoff: not a URL at all gives the plain page', asistentHandoffUrl('feed.xml'), ASISTENT_URL);
+  eq('handoff: non-http scheme gives the plain page', asistentHandoffUrl('javascript:alert(1)'), ASISTENT_URL);
+  eq('handoff: file scheme gives the plain page', asistentHandoffUrl('file:///C:/feed.xml'), ASISTENT_URL);
+  ok('handoff: plain page link carries no ?feed=', !ASISTENT_URL.includes('?feed=') && !asistentHandoffUrl('').includes('feed='));
+  eq('handoff: ASISTENT_URL is the demo page', ASISTENT_URL, 'https://arling.sk/asistent/');
 }
 
 // ─────────────────────────────────────────────────────────────────────────
