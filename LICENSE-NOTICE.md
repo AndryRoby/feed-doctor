@@ -1,30 +1,14 @@
-# License notice
+# License
 
-This is not an open-source project and carries no OSS license (no MIT,
-Apache, GPL, etc.).
+Product Feed Doctor is open source under the MIT License, see [LICENSE](LICENSE).
+Copyright (c) 2026 ARLing s. r. o., Bratislava, Slovakia.
 
-**All rights reserved.** © 2026 ARLing s. r. o. (Bratislava, Slovakia).
+You can use, copy, modify and redistribute the code, including in commercial
+products, as long as the copyright and permission notice stay in place.
 
-You are welcome to:
+Names are not part of the licence: "Product Feed Doctor" and "ARLing" identify
+the hosted tool at https://arling.sk/feed-doctor/ and its maker. If you publish
+a fork, please give it its own name so users know which one they are using.
 
-- Use the hosted tool at
-  https://arling.sk/feed-doctor/ freely, for any
-  purpose, personal or commercial, at no cost.
-- Read the source of `index.html` / `feed-doctor.js` to understand
-  or verify what it does client-side (it's static files — view source
-  is the whole codebase).
-
-You are **not** granted rights to:
-
-- Redistribute, rehost, or repackage this code as your own product.
-- Fork it into a competing hosted product without permission.
-- Use the "Product Feed Doctor" name, the ARLing s. r. o.
-  name, or associated branding for your own project.
-
-If you want to do something with the code beyond using the hosted tool
-as intended (e.g. embed a derivative internally, contribute a fix,
-translate it, or anything not covered above), just ask —
-andrej@arling.sk. Reasonable requests (bug fixes, accessibility
-improvements, adding a missing check) are generally welcome; this
-notice exists to prevent silent repackaging, not to block
-collaboration.
+Bug reports and fixes are welcome: https://github.com/AndryRoby/feed-doctor/issues
+or andrej@arling.sk.

@@ -7,6 +7,6 @@
   "scripts": {
     "test": "node tests.mjs"
   },
-  "license": "UNLICENSED",
+  "license": "MIT",
   "author": "ARLing s. r. o. <andrej@arling.sk>"
 }

@@ -85,7 +85,7 @@ Found a real feed this tool gets wrong, or a check that flags something that's a
 
 ## License
 
-All rights reserved, see [LICENSE-NOTICE.md](LICENSE-NOTICE.md). Reading the source and learning from it is fine; deploying your own copy of it as a competing product is not.
+MIT, see [LICENSE](LICENSE). Use it, fork it, ship it; keep the copyright notice. The names "Product Feed Doctor" and "ARLing" refer to the hosted tool and its maker, so please name a fork differently (details in [LICENSE-NOTICE.md](LICENSE-NOTICE.md)).
 
 ---
 
