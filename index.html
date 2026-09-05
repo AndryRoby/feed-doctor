@@ -242,6 +242,8 @@
   .count-pill.warning { color:var(--warn); border-color:var(--warn); }
   .count-pill.info { color:var(--muted); }
   .export-row { display:flex; gap:8px; flex-wrap:wrap; margin:20px 0; }
+  .handoff { margin:0; padding-top:16px; border-top:1px solid var(--line); font-size:13.5px; line-height:1.55; color:var(--ink-2); }
+  .handoff a { color:var(--ink); }
 
   .result-section-title { font:600 11px/1 var(--sans); letter-spacing:.04em; text-transform:uppercase; color:var(--muted); border-bottom:1px solid var(--line); padding-bottom:8px; margin:26px 0 12px; }
   .result-section-title:first-of-type { margin-top:0; }
@@ -575,7 +577,7 @@
 
 <!-- Scripts -->
 <script type="module">
-  import { analyze, RULES, SAMPLE_FEED, issuesToCsv, reportToJson } from './feed-doctor.js';
+  import { analyze, RULES, SAMPLE_FEED, issuesToCsv, reportToJson, asistentHandoffUrl } from './feed-doctor.js';
 
   const $ = (id) => document.getElementById(id);
 
@@ -638,7 +640,8 @@
       const text = await res.text();
       hideFetchStatus();
       textArea.value = text;
-      runAnalysis(text);
+      fetched = { url: parsed.href, text };
+      runAnalysis(text, parsed.href);
       track('fetch_ok');
     } catch (e) {
       track('fetch_blocked');
@@ -658,7 +661,8 @@
     reader.onload = () => {
       textArea.value = String(reader.result || '');
       hideFetchStatus();
-      runAnalysis(textArea.value);
+      fetched = null;
+      runAnalysis(textArea.value, null);
       track('file_uploaded');
     };
     reader.onerror = () => {
@@ -671,12 +675,14 @@
     textArea.value = SAMPLE_FEED;
     urlInput.value = '';
     hideFetchStatus();
-    runAnalysis(SAMPLE_FEED);
+    fetched = null;
+    runAnalysis(SAMPLE_FEED, null);
     track('sample_loaded');
   });
 
   analyzeBtn.addEventListener('click', () => {
-    runAnalysis(textArea.value);
+    const text = textArea.value;
+    runAnalysis(text, fetched && fetched.text === text ? fetched.url : null);
   });
 
   const FORMAT_LABELS = {
@@ -708,8 +714,11 @@
   }
 
   let lastReport = null;
+  // The URL the current textarea content was fetched from (null for pasted,
+  // uploaded or sample input); it rides along into the Asistent handoff link.
+  let fetched = null;
 
-  function renderReport(report) {
+  function renderReport(report, sourceUrl) {
     lastReport = report;
     if (!report.productCount && report.format === 'unknown') {
       results.innerHTML = '<div class="placeholder" style="color:var(--accent)">Could not detect a supported feed format in that input. Paste a Google Shopping/Merchant Center RSS, a Facebook/Meta CSV, a Shopify or WooCommerce JSON export, a generic XML feed, or a plain CSV with a header row.</div>';
@@ -758,6 +767,7 @@
         <button class="icon-btn" id="export-csv-btn" type="button">Export issues as CSV</button>
         <button class="icon-btn" id="export-json-btn" type="button">Export report as JSON</button>
       </div>
+      <p class="handoff" id="asistent-handoff">This feed can also power a shopping assistant: <a href="${esc(asistentHandoffUrl(sourceUrl))}" data-umami-event="asistent_click" data-umami-event-place="results" data-umami-event-source="${sourceUrl ? 'url' : 'text'}">try ARLing Asistent with it</a>.</p>
     `;
 
     $('export-csv-btn').addEventListener('click', () => {
@@ -770,7 +780,7 @@
     });
   }
 
-  function runAnalysis(text) {
+  function runAnalysis(text, sourceUrl) {
     const trimmed = (text || '').trim();
     if (!trimmed) {
       results.innerHTML = '<div class="placeholder">Paste a URL, paste feed content, upload a file, or load the sample feed, then press <span class="kbd">Analyze</span>.</div>';
@@ -784,7 +794,7 @@
       results.innerHTML = '<div class="placeholder" style="color:var(--accent)">Could not analyze that input: ' + esc(e.message) + '</div>';
       return;
     }
-    renderReport(report);
+    renderReport(report, sourceUrl || null);
     track('analyze', { format: report.format, score: report.score, productCount: report.productCount });
   }
 

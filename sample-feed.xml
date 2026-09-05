@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:g="http://base.google.com/ns/1.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
+<atom:link href="https://shop.example.com/feed.xml" rel="self" type="application/rss+xml"/>
+<title>Example Shop product feed</title>
+<link>https://shop.example.com</link>
+<description>Sample Google Shopping feed for Product Feed Doctor</description>
+<item>
+<g:id>sku-1001</g:id>
+<title>Merino Wool Beanie, Charcoal</title>
+<description>Soft 100% merino wool beanie, one size fits most, machine washable on cold.</description>
+<link>https://shop.example.com/products/merino-beanie-charcoal</link>
+<g:image_link>https://shop.example.com/img/beanie-charcoal.jpg</g:image_link>
+<g:price>24.99 USD</g:price>
+<g:availability>in stock</g:availability>
+<g:condition>new</g:condition>
+<g:brand>Northline</g:brand>
+<g:gtin>4006381333931</g:gtin>
+<g:google_product_category>Apparel &amp; Accessories &gt; Clothing Accessories &gt; Hats</g:google_product_category>
+<g:shipping><g:country>US</g:country><g:service>Standard</g:service><g:price>4.99 USD</g:price></g:shipping>
+</item>
+<item>
+<g:id>sku-1002</g:id>
+<title>Merino Wool Beanie, Forest Green</title>
+<link>https://shop.example.com/products/merino-beanie-green</link>
+<g:image_link>https://shop.example.com/img/beanie-green.jpg</g:image_link>
+<g:price>24.99 USD</g:price>
+<g:availability>in stock</g:availability>
+<g:condition>new</g:condition>
+<g:brand>Northline</g:brand>
+<g:gtin>6291041500213</g:gtin>
+<g:shipping><g:country>US</g:country><g:service>Standard</g:service><g:price>4.99 USD</g:price></g:shipping>
+</item>
+<item>
+<g:id>sku-1001</g:id>
+<title>Merino Wool Scarf, Charcoal</title>
+<description>Matching merino wool scarf, 180cm long, hand wash cold.</description>
+<link>https://shop.example.com/products/merino-scarf-charcoal</link>
+<g:image_link>https://shop.example.com/img/scarf-charcoal.jpg</g:image_link>
+<g:price>32.00 USD</g:price>
+<g:availability>in stock</g:availability>
+<g:condition>new</g:condition>
+<g:brand>Northline</g:brand>
+<g:shipping><g:country>US</g:country><g:service>Standard</g:service><g:price>4.99 USD</g:price></g:shipping>
+</item>
+<item>
+<g:id>sku-1004</g:id>
+<title>Leather Belt, Brown</title>
+<description>Full-grain leather belt with brushed brass buckle, sizes 30 to 42.</description>
+<link>https://shop.example.com/products/leather-belt-brown</link>
+<g:image_link>https://shop.example.com/img/belt-brown.jpg</g:image_link>
+<g:price>-9.99 USD</g:price>
+<g:availability>in stock</g:availability>
+<g:condition>new</g:condition>
+<g:brand>Northline</g:brand>
+<g:shipping><g:country>US</g:country><g:service>Standard</g:service><g:price>4.99 USD</g:price></g:shipping>
+</item>
+<item>
+<g:id>sku-1005</g:id>
+<title>Canvas Tote Bag, Natural</title>
+<description>Heavy 12oz canvas tote with interior pocket and reinforced handles.</description>
+<link>https://shop.example.com/products/canvas-tote-natural</link>
+<g:image_link>http://shop.example.com/img/tote-natural.jpg</g:image_link>
+<g:price>18.50 USD</g:price>
+<g:availability>in stock</g:availability>
+<g:condition>new</g:condition>
+<g:brand>Northline</g:brand>
+<g:shipping><g:country>US</g:country><g:service>Standard</g:service><g:price>4.99 USD</g:price></g:shipping>
+</item>
+<item>
+<g:id>sku-1006</g:id>
+<title>Wool Blend Overcoat, Navy</title>
+<description>Tailored wool blend overcoat, fully lined, welt pockets, size run 36 to 48.</description>
+<link>https://shop.example.com/products/overcoat-navy</link>
+<g:image_link>https://shop.example.com/img/overcoat-navy.jpg</g:image_link>
+<g:price>189.00 USD</g:price>
+<g:availability>Available</g:availability>
+<g:condition>new</g:condition>
+<g:brand>Northline</g:brand>
+<g:shipping><g:country>US</g:country><g:service>Standard</g:service><g:price>4.99 USD</g:price></g:shipping>
+</item>
+<item>
+<g:id>sku-1007</g:id>
+<title>Ceramic Pour-Over Coffee Dripper</title>
+<description>Hand-glazed ceramic pour-over dripper, fits standard size 02 filters.</description>
+<link>https://shop.example.com/products/pour-over-dripper</link>
+<g:image_link>https://shop.example.com/img/dripper.jpg</g:image_link>
+<g:price>29.00 USD</g:price>
+<g:availability>in stock</g:availability>
+<g:condition>new</g:condition>
+<g:brand>Northline</g:brand>
+<g:gtin>4006381333930</g:gtin>
+<g:shipping><g:country>US</g:country><g:service>Standard</g:service><g:price>4.99 USD</g:price></g:shipping>
+</item>
+<item>
+<g:id>sku-1008</g:id>
+<title>Stainless Steel Water Bottle, 750ml</title>
+<description>Double-wall insulated stainless steel bottle, keeps drinks cold for 24 hours.</description>
+<link>https://shop.example.com/products/water-bottle-750</link>
+<g:image_link>https://shop.example.com/img/bottle-750.jpg</g:image_link>
+<g:price>27.00 USD</g:price>
+<g:sale_price>21.00 USD</g:sale_price>
+<g:availability>in stock</g:availability>
+<g:condition>new</g:condition>
+<g:brand>Northline</g:brand>
+<g:item_group_id>bottle-group</g:item_group_id>
+<g:size>750ml</g:size>
+<g:color>Slate</g:color>
+<g:shipping><g:country>US</g:country><g:service>Standard</g:service><g:price>4.99 USD</g:price></g:shipping>
+</item>
+<item>
+<g:id>sku-1009</g:id>
+<title>Stainless Steel Water Bottle, 1L</title>
+<description>Double-wall insulated stainless steel bottle, keeps drinks cold for 24 hours.</description>
+<link>https://shop.example.com/products/water-bottle-1l</link>
+<g:image_link>https://shop.example.com/img/bottle-1l.jpg</g:image_link>
+<g:price>29.00 USD</g:price>
+<g:availability>in stock</g:availability>
+<g:condition>new</g:condition>
+<g:brand>Northline</g:brand>
+<g:item_group_id>bottle-group</g:item_group_id>
+<g:size>1L</g:size>
+<g:color>Slate</g:color>
+<g:shipping><g:country>US</g:country><g:service>Standard</g:service><g:price>4.99 USD</g:price></g:shipping>
+</item>
+<item>
+<g:id>sku-1010</g:id>
+<title>Oak Cutting Board, Large</title>
+<description>Solid oak end-grain cutting board, 45 x 30cm, food-safe mineral oil finish.</description>
+<link>https://shop.example.com/products/oak-cutting-board</link>
+<g:image_link>https://shop.example.com/img/cutting-board.jpg</g:image_link>
+<g:price>54.00 USD</g:price>
+<g:availability>in stock</g:availability>
+<g:condition>new</g:condition>
+<g:brand>Northline</g:brand>
+<g:shipping><g:country>US</g:country><g:service>Standard</g:service><g:price>4.99 USD</g:price></g:shipping>
+</item>
+<item>
+<g:id>sku-1011</g:id>
+<title>Linen Throw Pillow Cover, Sand</title>
+<description>Pre-washed European linen pillow cover, 45 x 45cm, hidden zip closure.</description>
+<link>https://shop.example.com/products/linen-pillow-sand</link>
+<g:image_link>https://shop.example.com/img/pillow-sand.jpg</g:image_link>
+<g:price>22.00 USD</g:price>
+<g:availability>in stock</g:availability>
+<g:condition>new</g:condition>
+<g:brand>Northline</g:brand>
+<g:shipping><g:country>US</g:country><g:service>Standard</g:service><g:price>4.99 USD</g:price></g:shipping>
+</item>
+<item>
+<g:id>sku-1012</g:id>
+<title>Cast Iron Skillet, 26cm</title>
+<description>Pre-seasoned cast iron skillet, oven safe to 260C, works on induction.</description>
+<link>https://shop.example.com/products/cast-iron-skillet-26</link>
+<g:image_link>https://shop.example.com/img/skillet-26.jpg</g:image_link>
+<g:price>39.00 USD</g:price>
+<g:availability>in stock</g:availability>
+<g:condition>new</g:condition>
+<g:brand>Northline</g:brand>
+<g:shipping><g:country>US</g:country><g:service>Standard</g:service><g:price>4.99 USD</g:price></g:shipping>
+</item>
+</channel>
+</rss>
