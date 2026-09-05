@@ -32,7 +32,7 @@ No account, no server-side processing of your feed. The only analytics are anony
 
 - Tool: https://arling.sk/feed-doctor/
 - Full reference (worked example + FAQ): https://arling.sk/feed-doctor/llms-full.txt
-- Source code: https://github.com/AndryRoby/feed-doctor
+- Source code: https://github.com/AndryRoby/feed-doctor (MIT License)
 - Free magnet for: ARLing Asistent (a shopping assistant built from your product feed): https://arling.sk/asistent/
 - Hub (more ARLing tools): https://arling.sk/
 

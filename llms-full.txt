@@ -100,7 +100,7 @@ The field names and required-ness this tool checks against are drawn from Google
 
 - Tool: https://arling.sk/feed-doctor/
 - Short reference: https://arling.sk/feed-doctor/llms.txt
-- Source code: https://github.com/AndryRoby/feed-doctor
+- Source code: https://github.com/AndryRoby/feed-doctor (MIT License)
 - Free magnet for: ARLing Asistent (a shopping assistant built from your product feed): https://arling.sk/asistent/
 - Hub (more ARLing tools): https://arling.sk/
 
