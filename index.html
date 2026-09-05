@@ -1,0 +1,807 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://homelab.tailbf8f27.ts.net; connect-src 'self' https:; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+<title>Product Feed Doctor</title>
+<meta name="description" content="Free, client-side checker for Google Shopping/Merchant Center, Facebook/Meta catalog, Shopify, WooCommerce and generic CSV/XML product feeds. Paste a feed URL, paste the content, or upload the file: get a score, a rule-by-rule report and a per-product drill-down of what to fix. Nothing is uploaded; everything runs in your browser.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Product Feed Doctor">
+<meta property="og:description" content="Find what is wrong with your shopping feed before Google, Meta or your AI assistant do. Free, client-side, 31 checks, no account.">
+<meta property="og:url" content="https://arling.sk/feed-doctor/">
+<meta property="og:image" content="https://arling.sk/feed-doctor/icon-512.png">
+<meta name="theme-color" content="#f6f2ea">
+<link rel="canonical" href="https://arling.sk/feed-doctor/">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="alternate icon" href="favicon.ico">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="alternate" type="text/plain" href="https://arling.sk/feed-doctor/llms.txt" title="llms.txt">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Product Feed Doctor",
+  "url": "https://arling.sk/feed-doctor/",
+  "description": "Free, client-side checker for Google Shopping/Merchant Center, Facebook/Meta catalog, Shopify /products.json, WooCommerce Store API, generic XML and CSV product feeds. Detects the format, parses it, and runs 31 rules covering missing required fields, duplicate ids, price and link formatting, GTIN checksums, availability and condition values, and more, entirely in the browser.",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "Any",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "EUR"
+  },
+  "author": {
+    "@type": "Organization",
+    "name": "ARLing s. r. o.",
+    "url": "https://arling.sk/",
+    "email": "andrej@arling.sk",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Bratislava",
+      "addressCountry": "SK"
+    }
+  },
+  "sameAs": [
+    "https://github.com/AndryRoby/feed-doctor"
+  ]
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Which feed formats does Product Feed Doctor support?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Google Shopping / Merchant Center RSS 2.0 (the g: namespace format, with or without an atom:link tag), a Facebook/Meta catalog CSV, a Shopify /products.json export, a WooCommerce Store API JSON response, a generic XML feed built from repeating <item> elements with different tag names, and a plain CSV with a header row. The format is auto-detected from the content you paste, upload, or fetch; you never have to tell it which one you're using."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does this tool upload my feed or product data anywhere?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. Parsing and every check run entirely in your browser, in feed-doctor.js. If you paste a feed URL and click Fetch, your browser fetches that URL directly; the response never passes through any ARLing server. Pasted text, an uploaded file, and the report are never sent anywhere. Read feed-doctor.js directly, or check your browser's Network tab, to verify."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does fetching my feed URL directly fail?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Most shop platforms and CDNs do not send the Access-Control-Allow-Origin header on their feed URLs, since those files are meant to be downloaded by Google's or Meta's servers, not read by JavaScript running on a different website. When that happens, the browser blocks the response before this page ever sees it: that is normal CORS behavior, not a bug in this tool. Paste the feed content instead, or upload the downloaded file; both skip the browser fetch entirely and analyze the exact same content."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What counts as a required field in a Google Shopping feed?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The Merchant Center product data specification treats id, title, description, link, image_link, price and availability as required for essentially every item, and condition as required once an item is not new (used, refurbished, and similar). This tool flags all of those as errors when missing or blank, and additionally checks brand, gtin, mpn, item_group_id and shipping, which the specification calls for in specific situations (a branded, identifiable product; variants that need to be told apart; and so on)."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How is the GTIN checksum validated?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "gtin is checked against the standard GS1 mod-10 check-digit algorithm used by GTIN-8, GTIN-12 (UPC-A), GTIN-13 (EAN-13) and GTIN-14: non-digit characters are stripped, the length must be one of those four, and the last digit must equal (10 minus the mod-10 remainder of the weighted sum of the preceding digits, alternating weights 3 and 1 from the right) mod 10. A gtin that is the wrong length, or has a transposed or mistyped digit, fails this check and is flagged with the exact value that was read."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the score out of 100 based on?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "It is a simple, documented heuristic, not a number Google, Meta or any platform publishes: start at 100, subtract 3 points per error instance, 1 point per warning instance and 0.2 points per info instance found across the whole feed, then floor at 0 and round to the nearest integer. It is meant to give a quick sense of how much is wrong and how severe it is, not to predict feed approval; read the rule-by-rule report for the specifics that matter."
+      }
+    }
+  ]
+}
+</script>
+
+<style>
+  :root {
+    --paper:#f6f2ea; --paper-2:#fbf9f4; --ink:#1b1a17; --ink-2:#4a4741; --muted:#66625a; --line:#d9d2c4;
+    --accent:#b23a1d; --accent-soft:#f3e2dc; --ok:#2f6f3e; --warn:#9a6b00;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+    --sans:system-ui,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,"Cascadia Code",Consolas,Menlo,monospace;
+    --radius:4px;
+    --maxw:1080px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --paper:#151412; --paper-2:#1d1b18; --ink:#efe9de; --ink-2:#c9c2b5; --muted:#8f887b; --line:#2e2b26; --accent:#e0623f; --accent-soft:#3a1f17; --ok:#7fbf8e; --warn:#d9a54a; }
+  }
+  * { box-sizing:border-box; }
+  html { background:var(--paper); }
+  body { margin:0; color:var(--ink); background:var(--paper); font:16px/1.55 var(--sans); -webkit-font-smoothing:antialiased; }
+  img { max-width:100%; }
+  a { color:inherit; text-decoration-color:var(--line); text-underline-offset:3px; }
+  a:hover { text-decoration-color:var(--accent); }
+  :focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
+  [hidden] { display:none !important; }
+  .skip { position:absolute; left:-999px; top:8px; background:var(--ink); color:var(--paper); padding:8px 12px; z-index:100; }
+  .skip:focus { left:8px; }
+  .wrap { max-width:var(--maxw); margin:0 auto; padding:0 24px; }
+  .mono { font-family:var(--mono); }
+
+  /* Header */
+  header.top { border-bottom:1px solid var(--line); }
+  header.top .wrap { display:flex; align-items:baseline; justify-content:space-between; gap:20px 24px; padding:18px 24px; flex-wrap:wrap; }
+  .wordmark { font:600 21px/1 var(--serif); text-decoration:none; }
+  .wordmark small { font:12.5px/1 var(--sans); color:var(--muted); margin-left:10px; letter-spacing:.04em; }
+  nav.main { display:flex; flex-wrap:wrap; gap:6px 20px; }
+  nav.main a { font-size:14px; text-decoration:none; color:var(--ink-2); white-space:nowrap; }
+  nav.main a:hover { color:var(--accent); }
+  @media (max-width:480px) { .wordmark small { display:none; } }
+
+  /* Hero */
+  .hero { padding:60px 0 40px; border-bottom:1px solid var(--line); }
+  .hero h1 { font:400 clamp(28px,4.6vw,44px)/1.2 var(--serif); letter-spacing:-.01em; margin:0 0 18px; max-width:26ch; }
+  .hero p.lead { font-size:18px; color:var(--ink-2); max-width:62ch; margin:0 0 26px; }
+  .hero-cta { display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-bottom:24px; }
+  .steps { list-style:none; margin:0 0 26px; padding:0; display:flex; flex-wrap:wrap; gap:8px 28px; color:var(--ink-2); font-size:14.5px; counter-reset:step; }
+  .steps li { display:flex; align-items:baseline; gap:8px; }
+  .steps li::before { counter-increment:step; content:counter(step); font:400 13px/1 var(--serif); color:var(--accent); border:1px solid var(--line); border-radius:50%; width:20px; height:20px; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .facts { list-style:none; margin:0; padding:0; display:flex; flex-wrap:wrap; gap:8px 0; color:var(--muted); font-size:14px; }
+  .facts li + li::before { content:"\00b7"; margin:0 10px; color:var(--line); }
+  .facts b { color:var(--ink); font-weight:600; }
+
+  /* Buttons */
+  .btn { display:inline-block; font:600 15px/1 var(--sans); padding:12px 18px; border-radius:var(--radius); text-decoration:none; cursor:pointer; border:2px solid transparent; }
+  .btn-solid { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .btn-solid:hover { color:#fff; opacity:.92; }
+  .btn-line { border:2px solid var(--ink); color:var(--ink); background:transparent; }
+  .btn:disabled { opacity:.6; cursor:default; }
+
+  /* Section frame */
+  section.block { padding:56px 0; border-bottom:1px solid var(--line); }
+  .section-head { max-width:74ch; margin-bottom:8px; }
+  .kicker { font:400 14px/1 var(--serif); color:var(--accent); letter-spacing:.04em; margin:0 0 8px; }
+  h2 { font:400 clamp(24px,3.4vw,30px)/1.2 var(--serif); margin:0 0 10px; letter-spacing:-.005em; max-width:28ch; }
+  .sub { color:var(--ink-2); max-width:64ch; margin:0; font-size:15.5px; }
+
+  /* Rules list (curated "how to fix" section) */
+  .rules { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:26px 32px; margin:30px 0 0; padding:0; list-style:none; counter-reset:r; }
+  .rules li { padding-top:14px; border-top:1px solid var(--line); min-width:0; }
+  .rules li::before { counter-increment:r; content:counter(r,decimal-leading-zero); font:400 14px/1 var(--serif); color:var(--accent); display:block; margin-bottom:8px; }
+  .rules b { display:block; font-weight:600; margin-bottom:4px; font-size:15.5px; }
+  .rules p { margin:0; color:var(--ink-2); font-size:14.5px; overflow-wrap:anywhere; }
+
+  /* Rule table (what it checks) */
+  .rule-table-wrap { margin-top:28px; overflow-x:auto; }
+  table.rule-table { width:100%; border-collapse:collapse; font-size:13.5px; }
+  table.rule-table th { text-align:left; font:600 11px/1 var(--sans); text-transform:uppercase; letter-spacing:.04em; color:var(--muted); padding:0 10px 10px 0; border-bottom:1px solid var(--line); white-space:nowrap; }
+  table.rule-table td { padding:9px 10px 9px 0; border-bottom:1px solid var(--line); vertical-align:top; }
+  table.rule-table tr:last-child td { border-bottom:none; }
+  table.rule-table td.rid { font-family:var(--mono); font-size:12px; white-space:nowrap; }
+  table.rule-table td.rfield { font-family:var(--mono); font-size:12px; color:var(--muted); white-space:nowrap; }
+  table.rule-table td.rdesc { color:var(--ink-2); }
+  .sev-pill { display:inline-flex; align-items:center; font-family:var(--mono); font-size:10.5px; font-weight:600; padding:2px 7px; border-radius:4px; border:1px solid var(--line); text-transform:uppercase; letter-spacing:.03em; white-space:nowrap; }
+  .sev-pill.error { color:var(--accent); border-color:var(--accent); }
+  .sev-pill.warning { color:var(--warn); border-color:var(--warn); }
+  .sev-pill.info { color:var(--muted); }
+
+  /* Tool */
+  .play { border:1px solid var(--line); background:var(--paper-2); border-radius:6px; overflow:hidden; margin-top:30px; }
+  .play-head { display:flex; align-items:center; gap:14px; padding:10px 14px; border-bottom:1px solid var(--line); font-family:var(--mono); font-size:12px; color:var(--muted); flex-wrap:wrap; }
+  .play-head .lights { display:flex; gap:6px; }
+  .play-head .lights span { width:9px; height:9px; border-radius:50%; border:1px solid var(--line); }
+  .play-head .path { color:var(--ink-2); }
+  .play-head .path .method { color:var(--accent); }
+  .play-head .spacer { flex:1; }
+  .play-head .runtime { color:var(--muted); }
+
+  .tool-inputs { padding:18px; display:flex; flex-direction:column; gap:12px; border-bottom:1px solid var(--line); }
+  .field-row { display:flex; gap:8px; flex-wrap:wrap; }
+  .field-row input[type="text"] {
+    flex:1 1 280px; min-width:0; background:var(--paper); color:var(--ink); border:1px solid var(--line); border-radius:4px;
+    padding:10px 12px; font-family:var(--mono); font-size:13px; outline:none;
+  }
+  .field-row input[type="text"]:focus { border-color:var(--ink-2); }
+  .fetch-status { margin:0; padding:9px 12px; font-size:12.5px; line-height:1.6; border-left:2px solid var(--accent); background:var(--accent-soft); color:var(--ink-2); border-radius:0 4px 4px 0; }
+  .or-divider { font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); text-align:center; position:relative; margin:2px 0; }
+  textarea.feed-text {
+    width:100%; background:var(--paper); color:var(--ink); border:1px solid var(--line); border-radius:4px;
+    padding:10px 12px; font-family:var(--mono); font-size:12.5px; line-height:1.6; resize:vertical; min-height:130px; outline:none;
+  }
+  textarea.feed-text:focus { border-color:var(--ink-2); }
+  .tool-actions { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .file-btn { position:relative; overflow:hidden; }
+  .format-hint { font-family:var(--mono); font-size:11.5px; color:var(--muted); margin-left:auto; }
+
+  /* Small utility buttons */
+  .icon-btn { background:transparent; color:var(--ink-2); border:1px solid var(--line); border-radius:4px; font-family:var(--sans); font-size:12.5px; padding:8px 12px; cursor:pointer; }
+  .icon-btn:hover { color:var(--ink); border-color:var(--ink-2); background:var(--paper); }
+  .icon-btn:disabled { opacity:.6; cursor:progress; }
+  .icon-btn.btn-solid { background:var(--accent); color:#fff; border-color:var(--accent); font-weight:600; }
+  .icon-btn.btn-solid:hover { opacity:.9; background:var(--accent); color:#fff; }
+
+  /* Results */
+  .results { padding:18px; }
+  .results .placeholder { color:var(--muted); font-size:13px; font-family:var(--mono); }
+  .result-top { display:flex; flex-wrap:wrap; align-items:center; gap:18px 26px; margin-bottom:22px; }
+  .score-badge { display:flex; align-items:baseline; gap:6px; font-family:var(--serif); }
+  .score-badge .num { font-size:40px; line-height:1; }
+  .score-badge .of100 { font-size:14px; color:var(--muted); font-family:var(--sans); }
+  .score-badge.good .num { color:var(--ok); }
+  .score-badge.ok .num { color:var(--warn); }
+  .score-badge.bad .num { color:var(--accent); }
+  .result-meta { font-family:var(--mono); font-size:12.5px; color:var(--muted); }
+  .counts-row { display:flex; gap:8px; flex-wrap:wrap; }
+  .count-pill { font-family:var(--mono); font-size:12px; padding:4px 10px; border-radius:4px; border:1px solid var(--line); }
+  .count-pill.error { color:var(--accent); border-color:var(--accent); background:var(--accent-soft); }
+  .count-pill.warning { color:var(--warn); border-color:var(--warn); }
+  .count-pill.info { color:var(--muted); }
+  .export-row { display:flex; gap:8px; flex-wrap:wrap; margin:20px 0; }
+
+  .result-section-title { font:600 11px/1 var(--sans); letter-spacing:.04em; text-transform:uppercase; color:var(--muted); border-bottom:1px solid var(--line); padding-bottom:8px; margin:26px 0 12px; }
+  .result-section-title:first-of-type { margin-top:0; }
+
+  .found-rule { border:1px solid var(--line); border-left:3px solid var(--line); border-radius:0 4px 4px 0; margin-bottom:10px; background:var(--paper); }
+  .found-rule.error { border-left-color:var(--accent); }
+  .found-rule.warning { border-left-color:var(--warn); }
+  .found-rule.info { border-left-color:var(--muted); }
+  .found-rule summary { list-style:none; cursor:pointer; display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:10px 12px; font-size:13.5px; }
+  .found-rule summary::-webkit-details-marker { display:none; }
+  .found-rule summary::after { content:"+"; margin-left:auto; color:var(--muted); font-family:var(--sans); }
+  .found-rule[open] summary::after { content:"\2013"; }
+  .found-rule summary .rtitle { font-weight:600; }
+  .found-rule summary .rid { font-family:var(--mono); font-size:11px; color:var(--muted); }
+  .found-rule summary .rcount { font-family:var(--mono); font-size:11px; color:var(--muted); }
+  .found-rule .rfix { margin:0; padding:0 12px 12px; color:var(--ink-2); font-size:12.5px; }
+  .issue-list { list-style:none; margin:0; padding:0 12px 12px; display:flex; flex-direction:column; gap:6px; }
+  .issue-item { font-size:12px; color:var(--ink-2); border-top:1px solid var(--line); padding-top:6px; overflow-wrap:anywhere; }
+  .issue-item .iid { font-family:var(--mono); color:var(--muted); }
+  .issue-more { font-size:11.5px; color:var(--muted); padding:0 12px 12px; }
+
+  /* Endpoint / how it works */
+  .endpoint { display:grid; grid-template-columns:1fr 1fr; gap:28px; align-items:start; margin-top:30px; }
+  @media (max-width:820px) { .endpoint { grid-template-columns:1fr; } }
+  .codeblock { border:1px solid var(--line); background:var(--paper-2); border-radius:6px; overflow:hidden; }
+  .codeblock-head { padding:10px 14px; border-bottom:1px solid var(--line); font-family:var(--mono); font-size:11px; letter-spacing:.04em; text-transform:uppercase; color:var(--muted); display:flex; justify-content:space-between; align-items:center; }
+  .codeblock pre { margin:0; padding:16px 18px; font-size:12.5px; line-height:1.7; overflow-x:auto; color:var(--ink-2); font-family:var(--mono); -webkit-overflow-scrolling:touch; }
+  .endpoint-copy p { margin:0 0 14px; color:var(--ink-2); font-size:15px; line-height:1.6; }
+  .endpoint-copy .note { font-family:var(--mono); font-size:12.5px; color:var(--muted); border-left:2px solid var(--accent); padding:8px 0 8px 14px; margin-top:18px; line-height:1.6; }
+
+  /* Quiet CTA */
+  .cta-block { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:16px 24px; border:1px solid var(--line); border-radius:6px; padding:22px 24px; margin-top:26px; background:var(--paper-2); }
+  .cta-block p { margin:0; max-width:56ch; color:var(--ink-2); font-size:15px; }
+  .cta-block .btn { flex-shrink:0; }
+
+  /* Subscribe */
+  .ask { display:flex; flex-wrap:wrap; align-items:center; gap:14px 24px; }
+  .ask p { margin:0; color:var(--ink-2); max-width:56ch; }
+  .subscribe-ask { border-top:1px solid var(--line); margin-top:24px; padding-top:24px; }
+  .subscribe-form { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+  .subscribe-form input[type="email"] { height:44px; min-width:0; flex:1 1 240px; padding:0 14px; border:1px solid var(--line); border-radius:4px; background:var(--paper-2); color:var(--ink); font:15px/1 var(--sans); }
+  .subscribe-form input[type="email"]::placeholder { color:var(--muted); }
+  .subscribe-form .btn { flex:none; }
+  .hp { position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+  #subscribe-thanks { color:var(--ok); font-weight:600; }
+  #subscribe-error { color:var(--accent); font-weight:600; }
+  @media (max-width: 480px) { .subscribe-form input[type="email"], .subscribe-form button { width:100%; } }
+
+  /* FAQ (details/summary) */
+  details.faq { border-top:1px solid var(--line); padding:14px 0; }
+  details.faq:last-of-type { border-bottom:1px solid var(--line); }
+  details.faq summary { cursor:pointer; font:400 18px/1.3 var(--serif); list-style:none; display:flex; justify-content:space-between; gap:12px; }
+  details.faq summary::-webkit-details-marker { display:none; }
+  details.faq summary::after { content:"+"; color:var(--accent); flex:none; font-family:var(--sans); }
+  details.faq[open] summary::after { content:"\2013"; }
+  details.faq p { color:var(--ink-2); margin:10px 0 0; max-width:70ch; font-size:14.5px; overflow-wrap:anywhere; }
+
+  /* Footer */
+  footer { padding:32px 0 48px; color:var(--muted); font-size:13.5px; }
+  footer .cols { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:20px 32px; }
+  footer b { color:var(--ink); font-weight:600; }
+  footer a { color:var(--ink-2); }
+  footer p { margin:10px 0 0; }
+
+  .kbd { font-family:var(--mono); font-size:11px; padding:1px 6px; border-radius:3px; border:1px solid var(--line); background:var(--paper); color:var(--ink-2); }
+  .anchor-offset { scroll-margin-top:24px; }
+  pre { max-width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+</style>
+</head>
+<body>
+
+<a class="skip" href="#tool">Skip to the feed checker</a>
+
+<!-- Header -->
+<header id="top" class="top">
+  <div class="wrap">
+    <a class="wordmark" href="https://arling.sk/">Product Feed Doctor<small>an ARLing tool</small></a>
+    <nav class="main" aria-label="Page">
+      <a href="#tool">Check your feed</a>
+      <a href="#checks">What it checks</a>
+      <a href="#fixes">Fixes</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+  </div>
+</header>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="wrap">
+    <h1>Product Feed Doctor: find what is wrong with your shopping feed before Google, Meta or your AI assistant do</h1>
+    <p class="lead">Paste a feed URL, paste the feed content, or upload the file: Google Shopping/Merchant Center RSS, a Facebook/Meta catalog CSV, Shopify's <span class="mono">/products.json</span>, WooCommerce's Store API JSON, a generic XML feed, or plain CSV. Get a score out of 100, a rule-by-rule report, and the exact rows to fix, all in your browser.</p>
+    <ol class="steps">
+      <li>Paste, upload, or fetch a feed</li>
+      <li>Get a score and a rule-by-rule report</li>
+      <li>Fix what is flagged, export the list</li>
+    </ol>
+    <div class="hero-cta">
+      <a href="#tool" class="btn btn-solid">Check your feed</a>
+      <a href="https://github.com/AndryRoby/feed-doctor" class="btn btn-line" target="_blank" rel="noopener">View source on GitHub</a>
+    </div>
+    <ul class="facts">
+      <li><b>31</b> rules checked</li>
+      <li><b>6</b> feed formats</li>
+      <li><b>0 &euro;</b>, no account</li>
+      <li>nothing is uploaded</li>
+    </ul>
+  </div>
+</div>
+
+<main>
+
+<!-- The tool -->
+<section id="tool" class="block anchor-offset">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Check your feed</h2>
+      <p class="sub">Everything below runs in your browser. Paste a feed URL and click Fetch, paste the feed content directly, upload the downloaded file, or load the built-in sample to see how a report looks.</p>
+    </div>
+
+    <div class="play">
+      <div class="play-head">
+        <div class="lights"><span></span><span></span><span></span></div>
+        <div class="path"><span class="method">fn</span>&nbsp;FeedDoctor.analyze(text)</div>
+        <div class="spacer"></div>
+        <div class="runtime">client-side, no upload</div>
+      </div>
+
+      <div class="tool-inputs">
+        <div class="field-row">
+          <input type="text" id="feed-url" placeholder="https://yourshop.com/feed.xml" spellcheck="false" autocomplete="off">
+          <button class="icon-btn" id="fetch-btn" type="button">Fetch &amp; analyze</button>
+        </div>
+        <p id="fetch-status" class="fetch-status" hidden></p>
+        <div class="or-divider">or paste / upload the feed content</div>
+        <textarea id="feed-text" class="feed-text" rows="8" placeholder="Paste XML, CSV or JSON feed content here..." spellcheck="false" wrap="off"></textarea>
+        <div class="tool-actions">
+          <label class="icon-btn file-btn">Upload file<input type="file" id="feed-file" accept=".xml,.csv,.json,.txt,text/xml,text/csv,application/json" hidden></label>
+          <button class="icon-btn" id="sample-btn" type="button">Load sample feed</button>
+          <button class="icon-btn btn-solid" id="analyze-btn" type="button">Analyze &crarr;</button>
+          <span class="format-hint" id="format-hint"></span>
+        </div>
+      </div>
+
+      <div id="results" class="results">
+        <div class="placeholder">Paste a URL, paste feed content, upload a file, or load the sample feed, then press <span class="kbd">Analyze</span>.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 01 What it checks -->
+<section id="checks" class="block anchor-offset">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="kicker">01</p>
+      <h2>31 rules, each with a severity and a one-line fix.</h2>
+      <p class="sub">Every rule below has a stable id, a severity (error, warning or info), and, where it applies, the Merchant Center product data specification field it checks. This table is generated straight from feed-doctor.js, so it never drifts from what the tool actually runs.</p>
+    </div>
+    <div class="rule-table-wrap">
+      <table class="rule-table" id="rule-table">
+        <thead>
+          <tr><th>Severity</th><th>Rule id</th><th>Field</th><th>What it checks</th></tr>
+        </thead>
+        <tbody id="rule-table-body"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- 02 How to fix common issues -->
+<section id="fixes" class="block anchor-offset">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="kicker">02</p>
+      <h2>The six issues that show up in almost every feed.</h2>
+      <p class="sub">Most feeds fail on a small, repeating set of mistakes. Here is what causes each one and the fastest way to fix it.</p>
+    </div>
+    <ol class="rules">
+      <li>
+        <b>HTML left inside description.</b>
+        <p>Shopify's <span class="mono">body_html</span> and WooCommerce's <span class="mono">description</span> both carry raw markup. Strip tags before export, or run the field through a plain-text converter; <span class="mono">description</span> should read as prose, not markup.</p>
+      </li>
+      <li>
+        <b>Availability written as free text.</b>
+        <p>"Available", "In Stock!", "2 left" and similar are not recognized. Map your stock status to exactly one of <span class="mono">in stock</span>, <span class="mono">out of stock</span>, <span class="mono">preorder</span> or <span class="mono">backorder</span> before export.</p>
+      </li>
+      <li>
+        <b>Price with no currency.</b>
+        <p>"19.99" alone is ambiguous. Always export <span class="mono">price</span> as an amount and an ISO currency code together, e.g. <span class="mono">19.99 USD</span>, and make sure <span class="mono">sale_price</span> uses the same currency and is lower than <span class="mono">price</span>.</p>
+      </li>
+      <li>
+        <b>A mistyped or copy-pasted GTIN.</b>
+        <p>A single transposed digit still looks right at a glance but fails the check digit. Re-scan or re-copy the barcode from the product packaging or your supplier's data sheet rather than retyping it by hand.</p>
+      </li>
+      <li>
+        <b>Variants with no size or color.</b>
+        <p>If <span class="mono">item_group_id</span> ties variants together, each row still needs its own <span class="mono">size</span> and/or <span class="mono">color</span> (or another differentiator), or Google and Meta cannot tell the variants apart in the report or the ad.</p>
+      </li>
+      <li>
+        <b>Duplicate ids after a re-export.</b>
+        <p>A migration or a re-platforming often reuses ids, or resets them to a row number that collides across categories. <span class="mono">id</span> must be unique for the life of the item; if you must reuse a SKU, prefix it per source.</p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- 03 Quiet CTA -->
+<section id="assistant" class="block anchor-offset">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="kicker">03</p>
+      <h2>Turn your feed into a shopping assistant</h2>
+      <p class="sub">Once your feed is clean, the same product data can power a chat assistant on your store that answers "does this come in blue" or "what's in stock under 30 euro" from your real catalog.</p>
+    </div>
+    <div class="cta-block">
+      <p>ARLing Asistent reads your product feed and answers customer questions on your store, in your language, without a rewrite of your catalog.</p>
+      <a class="btn btn-solid" href="https://arling.sk/asistent/" data-umami-event="asistent_click">See ARLing Asistent</a>
+    </div>
+  </div>
+</section>
+
+<!-- How it works -->
+<section id="how" class="block anchor-offset">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>One function. Feed text in, report out.</h2>
+      <p class="sub">No server, no API key, no signup. <span class="mono">feed-doctor.js</span> is plain JavaScript: read it, fork it, or run it in your own scripts or CI.</p>
+    </div>
+    <div class="endpoint">
+      <div class="codeblock">
+        <div class="codeblock-head">
+          <span>feed-doctor.js</span>
+          <span>0 dependencies</span>
+        </div>
+        <pre><span class="p">import</span> { analyze } <span class="p">from</span> <span class="s">'./feed-doctor.js'</span>;
+<span class="p">// or, loaded globally: const { analyze } = window.FeedDoctor;</span>
+
+<span class="p">const</span> report = analyze(feedText);
+
+<span class="p">// report</span>
+{
+  <span class="k">"format"</span>:       <span class="s">"google_rss"</span> | <span class="s">"facebook_csv"</span> | <span class="s">"generic_csv"</span>
+                | <span class="s">"shopify_json"</span> | <span class="s">"woocommerce_json"</span> | <span class="s">"generic_xml"</span>,
+  <span class="k">"productCount"</span>: <span class="p">12</span>,
+  <span class="k">"score"</span>:        <span class="p">0-100</span>,
+  <span class="k">"counts"</span>:       { error, warning, info },
+  <span class="k">"rules"</span>:        [ { id, severity, spec, title, count, examples } &hellip; ],
+  <span class="k">"problems"</span>:     <span class="p">// only the triggered rules, sorted by severity</span>
+  <span class="k">"issues"</span>:       <span class="p">// first 200 individual issues, one row per problem</span>
+  <span class="k">"truncated"</span>:    <span class="p">true | false</span>
+}</pre>
+      </div>
+      <div class="endpoint-copy">
+        <p><strong style="color:var(--ink)">Everything runs client-side.</strong> The tool above calls this exact function in your browser. There is no backend, no API key, and no request that carries your feed anywhere (fetching a URL you paste is the one exception: your browser calls that URL directly).</p>
+        <p>It detects the format from the content itself, normalizes every row to one product shape (id, title, description, link, image_link, price, currency, availability, brand, gtin, mpn, condition, google_product_category, item_group_id, sale_price, shipping), and runs all 31 rules against every row.</p>
+        <div class="note">Free and open source. Found a case it gets wrong? Open a GitHub issue on the repo. No ads, and no tracking beyond anonymous usage counts.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Free -->
+<section id="pricing" class="block anchor-offset">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Free.</h2>
+      <p class="sub">No account, no payment, no usage limit: it runs as a static page in your browser, so there is no server to bill for.</p>
+    </div>
+    <div class="ask subscribe-ask" id="subscribe">
+      <p><b>Tell me when a new tool lands.</b> New tools only. No newsletter, no sharing. Reply to any mail to be removed.</p>
+      <form id="subscribe-form" class="subscribe-form" data-subscribe data-source="feed-doctor" data-lang="en" data-thanks="subscribe-thanks" data-error="subscribe-error" novalidate>
+        <div class="hp" aria-hidden="true"><input type="text" name="website" id="subscribe-website" tabindex="-1" autocomplete="off"></div>
+        <input type="email" id="subscribe-email" name="email" required autocomplete="email" inputmode="email" placeholder="you@example.com" aria-label="Email address">
+        <button class="btn btn-solid" type="submit">Notify me</button>
+      </form>
+      <p id="subscribe-thanks" hidden>Thanks. You will hear from us only when something new is live.</p>
+      <p id="subscribe-error" hidden>Could not save. Write to <a href="mailto:andrej@arling.sk">andrej@arling.sk</a>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Questions -->
+<section id="faq" class="block anchor-offset">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Questions people actually search for.</h2>
+      <p class="sub">Straight answers to the same product feed questions this tool checks, for when you just need the answer, not the checker.</p>
+    </div>
+
+    <details class="faq">
+      <summary>Which feed formats does Product Feed Doctor support?</summary>
+      <p>Google Shopping / Merchant Center RSS 2.0 (the <span class="mono">g:</span> namespace format, with or without an <span class="mono">atom:link</span> tag), a Facebook/Meta catalog CSV, a Shopify <span class="mono">/products.json</span> export, a WooCommerce Store API JSON response, a generic XML feed built from repeating <span class="mono">&lt;item&gt;</span> elements with different tag names, and a plain CSV with a header row. The format is auto-detected from the content you paste, upload, or fetch; you never have to tell it which one you're using.</p>
+    </details>
+    <details class="faq">
+      <summary>Does this tool upload my feed or product data anywhere?</summary>
+      <p>No. Parsing and every check run entirely in your browser, in <span class="mono">feed-doctor.js</span>. If you paste a feed URL and click Fetch, your browser fetches that URL directly; the response never passes through any ARLing server. Pasted text, an uploaded file, and the report are never sent anywhere. Read <span class="mono">feed-doctor.js</span> directly, or check your browser's Network tab, to verify.</p>
+    </details>
+    <details class="faq">
+      <summary>Why does fetching my feed URL directly fail?</summary>
+      <p>Most shop platforms and CDNs do not send the <span class="mono">Access-Control-Allow-Origin</span> header on their feed URLs, since those files are meant to be downloaded by Google's or Meta's servers, not read by JavaScript running on a different website. When that happens, the browser blocks the response before this page ever sees it: that is normal CORS behavior, not a bug in this tool. Paste the feed content instead, or upload the downloaded file; both skip the browser fetch entirely and analyze the exact same content.</p>
+    </details>
+    <details class="faq">
+      <summary>What counts as a required field in a Google Shopping feed?</summary>
+      <p>The Merchant Center product data specification treats <span class="mono">id</span>, <span class="mono">title</span>, <span class="mono">description</span>, <span class="mono">link</span>, <span class="mono">image_link</span>, <span class="mono">price</span> and <span class="mono">availability</span> as required for essentially every item, and <span class="mono">condition</span> as required once an item is not new (used, refurbished, and similar). This tool flags all of those as errors when missing or blank, and additionally checks <span class="mono">brand</span>, <span class="mono">gtin</span>, <span class="mono">mpn</span>, <span class="mono">item_group_id</span> and <span class="mono">shipping</span>, which the specification calls for in specific situations (a branded, identifiable product; variants that need to be told apart; and so on).</p>
+    </details>
+    <details class="faq">
+      <summary>How is the GTIN checksum validated?</summary>
+      <p><span class="mono">gtin</span> is checked against the standard GS1 mod-10 check-digit algorithm used by GTIN-8, GTIN-12 (UPC-A), GTIN-13 (EAN-13) and GTIN-14: non-digit characters are stripped, the length must be one of those four, and the last digit must equal (10 minus the mod-10 remainder of the weighted sum of the preceding digits, alternating weights 3 and 1 from the right) mod 10. A <span class="mono">gtin</span> that is the wrong length, or has a transposed or mistyped digit, fails this check and is flagged with the exact value that was read.</p>
+    </details>
+    <details class="faq">
+      <summary>What is the score out of 100 based on?</summary>
+      <p>It is a simple, documented heuristic, not a number Google, Meta or any platform publishes: start at 100, subtract 3 points per error instance, 1 point per warning instance and 0.2 points per info instance found across the whole feed, then floor at 0 and round to the nearest integer. It is meant to give a quick sense of how much is wrong and how severe it is, not to predict feed approval; read the rule-by-rule report for the specifics that matter.</p>
+    </details>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap cols">
+    <div><b>ARLing s. r. o.</b><br>Ivansk&aacute; cesta 32E<br>821 04 Bratislava, Slovakia</div>
+    <div>Company ID 56583486<br>VAT ID SK2122352100<br><a href="mailto:andrej@arling.sk">andrej@arling.sk</a></div>
+    <div>
+      <a href="https://arling.sk/">ARLing</a> &middot; <a href="https://arling.sk/asistent/">ARLing Asistent</a> &middot; <a href="https://arling.sk/cors-doctor/" target="_blank" rel="noopener">CORS Doctor</a><br>
+      <a href="llms.txt">llms.txt</a> &middot; <a href="sitemap.xml">sitemap</a> &middot; <a href="https://github.com/AndryRoby/feed-doctor" target="_blank" rel="noopener">source on GitHub</a> &middot; <a href="https://arling.sk/privacy/">Privacy</a>
+      <p>Read-only, client-side check: your feed is parsed and validated entirely in your browser, and nothing you paste or upload is sent anywhere. Verify your feed against your platform's own submission dashboard before relying on it. Not affiliated with or endorsed by Google, Meta, Shopify, or Automattic/WooCommerce.</p>
+      <p>Provided as is, without warranty. Anonymous visit and click counts via self-hosted Umami; we never see the feed content you check.</p>
+    </div>
+  </div>
+</footer>
+
+<!-- Scripts -->
+<script type="module">
+  import { analyze, RULES, SAMPLE_FEED, issuesToCsv, reportToJson } from './feed-doctor.js';
+
+  const $ = (id) => document.getElementById(id);
+
+  function esc(str) {
+    return String(str == null ? '' : str).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  function track(name, data) {
+    try { if (window.umami) window.umami.track(name, data); } catch (e) {}
+  }
+
+  // ── 01: render the full rule table from RULES itself ───────────────────
+  const ruleTableBody = $('rule-table-body');
+  ruleTableBody.innerHTML = RULES.map((r) => `
+    <tr>
+      <td><span class="sev-pill ${esc(r.severity)}">${esc(r.severity)}</span></td>
+      <td class="rid">${esc(r.id)}</td>
+      <td class="rfield">${r.spec ? esc(r.spec) : '&mdash;'}</td>
+      <td class="rdesc">${esc(r.title)}</td>
+    </tr>`).join('');
+
+  // ── tool wiring ──────────────────────────────────────────────────────
+  const urlInput = $('feed-url');
+  const fetchBtn = $('fetch-btn');
+  const fetchStatus = $('fetch-status');
+  const textArea = $('feed-text');
+  const fileInput = $('feed-file');
+  const sampleBtn = $('sample-btn');
+  const analyzeBtn = $('analyze-btn');
+  const formatHint = $('format-hint');
+  const results = $('results');
+
+  function showFetchStatus(msg) {
+    fetchStatus.textContent = msg;
+    fetchStatus.hidden = false;
+  }
+  function hideFetchStatus() {
+    fetchStatus.hidden = true;
+  }
+
+  fetchBtn.addEventListener('click', async () => {
+    const url = urlInput.value.trim();
+    if (!url) {
+      showFetchStatus('Type or paste a feed URL first.');
+      return;
+    }
+    let parsed;
+    try {
+      parsed = new URL(url);
+    } catch (e) {
+      showFetchStatus('That is not a valid URL. Paste the feed content below instead.');
+      return;
+    }
+    fetchBtn.disabled = true;
+    fetchBtn.textContent = 'Fetching...';
+    track('fetch_attempt');
+    try {
+      const res = await fetch(parsed.href, { mode: 'cors', credentials: 'omit' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const text = await res.text();
+      hideFetchStatus();
+      textArea.value = text;
+      runAnalysis(text);
+      track('fetch_ok');
+    } catch (e) {
+      track('fetch_blocked');
+      showFetchStatus(
+        'Could not fetch that URL directly, most likely because the server does not send the header that lets a browser on a different site read it (this is normal CORS behavior for feed files, not a bug). Paste the feed content below, or download the file and upload it instead.'
+      );
+    } finally {
+      fetchBtn.disabled = false;
+      fetchBtn.textContent = 'Fetch & analyze';
+    }
+  });
+
+  fileInput.addEventListener('change', () => {
+    const file = fileInput.files && fileInput.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      textArea.value = String(reader.result || '');
+      hideFetchStatus();
+      runAnalysis(textArea.value);
+      track('file_uploaded');
+    };
+    reader.onerror = () => {
+      showFetchStatus('Could not read that file in the browser. Try pasting its content instead.');
+    };
+    reader.readAsText(file);
+  });
+
+  sampleBtn.addEventListener('click', () => {
+    textArea.value = SAMPLE_FEED;
+    urlInput.value = '';
+    hideFetchStatus();
+    runAnalysis(SAMPLE_FEED);
+    track('sample_loaded');
+  });
+
+  analyzeBtn.addEventListener('click', () => {
+    runAnalysis(textArea.value);
+  });
+
+  const FORMAT_LABELS = {
+    google_rss: 'Google Shopping / Merchant Center RSS',
+    facebook_csv: 'Facebook / Meta catalog CSV',
+    generic_csv: 'Generic CSV',
+    shopify_json: 'Shopify /products.json',
+    woocommerce_json: 'WooCommerce Store API JSON',
+    generic_xml: 'Generic XML',
+    unknown: 'Unrecognized format',
+  };
+
+  function scoreClass(score) {
+    if (score >= 90) return 'good';
+    if (score >= 70) return 'ok';
+    return 'bad';
+  }
+
+  function downloadBlob(filename, content, type) {
+    const blob = new Blob([content], { type });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  let lastReport = null;
+
+  function renderReport(report) {
+    lastReport = report;
+    if (!report.productCount && report.format === 'unknown') {
+      results.innerHTML = '<div class="placeholder" style="color:var(--accent)">Could not detect a supported feed format in that input. Paste a Google Shopping/Merchant Center RSS, a Facebook/Meta CSV, a Shopify or WooCommerce JSON export, a generic XML feed, or a plain CSV with a header row.</div>';
+      formatHint.textContent = '';
+      return;
+    }
+    if (!report.productCount) {
+      results.innerHTML = `<div class="placeholder" style="color:var(--accent)">Detected ${esc(FORMAT_LABELS[report.format] || report.format)}, but found 0 items. Check that the feed content is complete.</div>`;
+      formatHint.textContent = '';
+      return;
+    }
+    formatHint.textContent = (FORMAT_LABELS[report.format] || report.format) + ' · ' + report.productCount + ' items';
+
+    const rulesHtml = report.problems
+      .map((p) => {
+        const examplesHtml = p.examples
+          .map((ex) => `<li class="issue-item"><span class="iid">#${ex.index + 1}${ex.id ? ' · ' + esc(ex.id) : ''}${ex.title ? ' · ' + esc(ex.title) : ''}</span><br>${esc(ex.detail)}</li>`)
+          .join('');
+        const more = p.count > p.examples.length ? `<p class="issue-more">+ ${p.count - p.examples.length} more row${p.count - p.examples.length === 1 ? '' : 's'} with this issue.</p>` : '';
+        return `<details class="found-rule ${esc(p.severity)}">
+          <summary>
+            <span class="sev-pill ${esc(p.severity)}">${esc(p.severity)}</span>
+            <span class="rtitle">${esc(p.title)}</span>
+            <span class="rid">${esc(p.id)}</span>
+            <span class="rcount">${p.count} row${p.count === 1 ? '' : 's'}</span>
+          </summary>
+          <ul class="issue-list">${examplesHtml}</ul>
+          ${more}
+        </details>`;
+      })
+      .join('');
+
+    results.innerHTML = `
+      <div class="result-top">
+        <div class="score-badge ${scoreClass(report.score)}"><span class="num">${report.score}</span><span class="of100">/ 100</span></div>
+        <div class="counts-row">
+          <span class="count-pill error">${report.counts.error} error${report.counts.error === 1 ? '' : 's'}</span>
+          <span class="count-pill warning">${report.counts.warning} warning${report.counts.warning === 1 ? '' : 's'}</span>
+          <span class="count-pill info">${report.counts.info} info</span>
+        </div>
+        <div class="result-meta">${esc(FORMAT_LABELS[report.format] || report.format)} · ${report.productCount} items · ${report.problems.length} rule${report.problems.length === 1 ? '' : 's'} triggered</div>
+      </div>
+      ${report.problems.length ? `<div class="result-section-title">Issues found, first 200 rows shown per rule up to 5 examples each</div>${rulesHtml}` : '<p class="sub">No rule was triggered. This feed passed every check.</p>'}
+      ${report.truncated ? '<p class="issue-more">The drill-down list is capped at 200 individual issues; export the full report for exact per-rule counts.</p>' : ''}
+      <div class="export-row">
+        <button class="icon-btn" id="export-csv-btn" type="button">Export issues as CSV</button>
+        <button class="icon-btn" id="export-json-btn" type="button">Export report as JSON</button>
+      </div>
+    `;
+
+    $('export-csv-btn').addEventListener('click', () => {
+      downloadBlob('feed-doctor-issues.csv', issuesToCsv(report.issues), 'text/csv');
+      track('export_csv');
+    });
+    $('export-json-btn').addEventListener('click', () => {
+      downloadBlob('feed-doctor-report.json', reportToJson(report), 'application/json');
+      track('export_json');
+    });
+  }
+
+  function runAnalysis(text) {
+    const trimmed = (text || '').trim();
+    if (!trimmed) {
+      results.innerHTML = '<div class="placeholder">Paste a URL, paste feed content, upload a file, or load the sample feed, then press <span class="kbd">Analyze</span>.</div>';
+      formatHint.textContent = '';
+      return;
+    }
+    let report;
+    try {
+      report = analyze(text);
+    } catch (e) {
+      results.innerHTML = '<div class="placeholder" style="color:var(--accent)">Could not analyze that input: ' + esc(e.message) + '</div>';
+      return;
+    }
+    renderReport(report);
+    track('analyze', { format: report.format, score: report.score, productCount: report.productCount });
+  }
+
+  // Smooth-scroll for in-page anchors
+  document.querySelectorAll('a[href^="#"]').forEach((a) => {
+    a.addEventListener('click', (e) => {
+      const id = a.getAttribute('href').slice(1);
+      if (!id) return;
+      const el = document.getElementById(id);
+      if (!el) return;
+      e.preventDefault();
+      window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 24, behavior: 'smooth' });
+    });
+  });
+</script>
+
+<script src="subscribe.js" defer></script>
+<script defer src="https://homelab.tailbf8f27.ts.net/script.js" data-website-id="77002c4b-a825-4462-af8c-4c7859af24b2"></script>
+</body>
+</html>

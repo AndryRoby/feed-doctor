@@ -1,0 +1,109 @@
+# Product Feed Doctor: find what is wrong with a shopping feed
+
+> Free, client-side checker for Google Shopping/Merchant Center RSS, Facebook/Meta catalog CSV, Shopify /products.json, WooCommerce Store API JSON, generic XML, and plain CSV product feeds. Paste a feed URL, paste the content, or upload the file, and get a score out of 100, a rule-by-rule report, and a per-product drill-down of exactly what to fix, no account, no backend.
+
+Detects the format from the content itself (no format selector needed), parses it, normalizes every row to one product shape, and runs 31 fixed rules against it. Each rule has a stable `id`, a `severity` (`error`, `warning` or `info`), the Merchant Center attribute it checks (where one applies), a count, up to five examples, and a one-line fix.
+
+## Supported formats
+
+- **Google Shopping / Merchant Center RSS 2.0**: `<rss>` with `xmlns:g="http://base.google.com/ns/1.0"` and `<item>` elements carrying `g:id`, `g:price`, `g:availability`, and so on; an `xmlns:atom` declaration and `atom:link` (common in real Merchant Center feeds) do not change detection.
+- **Facebook/Meta catalog CSV**: a CSV with a header row; detected specifically when a Facebook-only column is present (`quantity_to_sell_on_facebook`, `sale_price_effective_date`, `additional_image_link`, or `visibility`).
+- **Shopify `/products.json`**: the public storefront JSON, `{"products":[...]}`. Each variant becomes its own row; `item_group_id` is set to the parent product id only when a product has more than one variant; `size`/`color` are read from `option1`/`option2`/`option3` using the product's own `options` array to know which position is which; `description` keeps the raw `body_html` (including any markup it contains, which the HTML-in-description rule can then catch); currency is not present in this endpoint, so the missing-currency price rule is skipped for this format.
+- **WooCommerce Store API JSON**: an array of product objects with a `prices` object (`/wp-json/wc/store/v1/products`). Prices are integers in the currency's minor unit (e.g. `"4500"` with `currency_minor_unit: 2` is 45.00) and are converted before any checks run; `is_in_stock`/`is_on_backorder` map to `in stock`/`out of stock`/`backorder`; `item_group_id` is set to the product id when `has_variations` is true (the Store API's product-list response does not expose the specific variation's own attributes, so `size`/`color` are left blank there, which is exactly the situation the item_group/variant rule is meant to catch).
+- **Generic XML**: any XML with repeating `<item>` (or `<entry>`/`<product>`/`<offer>`) elements and plain tag names (`<id>`, `<name>`/`<title>`, `<desc>`/`<description>`, `<url>`/`<link>`, `<image_url>`/`<image>`/`<image_link>`, `<stock_status>`/`<availability>`, `<manufacturer>`/`<brand>`, and so on); the same field-candidate list a Google feed uses, minus the `g:` prefix requirement.
+- **Generic CSV**: a plain CSV with a header row, matched against the same field-candidate list (comma or semicolon delimiter, auto-detected; quoted fields with embedded commas, quotes and newlines are handled).
+
+## What it checks (rule id -> what it means)
+
+- `missing_id` / `missing_title` / `missing_description` / `missing_link` / `missing_image_link` / `missing_price` / `missing_availability`: the field is absent or blank. Corresponds to the Merchant Center product data specification's `id`, `title`, `description`, `link`, `image_link`, `price` and `availability` attributes.
+- `missing_condition_used`: the title or description contains a used/refurbished-style keyword ("used", "refurbished", "renewed", "open box", "pre-owned", "second hand") but `condition` is not set.
+- `invalid_condition`: `condition` is set but is not one of `new`, `refurbished` or `used`.
+- `duplicate_id`: the same `id` value is used by more than one item; `id` must be unique per item.
+- `title_too_long`: `title` is over 150 characters. `title_all_caps`: `title` has letters and is written entirely in upper case.
+- `description_too_short`: `description` is under 50 characters. `description_has_html`: `description` contains HTML markup (should be plain text).
+- `price_not_numeric`: `price` is present but could not be read as a number (e.g. "call for price"). `price_missing_currency`: `price` has no currency code, for formats where a currency is expected. `price_negative`: `price` is a negative number. `sale_price_gte_price`: `sale_price` is present and is not lower than `price`.
+- `link_invalid` / `image_link_invalid`: the value is not a valid, fully-qualified (absolute) URL. `link_not_https` / `image_link_not_https`: the URL is valid but uses `http:` rather than `https:`. `image_link_missing_extension`: the URL's path has no common image file extension (info-level).
+- `availability_invalid`: the value, once underscores are normalized to spaces, is not one of `in stock`, `out of stock`, `preorder`, `backorder`.
+- `gtin_checksum_invalid`: `gtin` is not 8, 12, 13 or 14 digits after stripping non-digits, or its last digit fails the GS1 mod-10 check-digit calculation.
+- `missing_brand`: `brand` is blank while `gtin` or `mpn` is set (a branded, identifiable product, per the spec's usual pairing of `brand` with an identifier).
+- `item_group_variant_missing_attrs`: `item_group_id` is set but neither `size` nor `color` is, so variants in the group cannot be told apart.
+- `shipping_missing` (info): no `shipping` information at all.
+- `non_utf8_chars`: a text field contains a control character or the Unicode replacement character U+FFFD, a sign the source bytes were not clean UTF-8.
+- `whitespace_only_value`: a field is present in the feed but its value is only whitespace (distinct from being absent entirely).
+- `duplicate_titles`: more than three items share the exact same `title`.
+
+## How it works
+
+```js
+import { analyze } from './feed-doctor.js';
+
+const report = analyze(feedText);
+```
+
+`report` carries `format` (the detected format id), `productCount`, `score` (0-100), `counts` (`{ error, warning, info }`), `rules` (the full 31-row table, including untriggered rules with `count: 0`), `problems` (only the triggered rules, sorted error before warning before info), `issues` (the first 200 individual issues across all rules, flattened for a per-product drill-down), and `truncated` (whether that 200-item cap was hit). `issuesToCsv(report.issues)` and `reportToJson(report)` build the two export formats the page's Export buttons use.
+
+## Score formula
+
+A documented heuristic, not a number any platform publishes: start at 100, subtract 3 points per error instance, 1 point per warning instance and 0.2 points per info instance found across the whole feed, floor at 0, round to the nearest integer.
+
+## Worked example
+
+Input: a Google Shopping RSS item with a negative price and an https image served over plain http:
+
+```xml
+<item>
+  <g:id>sku-42</g:id>
+  <title>Wool Scarf</title>
+  <description>A soft, warm wool scarf in charcoal, one size, hand wash cold water only.</description>
+  <link>https://shop.example.com/products/wool-scarf</link>
+  <g:image_link>http://shop.example.com/img/scarf.jpg</g:image_link>
+  <g:price>-12.00 USD</g:price>
+  <g:availability>in stock</g:availability>
+  <g:condition>new</g:condition>
+</item>
+```
+
+Output (trimmed, this is the tool's actual output for this input, not a hypothetical): `score: 96`, `counts: { error: 1, warning: 1, info: 1 }`, `problems` containing `price_negative` (error: "price is -12, which is negative"), `image_link_not_https` (warning: `image_link` uses "http:", expected https:), and `shipping_missing` (info: shipping is not set), in that order.
+
+## FAQ
+
+**Why does fetching my feed URL directly fail?**
+Most shop platforms and CDNs do not send `Access-Control-Allow-Origin` on feed files, since they are meant for Google's or Meta's servers to download, not a browser script on a different site to read. The browser blocks the response before this page sees it: normal CORS behavior, not a bug. Paste the content or upload the downloaded file instead; both analyze the exact same bytes without a network fetch at all.
+
+**Does this tool call my shop's server or store my feed?**
+Only if you paste a URL and click Fetch, in which case your own browser calls that URL directly; the response never passes through any ARLing server. Parsing, every rule, and the report itself never leave your browser. The only network activity beyond that is loading this page's own static files and anonymous Umami analytics events.
+
+**Why is a field like `shipping` only an info-level note instead of an error?**
+Because it is genuinely optional in many valid setups (a merchant with account-level shipping settings in Merchant Center does not need per-item `shipping`), unlike `id`/`title`/`price`/`availability`, which the product data specification treats as required for essentially every item.
+
+**My Shopify export has HTML in the description. Is that a bug in this tool?**
+No, that is a real, common mistake: Shopify's `/products.json` exposes `body_html`, and many merchants push it straight into a feed's `description` without stripping markup first. This tool keeps the raw value (rather than silently cleaning it for you) specifically so `description_has_html` can catch it.
+
+**What does `item_group_variant_missing_attrs` mean for a WooCommerce feed?**
+The WooCommerce Store API's product-list endpoint marks a variable product with `has_variations: true` and the parent product's id, but does not include the specific `size`/`color` a particular variation has (that lives on the separate variation objects). If you feed the parent-level listing straight through, every variable product's row will have an `item_group_id` but no way to distinguish it from its siblings, which is exactly what this rule flags.
+
+**Is the 0-100 score something Google or Meta uses?**
+No. It is this tool's own simple, documented heuristic (see "Score formula" above) meant to give a quick read on severity, not a prediction of feed approval or ad eligibility. The rule-by-rule report underneath it is the part that maps to real requirements.
+
+**What happens after 200 issues?**
+The per-product drill-down list caps at the first 200 individual issues (across all rules combined) to keep the report usable in the browser; `report.truncated` is `true` when that happens. Every rule's own `count` in the summary table is still the true, uncapped count, and the CSV/JSON export uses the same 200-row cap as the on-page view.
+
+## Privacy
+
+No account, no login, no server-side processing of your feed. The only analytics are anonymous usage counts (event name + count, never feed content) sent to a self-hosted Umami instance.
+
+## Sources
+
+The field names and required-ness this tool checks against are drawn from Google's Merchant Center product data specification (https://support.google.com/merchants/answer/7052112) and the GS1 GTIN check-digit calculation, both cited by attribute/field name only; this tool is not affiliated with or endorsed by Google, Meta, Shopify, or Automattic/WooCommerce, and does not reproduce their policy text.
+
+## Links
+
+- Tool: https://arling.sk/feed-doctor/
+- Short reference: https://arling.sk/feed-doctor/llms.txt
+- Source code: https://github.com/AndryRoby/feed-doctor
+- Free magnet for: ARLing Asistent (a shopping assistant built from your product feed): https://arling.sk/asistent/
+- Hub (more ARLing tools): https://arling.sk/
+
+## Contact
+
+Built by ARLing s. r. o. (Bratislava, Slovakia). andrej@arling.sk
