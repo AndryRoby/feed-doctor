@@ -64,7 +64,7 @@ curl "http://localhost:8787/__scheduled?cron=0+5+*+*+*"
 ```
 
 (`wrangler dev --test-scheduled` exposes `/__scheduled` as a manual trigger
-for local testing; there is no remote equivalent — to force a real run
+for local testing; there is no remote equivalent, so to force a real run
 against production, temporarily add a debug route or wait for 05:00 UTC.)
 
 ## Secrets and vars
@@ -87,7 +87,7 @@ redirecting to `https://arling.sk/feed-doctor/monitor/?paid=1`. The
 `licence-service` webhook maps this price to plan key `feed-monitor-pro` and
 PATCHes this worker's `/v1/monitors/:id/plan` on `checkout.session.completed`
 / `invoice.paid` (plan `pro`) and on `customer.subscription.deleted` / expiry
-(plan `free`) — see `products/licence-service/README.md`.
+(plan `free`), see `products/licence-service/README.md`.
 
 ## Tests
 
