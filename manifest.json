@@ -1,0 +1,30 @@
+{
+  "name": "Product Feed Doctor",
+  "short_name": "Feed Doctor",
+  "description": "Free, client-side checker for Google Shopping/Merchant Center, Facebook/Meta catalog, Shopify, WooCommerce and generic CSV/XML product feeds: score, rule-by-rule report, per-product drill-down. Nothing is uploaded.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f6f2ea",
+  "theme_color": "#f6f2ea",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

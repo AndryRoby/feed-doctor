@@ -1,0 +1,41 @@
+# Product Feed Doctor: find what is wrong with a shopping feed
+
+> Free, client-side checker for Google Shopping/Merchant Center RSS, Facebook/Meta catalog CSV, Shopify /products.json, WooCommerce Store API JSON, generic XML, and plain CSV product feeds. Paste a feed URL, paste the content, or upload the file, and get a score out of 100, a rule-by-rule report, and a per-product drill-down of exactly what to fix.
+
+Detects the feed format from its content, normalizes every row to one product shape (id, title, description, link, image_link, price, currency, availability, brand, gtin, mpn, condition, google_product_category, item_group_id, sale_price, shipping), and runs 31 rules against it: missing required fields, duplicate ids, price and link formatting, GTIN checksum validity, availability and condition values, and more. Everything runs in the browser; nothing you paste or upload is sent anywhere.
+
+## What it checks
+
+- Missing required fields: `id`, `title`, `description`, `link`, `image_link`, `price`, `availability`, and `condition` when the title/description suggests a used or refurbished item.
+- Duplicate `id` values, and more than three items sharing the exact same `title`.
+- `title` over 150 characters or written in all caps; `description` under 50 characters or containing HTML markup.
+- `price` with no currency code, a negative amount, or not a number at all; `sale_price` that is not lower than `price`.
+- `link` and `image_link` that are not valid absolute URLs, not served over https, or (for `image_link`) missing a recognizable file extension.
+- `availability` outside `in stock` / `out of stock` / `preorder` / `backorder`, and `condition` outside `new` / `refurbished` / `used`.
+- `gtin` that fails the GS1 mod-10 checksum for GTIN-8/12/13/14.
+- Missing `brand` on an item that already has a `gtin` or `mpn` (a branded, identifiable product); `item_group_id` used without `size` or `color` to tell variants apart; missing `shipping` (info-level).
+- Non-UTF-8/control characters, and fields present in the feed but containing only whitespace.
+
+## Who it's for
+
+Shopify, WooCommerce, PrestaShop and Shoptet store owners (and anyone hand-rolling a feed) preparing a product feed for Google Merchant Center, Meta/Facebook catalog ads, or an AI shopping assistant, who want to catch formatting problems before submitting.
+
+## How it works
+
+Static HTML plus one dependency-free JavaScript file, `feed-doctor.js`. Parsing and every rule run entirely in your browser; the only network request this tool itself makes is fetching a feed URL you explicitly paste and click Fetch on (blocked by most platforms' CORS policy, in which case paste or upload the content instead).
+
+## Privacy
+
+No account, no server-side processing of your feed. The only analytics are anonymous usage counts (event name + count, never feed content) sent to a self-hosted Umami instance.
+
+## Links
+
+- Tool: https://arling.sk/feed-doctor/
+- Full reference (worked example + FAQ): https://arling.sk/feed-doctor/llms-full.txt
+- Source code: https://github.com/AndryRoby/feed-doctor
+- Free magnet for: ARLing Asistent (a shopping assistant built from your product feed): https://arling.sk/asistent/
+- Hub (more ARLing tools): https://arling.sk/
+
+## Contact
+
+Built by ARLing s. r. o. (Bratislava, Slovakia). andrej@arling.sk

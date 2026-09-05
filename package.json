@@ -1,0 +1,12 @@
+{
+  "name": "feed-doctor",
+  "version": "1.0.0",
+  "description": "Product Feed Doctor: free, client-side checker for Google Shopping/Merchant Center, Facebook/Meta catalog, Shopify, WooCommerce and generic CSV/XML product feeds.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node tests.mjs"
+  },
+  "license": "UNLICENSED",
+  "author": "ARLing s. r. o. <andrej@arling.sk>"
+}
