@@ -1,0 +1,66 @@
+# wrangler.toml
+# Feed Doctor Monitor worker: opt-in feed monitoring (POST a feed URL + email,
+# we fetch that feed on a schedule, run the Feed Doctor rule engine, and
+# e-mail an alert when something got worse). See ../README.md for the
+# product contract and products/arling-asistent/worker/README.md for the
+# sibling worker this one borrows its shape from (D1, KV rate limit,
+# X-Admin-Token billing hook).
+
+name = "feed-monitor"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+
+[observability]
+enabled = true
+
+# Public vars (not secret): the homelab mailer endpoint this worker POSTs
+# to for every confirmation/alert e-mail (see src/mail.js), and the Stripe
+# Payment Link for the upgrade_url in GET /v1/monitors/:id (see
+# products/feed-doctor/monitor/STRIPE_LINK.txt, written by the billing
+# step; client_reference_id=<monitor id> is appended at request time).
+[vars]
+MAIL_URL = "https://homelab.tailbf8f27.ts.net/subscribe/api/mail"
+STRIPE_LINK = "https://buy.stripe.com/8x214he2mbOj1Sq2hL4ko05"
+# Cross-origin callers allowed to use the JSON API (the signup box on
+# feed-doctor/index.html and the manage page at feed-doctor/monitor/, both
+# on arling.sk). See src/index.js corsFor/isOriginAllowed.
+ALLOWED_ORIGINS = "arling.sk"
+# This worker's own absolute origin, used to build the confirm/delete links
+# in e-mails sent from a context with no incoming request to read (the
+# daily cron, and the manual-check route's alert send). Filled in with the
+# real workers.dev URL right after the first `wrangler deploy`; any HTTP
+# route that does have a request derives its origin from request.url
+# instead and ignores this var (src/links.js workerOrigin).
+WORKER_BASE_URL = "https://feed-monitor.arling.workers.dev"
+
+# D1: monitors + checks, see migrations/0001.sql. One-time setup:
+#   wrangler d1 create feedmonitor
+#   wrangler d1 migrations apply feedmonitor --remote
+[[d1_databases]]
+binding = "DB"
+database_name = "feedmonitor"
+database_id = "bba3adc7-7457-4475-abcc-f478db01f5de"
+
+# KV: short-lived per-IP / per-monitor rate-limit counters only, same
+# pattern as ASISTENT_CACHE in the arling-asistent worker (src/security.js
+# checkRateLimit). Create with:
+#   wrangler kv namespace create FEEDMONITOR_RATE_LIMIT
+[[kv_namespaces]]
+binding = "FEEDMONITOR_RATE_LIMIT"
+id = "18c103da6027431088c67c730d2d074d"
+
+# Daily check run, 05:00 UTC: every Pro monitor, plus free monitors whose
+# last check is 6+ days old (see src/db.js listMonitorsDueForCheck).
+[triggers]
+crons = ["0 5 * * *"]
+
+# Secrets (not [vars], never committed):
+#   ADMIN_TOKEN - PATCH /v1/monitors/:id/plan, X-Admin-Token header; the
+#     licence-service Stripe webhook calls this route the same way it calls
+#     arling-asistent's. Set with: wrangler secret put ADMIN_TOKEN
+#   MAIL_TOKEN - X-Mail-Token header sent with every call to MAIL_URL
+#     (products/subscribe-service/app.py POST /api/mail). Set with:
+#     wrangler secret put MAIL_TOKEN
+# Both values live in C:/Users/User/.secrets/feed-monitor.txt (ADMIN_TOKEN=...,
+# MAIL_TOKEN=...), which the subscribe-service .env also reads MAIL_TOKEN
+# from, so the two sides agree without the value ever appearing in a repo.
