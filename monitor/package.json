@@ -1,0 +1,19 @@
+{
+  "name": "feed-monitor-worker",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Cloudflare Worker for Feed Doctor Monitor: opt-in scheduled feed checks, D1 storage, e-mail alerts via the homelab mailer.",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "node --test test/*.test.mjs",
+    "migrate": "wrangler d1 migrations apply feedmonitor --remote",
+    "migrate:local": "wrangler d1 migrations apply feedmonitor --local"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  },
+  "license": "UNLICENSED",
+  "author": "ARLing s. r. o. <andrej@arling.sk>"
+}
