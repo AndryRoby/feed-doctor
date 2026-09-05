@@ -88,9 +88,18 @@ No. It is this tool's own simple, documented heuristic (see "Score formula" abov
 **What happens after 200 issues?**
 The per-product drill-down list caps at the first 200 individual issues (across all rules combined) to keep the report usable in the browser; `report.truncated` is `true` when that happens. Every rule's own `count` in the summary table is still the true, uncapped count, and the CSV/JSON export uses the same 200-row cap as the on-page view.
 
+## Feed Doctor Monitor (opt-in add-on, server-side)
+
+Everything above is the client-side checker: no account, no server-side processing. Feed Doctor Monitor is a separate, opt-in add-on below the results: give it a feed URL and e-mail, and a server re-runs the same 31 rules on a schedule and alerts you by e-mail when something got worse.
+
+- **Free**: one feed per e-mail address, a check once a week, an alert when a new error-severity rule appears or the score drops by 5 points or more.
+- **Pro** (9 EUR/month per feed): a check every day, an alert on every change, and 90 days of score history on the manage page.
+- Manage a monitor at https://arling.sk/feed-doctor/monitor/?id=&key= (the link from the confirmation e-mail): score, counts, top issues, history, an "Upgrade" or "Check now" button, and "Delete monitor" (removes the e-mail, feed URL and all history).
+- Storage, stated plainly: the monitor's server stores your e-mail, the feed URL, and each check's score, issue counts and rule ids. It never stores the feed content itself. Signing up is the one action on this whole tool that sends your feed URL to an ARLing server; everything else stays in your browser, as described in "Does this tool call my shop's server or store my feed?" above.
+
 ## Privacy
 
-No account, no login, no server-side processing of your feed. The only analytics are anonymous usage counts (event name + count, never feed content) sent to a self-hosted Umami instance.
+The checker above: no account, no login, no server-side processing of your feed. Feed Doctor Monitor (above) is the opt-in exception: it fetches the feed URL you give it on our server, on the schedule you chose, and stores only e-mail, feed URL and per-check counts, never feed content. The only analytics are anonymous usage counts (event name + count, never feed content) sent to a self-hosted Umami instance.
 
 ## Sources
 

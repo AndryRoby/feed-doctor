@@ -102,6 +102,30 @@
         "@type": "Answer",
         "text": "It is a simple, documented heuristic, not a number Google, Meta or any platform publishes: start at 100, subtract 3 points per error instance, 1 point per warning instance and 0.2 points per info instance found across the whole feed, then floor at 0 and round to the nearest integer. It is meant to give a quick sense of how much is wrong and how severe it is, not to predict feed approval; read the rule-by-rule report for the specifics that matter."
       }
+    },
+    {
+      "@type": "Question",
+      "name": "What does Feed Doctor Monitor do?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "It is an opt-in add-on: give it your feed URL and e-mail, and a server checks the same 31 rules on a schedule (weekly on the free plan, daily on Pro) and e-mails you when something got worse. The one-time checker above stays entirely local to your browser; the monitor is the only part of Feed Doctor that fetches your feed on our server, and it only fetches the URL you gave it."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is Feed Doctor Monitor free?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The free plan covers one feed per e-mail address, a weekly check, and an alert when a new error rule appears or the score drops by 5 points or more. Pro is 9 EUR per month per feed: a daily check, an alert on every change, and 90 days of score history on your monitor page. Unsubscribe with one click from any alert e-mail or the monitor page."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What does Feed Doctor Monitor store about my feed?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Your e-mail, the feed URL, and the result of each check: the score, the counts of errors/warnings/infos, and which rule ids triggered. It never stores the feed content itself, so your product titles, prices and descriptions never sit on our server."
+      }
     }
   ]
 }
@@ -244,6 +268,23 @@
   .export-row { display:flex; gap:8px; flex-wrap:wrap; margin:20px 0; }
   .handoff { margin:0; padding-top:16px; border-top:1px solid var(--line); font-size:13.5px; line-height:1.55; color:var(--ink-2); }
   .handoff a { color:var(--ink); }
+
+  /* Monitor this feed */
+  .monitor-box { margin-top:18px; padding-top:18px; border-top:1px solid var(--line); }
+  .monitor-box h3 { font:600 11px/1 var(--sans); letter-spacing:.04em; text-transform:uppercase; color:var(--muted); margin:0 0 12px; }
+  .monitor-form { display:flex; flex-direction:column; gap:10px; max-width:520px; }
+  .monitor-row { display:flex; flex-wrap:wrap; gap:8px; }
+  .monitor-row input { flex:1 1 220px; min-width:0; height:42px; padding:0 12px; border:1px solid var(--line); border-radius:4px; background:var(--paper); color:var(--ink); font:14px/1 var(--sans); outline:none; }
+  .monitor-row input:focus { border-color:var(--ink-2); }
+  .monitor-row input::placeholder { color:var(--muted); }
+  .monitor-row .icon-btn { flex:none; }
+  .monitor-pro-line { margin:0; font-size:12.5px; color:var(--ink-2); }
+  .monitor-note { margin:0; padding:8px 10px; font-size:12px; line-height:1.55; color:var(--ink-2); border-left:2px solid var(--accent); background:var(--accent-soft); border-radius:0 4px 4px 0; }
+  .monitor-status { margin:0; font-size:13px; font-weight:600; }
+  .monitor-status.err { color:var(--accent); }
+  .monitor-status.ok { color:var(--ok); }
+  .monitor-success p { margin:0; font-size:14px; font-weight:600; color:var(--ok); }
+  @media (max-width:480px) { .monitor-row input, .monitor-row .icon-btn { width:100%; flex:1 1 auto; } }
 
   .result-section-title { font:600 11px/1 var(--sans); letter-spacing:.04em; text-transform:uppercase; color:var(--muted); border-bottom:1px solid var(--line); padding-bottom:8px; margin:26px 0 12px; }
   .result-section-title:first-of-type { margin-top:0; }
@@ -557,6 +598,18 @@
       <summary>What is the score out of 100 based on?</summary>
       <p>It is a simple, documented heuristic, not a number Google, Meta or any platform publishes: start at 100, subtract 3 points per error instance, 1 point per warning instance and 0.2 points per info instance found across the whole feed, then floor at 0 and round to the nearest integer. It is meant to give a quick sense of how much is wrong and how severe it is, not to predict feed approval; read the rule-by-rule report for the specifics that matter.</p>
     </details>
+    <details class="faq">
+      <summary>What does Feed Doctor Monitor do?</summary>
+      <p>It is an opt-in add-on: give it your feed URL and e-mail after an analysis, and a server checks the same 31 rules on a schedule (weekly on the free plan, daily on Pro) and e-mails you when something got worse. The checker above stays entirely local to your browser; the monitor is the only part of Feed Doctor that fetches your feed on our server, and it only fetches the URL you gave it.</p>
+    </details>
+    <details class="faq">
+      <summary>Is Feed Doctor Monitor free?</summary>
+      <p>The free plan covers one feed per e-mail address, a weekly check, and an alert when a new error rule appears or the score drops by 5 points or more. Pro is <span class="mono">9 EUR</span> per month per feed: a daily check, an alert on every change, and 90 days of score history on your monitor page. Unsubscribe with one click from any alert e-mail or the monitor page.</p>
+    </details>
+    <details class="faq">
+      <summary>What does Feed Doctor Monitor store about my feed?</summary>
+      <p>Your e-mail, the feed URL, and the result of each check: the score, the counts of errors/warnings/infos, and which rule ids triggered. It never stores the feed content itself, so your product titles, prices and descriptions never sit on our server.</p>
+    </details>
   </div>
 </section>
 
@@ -577,7 +630,10 @@
 
 <!-- Scripts -->
 <script type="module">
-  import { analyze, RULES, SAMPLE_FEED, issuesToCsv, reportToJson, asistentHandoffUrl } from './feed-doctor.js';
+  import { analyze, RULES, SAMPLE_FEED, issuesToCsv, reportToJson, asistentHandoffUrl, isValidEmailSyntax, monitorPrefillUrl } from './feed-doctor.js';
+
+  // Feed Doctor Monitor worker base URL. Only place this needs to change.
+  const MONITOR_API_BASE = 'https://feed-monitor.arling.workers.dev';
 
   const $ = (id) => document.getElementById(id);
 
@@ -768,6 +824,7 @@
         <button class="icon-btn" id="export-json-btn" type="button">Export report as JSON</button>
       </div>
       <p class="handoff" id="asistent-handoff">This feed can also power a shopping assistant: <a href="${esc(asistentHandoffUrl(sourceUrl))}" data-umami-event="asistent_click" data-umami-event-place="results" data-umami-event-source="${sourceUrl ? 'url' : 'text'}">try ARLing Asistent with it</a>.</p>
+      ${renderMonitorBox(monitorPrefillUrl(sourceUrl, urlInput.value))}
     `;
 
     $('export-csv-btn').addEventListener('click', () => {
@@ -777,6 +834,91 @@
     $('export-json-btn').addEventListener('click', () => {
       downloadBlob('feed-doctor-report.json', reportToJson(report), 'application/json');
       track('export_json');
+    });
+    wireMonitorForm();
+  }
+
+  // ── "Monitor this feed" box: weekly/daily re-checks by e-mail ──────────
+
+  function renderMonitorBox(prefillUrl) {
+    return `
+      <div class="monitor-box" id="monitor-box">
+        <h3>Monitor this feed</h3>
+        <form id="monitor-form" class="monitor-form" novalidate>
+          <div class="monitor-row">
+            <input type="text" id="monitor-url" name="feed_url" value="${esc(prefillUrl)}" placeholder="https://yourshop.com/feed.xml" spellcheck="false" autocomplete="off" inputmode="url">
+          </div>
+          <div class="monitor-row">
+            <input type="email" id="monitor-email" name="email" placeholder="you@example.com" autocomplete="email" inputmode="email">
+            <button class="icon-btn btn-solid" id="monitor-submit" type="submit">Start weekly checks, free</button>
+          </div>
+          <p class="monitor-pro-line">Pro: daily checks and history, 9 EUR per month, upgrade from your monitor page.</p>
+          <p class="monitor-note">We fetch only this URL on our server, the browser checker stays local, unsubscribe with one click.</p>
+          <p class="monitor-status" id="monitor-status" hidden></p>
+        </form>
+      </div>`;
+  }
+
+  function wireMonitorForm() {
+    const box = $('monitor-box');
+    const form = $('monitor-form');
+    if (!box || !form) return;
+    const status = $('monitor-status');
+    const submitBtn = $('monitor-submit');
+    const submitLabel = submitBtn.textContent;
+
+    function showStatus(msg, kind) {
+      status.textContent = msg;
+      status.className = 'monitor-status' + (kind ? ' ' + kind : '');
+      status.hidden = false;
+    }
+
+    form.addEventListener('submit', async (evt) => {
+      evt.preventDefault();
+      const feedUrlRaw = $('monitor-url').value.trim();
+      const emailRaw = $('monitor-email').value.trim();
+
+      let parsedUrl = null;
+      try {
+        parsedUrl = new URL(feedUrlRaw);
+      } catch (e) {
+        parsedUrl = null;
+      }
+      if (!parsedUrl || (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:')) {
+        showStatus('Enter the feed URL you want checked (starting with http:// or https://).', 'err');
+        return;
+      }
+      if (!isValidEmailSyntax(emailRaw)) {
+        showStatus('Enter a valid e-mail address.', 'err');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Starting...';
+      try {
+        const res = await fetch(MONITOR_API_BASE + '/v1/monitors', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ feed_url: parsedUrl.href, email: emailRaw }),
+        });
+        if (res.status === 201) {
+          box.innerHTML = '<h3>Monitor this feed</h3><div class="monitor-success"><p>Check your inbox for the confirmation link.</p></div>';
+          track('monitor_signup', { plan: 'free' });
+        } else if (res.status === 409) {
+          showStatus('That e-mail already has a free monitor running. Check your inbox for the link, or upgrade to Pro for more feeds.', 'err');
+        } else if (res.status === 429) {
+          showStatus('Too many attempts from here. Wait a few minutes and try again.', 'err');
+        } else {
+          showStatus('Could not start the monitor right now. Try again in a minute, or write to andrej@arling.sk.', 'err');
+        }
+      } catch (e) {
+        showStatus('Could not reach the monitor service. Try again in a minute.', 'err');
+      } finally {
+        if (document.body.contains(submitBtn)) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = submitLabel;
+        }
+      }
     });
   }
 

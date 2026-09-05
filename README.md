@@ -33,11 +33,22 @@ Each check is a `code` `feed-doctor.js`'s `analyze()` can return, with a `severi
 
 The full, generated-from-source rule table is on the page itself under "What it checks".
 
+## Feed Doctor Monitor
+
+An opt-in add-on: give it your feed URL and e-mail from the "Monitor this feed" box below the results, and a server checks the same 31 rules on a schedule and e-mails you when something got worse.
+
+- **Free**: one feed per e-mail address, a check once a week, an alert when a new error-severity rule appears or the score drops by 5 points or more.
+- **Pro** (9 EUR/month per feed): a check every day, an alert on every change, and 90 days of score history on the monitor page (`monitor/index.html`), plus a "Check now" button.
+- Manage a monitor at `monitor/?id=<id>&key=<key>` (the link from the confirmation e-mail): score, issue counts, top issues, history, upgrade, or delete.
+- Unsubscribe with one click from any alert e-mail or from the monitor page's "Delete monitor" button; deleting removes the e-mail address, feed URL and all check history.
+
+**Privacy, honestly stated**: the checker above (this page) stays entirely local to your browser, exactly as described below; the monitor is the one part of Feed Doctor that is not local, and it is opt-in. Signing up sends your feed URL and e-mail to the monitor service, which fetches only that URL, on our server, on the schedule above. It stores your e-mail, the feed URL, and each check's score/counts/rule ids; it never stores the feed content itself.
+
 ## What it does not do
 
 - It does not call your shop's backend, submit anything to Google or Meta, or "fix" your feed for you. It only reports what is wrong and how to fix it.
-- It does not proxy feed URLs. If it fetches a URL you paste, your own browser makes that request directly; there is no server in between.
-- It does not send, store, or log your feed content anywhere.
+- The checker on this page does not proxy feed URLs. If it fetches a URL you paste, your own browser makes that request directly; there is no server in between.
+- The checker on this page does not send, store, or log your feed content anywhere. The one opt-in exception is Feed Doctor Monitor (above): if you sign up for it, its server fetches your feed URL on a schedule, but still never stores the feed content, only the score, issue counts and rule ids of each check.
 
 ## How it works
 
