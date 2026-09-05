@@ -12,6 +12,8 @@ import {
   reportToJson,
   asistentHandoffUrl,
   ASISTENT_URL,
+  isValidEmailSyntax,
+  monitorPrefillUrl,
   RULES,
   SAMPLE_FEED,
 } from './feed-doctor.js';
@@ -864,6 +866,43 @@ eq('computeScore: never goes below 0', computeScore([{ severity: 'error', count:
   eq('handoff: file scheme gives the plain page', asistentHandoffUrl('file:///C:/feed.xml'), ASISTENT_URL);
   ok('handoff: plain page link carries no ?feed=', !ASISTENT_URL.includes('?feed=') && !asistentHandoffUrl('').includes('feed='));
   eq('handoff: ASISTENT_URL is the demo page', ASISTENT_URL, 'https://arling.sk/asistent/');
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// 32. Feed Doctor Monitor: e-mail syntax check for the "Monitor this feed"
+//     box. Syntax only, same shape as the worker's own validation.
+// ─────────────────────────────────────────────────────────────────────────
+
+{
+  ok('email: plain address is valid', isValidEmailSyntax('shop@example.com'));
+  ok('email: subdomain address is valid', isValidEmailSyntax('owner@mail.example.co.uk'));
+  ok('email: plus-addressing is valid', isValidEmailSyntax('shop+feeds@example.com'));
+  ok('email: surrounding whitespace is trimmed before checking', isValidEmailSyntax('  shop@example.com  '));
+  ok('email: missing @ is invalid', !isValidEmailSyntax('shop.example.com'));
+  ok('email: missing domain dot is invalid', !isValidEmailSyntax('shop@example'));
+  ok('email: space inside is invalid', !isValidEmailSyntax('sh op@example.com'));
+  ok('email: empty string is invalid', !isValidEmailSyntax(''));
+  ok('email: null is invalid', !isValidEmailSyntax(null));
+  ok('email: undefined is invalid', !isValidEmailSyntax(undefined));
+  ok('email: a number is invalid', !isValidEmailSyntax(42));
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// 33. Feed Doctor Monitor: URL prefill for the "Monitor this feed" box.
+//     Prefers the fetched sourceUrl, falls back to whatever is still typed
+//     in the feed URL field, otherwise leaves the field blank.
+// ─────────────────────────────────────────────────────────────────────────
+
+{
+  eq('prefill: sourceUrl wins when both are set', monitorPrefillUrl('https://shop.example/feed.xml', 'https://other.example/x.csv'), 'https://shop.example/feed.xml');
+  eq('prefill: falls back to typedUrl when sourceUrl is null', monitorPrefillUrl(null, 'https://shop.example/feed.xml'), 'https://shop.example/feed.xml');
+  eq('prefill: falls back to typedUrl when sourceUrl is empty', monitorPrefillUrl('', 'https://shop.example/feed.xml'), 'https://shop.example/feed.xml');
+  eq('prefill: blank when neither is a URL (paste/upload, empty field)', monitorPrefillUrl(null, ''), '');
+  eq('prefill: blank when typedUrl is not a valid URL', monitorPrefillUrl(null, 'not a url'), '');
+  eq('prefill: non-http scheme in sourceUrl is skipped in favor of typedUrl', monitorPrefillUrl('javascript:alert(1)', 'https://shop.example/feed.xml'), 'https://shop.example/feed.xml');
+  eq('prefill: non-http scheme in both gives blank', monitorPrefillUrl('file:///feed.xml', 'javascript:x'), '');
+  eq('prefill: surrounding whitespace is trimmed', monitorPrefillUrl('  https://shop.example/feed.xml  ', ''), 'https://shop.example/feed.xml');
+  eq('prefill: result is the normalized href', monitorPrefillUrl('HTTPS://Shop.EXAMPLE/feed.xml', ''), 'https://shop.example/feed.xml');
 }
 
 // ─────────────────────────────────────────────────────────────────────────

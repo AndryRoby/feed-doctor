@@ -16,6 +16,10 @@ Detects the feed format from its content, normalizes every row to one product sh
 - Missing `brand` on an item that already has a `gtin` or `mpn` (a branded, identifiable product); `item_group_id` used without `size` or `color` to tell variants apart; missing `shipping` (info-level).
 - Non-UTF-8/control characters, and fields present in the feed but containing only whitespace.
 
+## Feed Doctor Monitor (opt-in add-on)
+
+An opt-in server-side monitor, separate from the client-side checker above: give it a feed URL and e-mail, and it re-runs the same 31 rules on a schedule and alerts by e-mail when something got worse. Free: one feed per e-mail, weekly check, alert on a new error rule or a 5+ point score drop. Pro (9 EUR/month per feed): daily check, alert on every change, 90-day score history. Stores only the e-mail, feed URL, and each check's score/counts/rule ids; never the feed content. Sign up from the "Monitor this feed" box below the results at https://arling.sk/feed-doctor/, manage at https://arling.sk/feed-doctor/monitor/.
+
 ## Who it's for
 
 Shopify, WooCommerce, PrestaShop and Shoptet store owners (and anyone hand-rolling a feed) preparing a product feed for Google Merchant Center, Meta/Facebook catalog ads, or an AI shopping assistant, who want to catch formatting problems before submitting.

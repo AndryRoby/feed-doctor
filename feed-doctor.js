@@ -24,8 +24,8 @@
 // Works as an ES module (import { analyze } from './feed-doctor.js') and,
 // when loaded with <script type="module">, also publishes
 // window.FeedDoctor = { analyze, parseFeed, detectFormat, checkProducts,
-// gtinChecksumValid, issuesToCsv, reportToJson, asistentHandoffUrl, RULES,
-// SAMPLE_FEED }.
+// gtinChecksumValid, issuesToCsv, reportToJson, asistentHandoffUrl,
+// isValidEmailSyntax, monitorPrefillUrl, RULES, SAMPLE_FEED }.
 
 // ───────────────────────── small helpers ─────────────────────────
 
@@ -1071,6 +1071,38 @@ export function asistentHandoffUrl(sourceUrl) {
   return ASISTENT_URL + '?feed=' + encodeURIComponent(parsed.href) + '#playground';
 }
 
+// ───────────────────── Feed Doctor Monitor helpers ─────────────────────
+// Small pure helpers for the "Monitor this feed" box on the page. They do
+// not call the monitor worker themselves; the page's own script does that.
+
+const EMAIL_SYNTAX_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// Syntax-only check (same shape as the worker's own validation): not a
+// deliverability check, just "does this look like an e-mail address".
+export function isValidEmailSyntax(email) {
+  return typeof email === 'string' && EMAIL_SYNTAX_RE.test(email.trim());
+}
+
+// What to pre-fill the monitor box's feed URL field with: prefer the URL the
+// page actually fetched (sourceUrl), then fall back to whatever is still
+// typed in the "feed URL" input (typedUrl) even if it was never fetched or
+// the fetch failed; pasted/uploaded input with neither gives an empty field.
+// Only http(s) URLs qualify; the returned string is the normalized href.
+export function monitorPrefillUrl(sourceUrl, typedUrl) {
+  for (const candidate of [sourceUrl, typedUrl]) {
+    const raw = typeof candidate === 'string' ? candidate.trim() : '';
+    if (!raw) continue;
+    let parsed;
+    try {
+      parsed = new URL(raw);
+    } catch (e) {
+      continue;
+    }
+    if (parsed.protocol === 'http:' || parsed.protocol === 'https:') return parsed.href;
+  }
+  return '';
+}
+
 // ───────────────────────── sample feed ─────────────────────────
 // A small, self-contained Google Shopping RSS 2.0 feed: 12 items, 6
 // deliberately broken in one distinct way each (everything else about them
@@ -1261,6 +1293,8 @@ if (typeof window !== 'undefined') {
     reportToJson,
     asistentHandoffUrl,
     ASISTENT_URL,
+    isValidEmailSyntax,
+    monitorPrefillUrl,
     RULES,
     SAMPLE_FEED,
   };

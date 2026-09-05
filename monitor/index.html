@@ -1,0 +1,466 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://homelab.tailbf8f27.ts.net; connect-src 'self' https:; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+<title>Feed Doctor Monitor</title>
+<meta name="description" content="Manage your Feed Doctor Monitor: score history, issue counts, upgrade to Pro, or delete the monitor.">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#f6f2ea">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="alternate icon" href="../favicon.ico">
+<style>
+  :root {
+    --paper:#f6f2ea; --paper-2:#fbf9f4; --ink:#1b1a17; --ink-2:#4a4741; --muted:#66625a; --line:#d9d2c4;
+    --accent:#b23a1d; --accent-soft:#f3e2dc; --ok:#2f6f3e; --warn:#9a6b00;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+    --sans:system-ui,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,"Cascadia Code",Consolas,Menlo,monospace;
+    --radius:4px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --paper:#151412; --paper-2:#1d1b18; --ink:#efe9de; --ink-2:#c9c2b5; --muted:#8f887b; --line:#2e2b26; --accent:#e0623f; --accent-soft:#3a1f17; --ok:#7fbf8e; --warn:#d9a54a; }
+  }
+  * { box-sizing:border-box; }
+  html { background:var(--paper); }
+  body { margin:0; color:var(--ink); background:var(--paper); font:16px/1.55 var(--sans); -webkit-font-smoothing:antialiased; }
+  a { color:inherit; text-decoration-color:var(--line); text-underline-offset:3px; }
+  a:hover { text-decoration-color:var(--accent); }
+  :focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
+  [hidden] { display:none !important; }
+  .wrap { max-width:640px; margin:0 auto; padding:0 24px; }
+  .mono { font-family:var(--mono); }
+
+  header.top { border-bottom:1px solid var(--line); }
+  header.top .wrap { display:flex; align-items:baseline; justify-content:space-between; gap:16px; padding:18px 24px; flex-wrap:wrap; }
+  .wordmark { font:600 20px/1 var(--serif); text-decoration:none; }
+  .wordmark small { font:12px/1 var(--sans); color:var(--muted); margin-left:8px; letter-spacing:.04em; }
+  nav.main a { font-size:14px; text-decoration:none; color:var(--ink-2); margin-left:18px; }
+  nav.main a:hover { color:var(--accent); }
+  @media (max-width:420px) { .wordmark small { display:none; } }
+
+  main { padding:40px 0 64px; }
+  .kicker { font:400 14px/1 var(--serif); color:var(--accent); letter-spacing:.04em; margin:0 0 8px; }
+  h1 { font:400 clamp(24px,4vw,32px)/1.2 var(--serif); margin:0 0 6px; letter-spacing:-.005em; }
+  .sub { color:var(--ink-2); margin:0 0 26px; font-size:15px; overflow-wrap:anywhere; }
+
+  .banner { border-left:2px solid var(--ok); background:var(--accent-soft); padding:10px 14px; border-radius:0 4px 4px 0; font-size:13.5px; color:var(--ink-2); margin-bottom:22px; }
+  .banner.paid { border-left-color:var(--ok); }
+  .banner.demo { border-left-color:var(--warn); }
+
+  .loading, .placeholder { color:var(--muted); font-size:14px; font-family:var(--mono); }
+  .error-box { border:1px solid var(--line); background:var(--paper-2); border-radius:6px; padding:20px 22px; }
+  .error-box p { margin:0 0 12px; color:var(--ink-2); font-size:15px; }
+  .error-box p:last-child { margin-bottom:0; }
+
+  .status-row { display:flex; flex-wrap:wrap; gap:8px 14px; align-items:center; font-size:13px; color:var(--muted); margin-bottom:4px; }
+  .plan-pill { font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.03em; padding:2px 8px; border-radius:4px; border:1px solid var(--line); }
+  .plan-pill.pro { color:var(--ok); border-color:var(--ok); }
+  .plan-pill.free { color:var(--muted); }
+
+  .card { border:1px solid var(--line); background:var(--paper-2); border-radius:6px; padding:22px; margin-top:22px; }
+  .card + .card { margin-top:16px; }
+  .card h2 { font:600 11px/1 var(--sans); letter-spacing:.04em; text-transform:uppercase; color:var(--muted); margin:0 0 16px; }
+
+  .score-badge { display:flex; align-items:baseline; gap:6px; font-family:var(--serif); margin-bottom:14px; }
+  .score-badge .num { font-size:40px; line-height:1; }
+  .score-badge .of100 { font-size:14px; color:var(--muted); font-family:var(--sans); }
+  .score-badge.good .num { color:var(--ok); }
+  .score-badge.ok .num { color:var(--warn); }
+  .score-badge.bad .num { color:var(--accent); }
+  .counts-row { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:6px; }
+  .count-pill { font-family:var(--mono); font-size:12px; padding:4px 10px; border-radius:4px; border:1px solid var(--line); }
+  .count-pill.error { color:var(--accent); border-color:var(--accent); background:var(--accent-soft); }
+  .count-pill.warning { color:var(--warn); border-color:var(--warn); }
+  .count-pill.info { color:var(--muted); }
+  .meta-line { font-family:var(--mono); font-size:12px; color:var(--muted); margin-top:10px; }
+
+  .issue-list { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px; }
+  .issue-list li { display:flex; align-items:center; gap:10px; font-size:13.5px; border-top:1px solid var(--line); padding-top:8px; flex-wrap:wrap; }
+  .issue-list li:first-child { border-top:none; padding-top:0; }
+  .sev-pill { display:inline-flex; align-items:center; font-family:var(--mono); font-size:10.5px; font-weight:600; padding:2px 7px; border-radius:4px; border:1px solid var(--line); text-transform:uppercase; letter-spacing:.03em; white-space:nowrap; }
+  .sev-pill.error { color:var(--accent); border-color:var(--accent); }
+  .sev-pill.warning { color:var(--warn); border-color:var(--warn); }
+  .sev-pill.info { color:var(--muted); }
+  .issue-list .rid { font-family:var(--mono); font-size:12.5px; }
+  .issue-list .rcount { margin-left:auto; font-family:var(--mono); font-size:11.5px; color:var(--muted); }
+
+  .spark-wrap { color:var(--accent); margin-bottom:14px; }
+  .spark-wrap svg { display:block; max-width:100%; height:auto; }
+
+  .history-table-wrap { overflow-x:auto; }
+  table.history-table { width:100%; border-collapse:collapse; font-size:13px; }
+  table.history-table th { text-align:left; font:600 10.5px/1 var(--sans); text-transform:uppercase; letter-spacing:.04em; color:var(--muted); padding:0 10px 8px 0; border-bottom:1px solid var(--line); white-space:nowrap; }
+  table.history-table td { padding:7px 10px 7px 0; border-bottom:1px solid var(--line); font-family:var(--mono); font-size:12.5px; white-space:nowrap; }
+  table.history-table tr:last-child td { border-bottom:none; }
+  .history-note { font-size:12px; color:var(--muted); margin:10px 0 0; }
+
+  .btn { display:inline-block; font:600 14px/1 var(--sans); padding:11px 16px; border-radius:var(--radius); text-decoration:none; cursor:pointer; border:2px solid transparent; }
+  .btn-solid { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .btn-solid:hover { color:#fff; opacity:.92; }
+  .btn-solid:disabled { opacity:.5; cursor:not-allowed; }
+  .btn-line { border:2px solid var(--ink); color:var(--ink); background:transparent; }
+  .btn-danger { border:2px solid var(--accent); color:var(--accent); background:transparent; }
+  .actions-row { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:22px; }
+  .action-note { font-size:12.5px; color:var(--muted); margin:0; }
+  .action-status { font-size:13px; font-weight:600; margin:10px 0 0; }
+  .action-status.err { color:var(--accent); }
+  .action-status.ok { color:var(--ok); }
+
+  .delete-row { border-top:1px solid var(--line); margin-top:26px; padding-top:18px; }
+  .delete-row p { margin:0 0 10px; font-size:13px; color:var(--muted); }
+  .confirm-row { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+
+  footer { padding:32px 0 48px; color:var(--muted); font-size:13px; border-top:1px solid var(--line); margin-top:24px; }
+  footer a { color:var(--ink-2); }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="wordmark" href="https://arling.sk/">Product Feed Doctor<small>an ARLing tool</small></a>
+    <nav class="main" aria-label="Page">
+      <a href="../">Feed checker</a>
+      <a href="https://arling.sk/privacy/">Privacy</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <p class="kicker">Monitor</p>
+    <h1>Your feed monitor</h1>
+    <p class="sub">Weekly or daily checks of your product feed, by e-mail. Feed content is never stored, only the score and issue counts of each check.</p>
+    <div id="app"><p class="loading">Loading...</p></div>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    ARLing s. r. o., Bratislava, Slovakia &middot; <a href="mailto:andrej@arling.sk">andrej@arling.sk</a><br>
+    <a href="../">Feed Doctor</a> &middot; <a href="https://arling.sk/">ARLing</a> &middot; <a href="https://arling.sk/privacy/">Privacy</a>
+  </div>
+</footer>
+
+<script type="module">
+  // Feed Doctor Monitor worker base URL. Only place this needs to change.
+  const MONITOR_API_BASE = 'https://feed-monitor.arling.workers.dev';
+
+  const $ = (id) => document.getElementById(id);
+  const app = $('app');
+
+  function esc(str) {
+    return String(str == null ? '' : str).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  function track(name, data) {
+    try { if (window.umami) window.umami.track(name, data); } catch (e) {}
+  }
+
+  function fmtDate(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return String(iso).slice(0, 10);
+    return d.toISOString().slice(0, 10);
+  }
+
+  function scoreClass(score) {
+    if (score >= 90) return 'good';
+    if (score >= 70) return 'ok';
+    return 'bad';
+  }
+
+  function sparklineSvg(history) {
+    const points = (history || []).filter((h) => typeof h.score === 'number');
+    if (points.length < 2) return '';
+    const w = 280, h = 60, pad = 6;
+    const scores = points.map((p) => p.score);
+    const min = Math.min(0, ...scores);
+    const max = Math.max(100, ...scores);
+    const range = (max - min) || 1;
+    const stepX = (w - pad * 2) / (points.length - 1);
+    const xy = scores.map((s, i) => [
+      pad + stepX * i,
+      pad + (h - pad * 2) * (1 - (s - min) / range),
+    ]);
+    const path = xy.map((p, i) => (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
+    const last = xy[xy.length - 1];
+    return `<div class="spark-wrap"><svg viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" role="img" aria-label="Score history, oldest to newest">
+      <path d="${esc(path)}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="3" fill="currentColor"/>
+    </svg></div>`;
+  }
+
+  function historyTable(history) {
+    if (!history || !history.length) return '<p class="sub" style="margin:0">No checks yet.</p>';
+    const rows = history.slice().reverse(); // newest first
+    const shown = rows.slice(0, 10);
+    const note = rows.length > shown.length
+      ? `<p class="history-note">${rows.length - shown.length} earlier check${rows.length - shown.length === 1 ? '' : 's'} not shown here.</p>`
+      : '';
+    return `
+      ${sparklineSvg(history)}
+      <div class="history-table-wrap">
+        <table class="history-table">
+          <thead><tr><th>Date</th><th>Score</th><th>Errors</th><th>Warnings</th></tr></thead>
+          <tbody>
+            ${shown.map((r) => `<tr><td>${esc(r.date || fmtDate(r.at))}</td><td>${esc(r.score)}</td><td>${esc(r.error)}</td><td>${esc(r.warning)}</td></tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+      ${note}
+    `;
+  }
+
+  function topIssuesList(issues) {
+    if (!issues || !issues.length) return '<p class="sub" style="margin:0">No rule was triggered on the last check.</p>';
+    return `<ul class="issue-list">${issues.map((i) => `
+      <li>
+        <span class="sev-pill ${esc(i.severity)}">${esc(i.severity)}</span>
+        <span class="rid mono">${esc(i.rule)}</span>
+        <span class="rcount">${esc(i.count)} row${i.count === 1 ? '' : 's'}</span>
+      </li>`).join('')}</ul>`;
+  }
+
+  function renderError(message) {
+    app.innerHTML = `
+      <div class="error-box">
+        <p>${esc(message)}</p>
+        <p><a href="../">Back to the feed checker</a>, or write to <a href="mailto:andrej@arling.sk">andrej@arling.sk</a>.</p>
+      </div>`;
+  }
+
+  function renderNoParams() {
+    app.innerHTML = `
+      <div class="error-box">
+        <p>This page needs the link from your confirmation e-mail (it carries your monitor id and key).</p>
+        <p>Don't have a monitor yet? <a href="../#tool">Check a feed</a> and start one below the results.</p>
+      </div>`;
+  }
+
+  function renderMonitor(data, opts) {
+    opts = opts || {};
+    const isDemo = !!opts.demo;
+    const isPro = data.plan === 'pro';
+    const counts = data.last_counts || { error: 0, warning: 0, info: 0 };
+    const score = typeof data.last_score === 'number' ? data.last_score : null;
+
+    const banners = [];
+    if (isDemo) banners.push('<div class="banner demo">This is sample data for preview only. No monitor is running and no data was fetched.</div>');
+    if (opts.paid) banners.push('<div class="banner paid">Thanks. Pro is now active on this monitor.</div>');
+
+    app.innerHTML = `
+      ${banners.join('')}
+      <div class="status-row">
+        <span class="plan-pill ${isPro ? 'pro' : 'free'}">${isPro ? 'Pro' : 'Free'}</span>
+        <span>${esc(data.feed_url)}</span>
+      </div>
+      <div class="status-row">
+        <span>${esc(data.email_masked || '')}</span>
+        <span>status: ${esc(data.status || 'active')}</span>
+      </div>
+
+      <div class="card">
+        <h2>Latest check</h2>
+        ${score === null
+          ? '<p class="sub" style="margin:0">No check has run yet. The first check happens right after you confirm your e-mail.</p>'
+          : `<div class="score-badge ${scoreClass(score)}"><span class="num">${esc(score)}</span><span class="of100">/ 100</span></div>
+             <div class="counts-row">
+               <span class="count-pill error">${esc(counts.error)} error${counts.error === 1 ? '' : 's'}</span>
+               <span class="count-pill warning">${esc(counts.warning)} warning${counts.warning === 1 ? '' : 's'}</span>
+               <span class="count-pill info">${esc(counts.info)} info</span>
+             </div>`
+        }
+        <div class="meta-line">Last checked: ${data.last_check_at ? esc(fmtDate(data.last_check_at)) : 'never'} &middot; Next check: ${data.next_check_at ? esc(fmtDate(data.next_check_at)) : 'not scheduled'}</div>
+      </div>
+
+      <div class="card">
+        <h2>Top issues</h2>
+        ${topIssuesList(data.last_top_issues)}
+      </div>
+
+      <div class="card">
+        <h2>Score history</h2>
+        ${historyTable(data.history)}
+      </div>
+
+      <div class="actions-row">
+        ${isPro
+          ? `<button class="btn btn-line" id="check-now-btn" type="button">Check now</button>`
+          : `<a class="btn btn-solid" id="upgrade-btn" href="${esc(data.upgrade_url || '#')}" data-umami-event="monitor_upgrade_click">Upgrade to Pro, 9 EUR / month</a>`
+        }
+      </div>
+      ${!isPro ? '<p class="action-note">Pro: daily checks, an alert on every change, and 90 days of history.</p>' : ''}
+      <p class="action-status" id="action-status" hidden></p>
+
+      <div class="delete-row">
+        <p>Deleting removes the monitor, the e-mail address and all check history. This cannot be undone.</p>
+        <div class="confirm-row" id="delete-row">
+          <button class="btn btn-danger" id="delete-btn" type="button">Delete monitor</button>
+        </div>
+      </div>
+    `;
+
+    wireActions(data, isDemo);
+  }
+
+  function wireActions(data, isDemo) {
+    const actionStatus = $('action-status');
+    function showAction(msg, kind) {
+      if (!actionStatus) return;
+      actionStatus.textContent = msg;
+      actionStatus.className = 'action-status' + (kind ? ' ' + kind : '');
+      actionStatus.hidden = false;
+    }
+
+    const upgradeBtn = $('upgrade-btn');
+    if (upgradeBtn && isDemo) {
+      upgradeBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        showAction('Sample data: upgrading is disabled in this preview.', 'err');
+      });
+    }
+
+    const checkNowBtn = $('check-now-btn');
+    if (checkNowBtn) {
+      checkNowBtn.addEventListener('click', async () => {
+        if (isDemo) {
+          showAction('Sample data: checking now is disabled in this preview.', 'err');
+          return;
+        }
+        checkNowBtn.disabled = true;
+        checkNowBtn.textContent = 'Checking...';
+        try {
+          const params = new URLSearchParams(location.search);
+          const res = await fetch(`${MONITOR_API_BASE}/v1/monitors/${encodeURIComponent(params.get('id'))}/check?key=${encodeURIComponent(params.get('key'))}`, { method: 'POST' });
+          if (res.ok) {
+            track('monitor_check_now');
+            await loadFromApi(params.get('id'), params.get('key'));
+          } else if (res.status === 402) {
+            showAction('Check now is a Pro feature.', 'err');
+          } else if (res.status === 429) {
+            showAction('Already checked recently. Try again in an hour.', 'err');
+          } else {
+            showAction('Could not run the check right now. Try again in a minute.', 'err');
+          }
+        } catch (e) {
+          showAction('Could not reach the monitor service. Try again in a minute.', 'err');
+        } finally {
+          if (document.body.contains(checkNowBtn)) {
+            checkNowBtn.disabled = false;
+            checkNowBtn.textContent = 'Check now';
+          }
+        }
+      });
+    }
+
+    const deleteRow = $('delete-row');
+    const deleteBtn = $('delete-btn');
+    if (deleteBtn) {
+      deleteBtn.addEventListener('click', () => {
+        if (isDemo) {
+          showAction('Sample data: deleting is disabled in this preview.', 'err');
+          return;
+        }
+        deleteRow.innerHTML = `
+          <span class="action-note">Really delete this monitor and all its history?</span>
+          <button class="btn btn-danger" id="delete-confirm-btn" type="button">Yes, delete</button>
+          <button class="btn btn-line" id="delete-cancel-btn" type="button">Cancel</button>
+        `;
+        $('delete-cancel-btn').addEventListener('click', () => location.reload());
+        $('delete-confirm-btn').addEventListener('click', async () => {
+          const confirmBtn = $('delete-confirm-btn');
+          confirmBtn.disabled = true;
+          confirmBtn.textContent = 'Deleting...';
+          try {
+            const params = new URLSearchParams(location.search);
+            const res = await fetch(`${MONITOR_API_BASE}/v1/monitors/${encodeURIComponent(params.get('id'))}?key=${encodeURIComponent(params.get('key'))}`, { method: 'DELETE' });
+            if (res.ok || res.status === 404) {
+              track('monitor_delete');
+              app.innerHTML = '<div class="error-box"><p>The monitor was deleted. Nothing more is stored.</p><p><a href="../">Back to the feed checker</a>.</p></div>';
+            } else {
+              showAction('Could not delete the monitor right now. Try again in a minute.', 'err');
+              confirmBtn.disabled = false;
+              confirmBtn.textContent = 'Yes, delete';
+            }
+          } catch (e) {
+            showAction('Could not reach the monitor service. Try again in a minute.', 'err');
+            confirmBtn.disabled = false;
+            confirmBtn.textContent = 'Yes, delete';
+          }
+        });
+      });
+    }
+  }
+
+  async function loadFromApi(id, key) {
+    app.innerHTML = '<p class="loading">Loading...</p>';
+    try {
+      const res = await fetch(`${MONITOR_API_BASE}/v1/monitors/${encodeURIComponent(id)}?key=${encodeURIComponent(key)}`);
+      if (res.status === 404) {
+        renderError('This monitor was not found. Check the link from your confirmation e-mail, or it may have been deleted.');
+        return;
+      }
+      if (!res.ok) {
+        renderError('Could not load this monitor right now. Try again in a minute.');
+        return;
+      }
+      const data = await res.json();
+      const params = new URLSearchParams(location.search);
+      renderMonitor(data, { demo: false, paid: params.get('paid') === '1' });
+    } catch (e) {
+      renderError('Could not reach the monitor service. Check your connection and try again.');
+    }
+  }
+
+  const DEMO_FIXTURE = {
+    id: 'demo',
+    feed_url: 'https://shop.example.com/feed.xml',
+    email_masked: 'j***@example.com',
+    plan: 'free',
+    status: 'active',
+    created_at: '2026-08-01T09:00:00Z',
+    last_check_at: '2026-09-04T05:03:00Z',
+    last_score: 82,
+    last_counts: { error: 2, warning: 5, info: 3 },
+    last_top_issues: [
+      { rule: 'missing_description', severity: 'error', count: 2 },
+      { rule: 'price_missing_currency', severity: 'warning', count: 3 },
+      { rule: 'image_link_not_https', severity: 'warning', count: 2 },
+      { rule: 'shipping_missing', severity: 'info', count: 3 },
+    ],
+    history: [
+      { date: '2026-08-07', score: 91, error: 0, warning: 4 },
+      { date: '2026-08-14', score: 88, error: 1, warning: 4 },
+      { date: '2026-08-21', score: 85, error: 1, warning: 5 },
+      { date: '2026-08-28', score: 84, error: 2, warning: 5 },
+      { date: '2026-09-04', score: 82, error: 2, warning: 5 },
+    ],
+    next_check_at: '2026-09-11T05:00:00Z',
+    upgrade_url: 'https://buy.stripe.com/example',
+  };
+
+  function init() {
+    const params = new URLSearchParams(location.search);
+    const isDemo = params.get('demo') === '1';
+    if (isDemo) {
+      renderMonitor(DEMO_FIXTURE, { demo: true, paid: params.get('paid') === '1' });
+      return;
+    }
+    const id = params.get('id');
+    const key = params.get('key');
+    if (!id || !key) {
+      renderNoParams();
+      return;
+    }
+    loadFromApi(id, key);
+  }
+
+  init();
+</script>
+
+<script defer src="https://homelab.tailbf8f27.ts.net/script.js" data-website-id="77002c4b-a825-4462-af8c-4c7859af24b2"></script>
+</body>
+</html>
