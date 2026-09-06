@@ -309,7 +309,9 @@
       plocha: plocha, nazov: nazov, vidno: false, zaciatok: null,
       rozmer: function () {
         var r = plocha.getBoundingClientRect();
-        var hustota = Math.min(window.devicePixelRatio || 1, r.width < 720 ? 1 : 1.5);
+        // 1.25 na úzkych obrazovkách: pri 1.0 sa jemné detaily scény strácajú
+        // a pozadie vyzerá ako prázdna plocha. Vyššie by už len hrialo batériu.
+        var hustota = Math.min(window.devicePixelRatio || 1, r.width < 720 ? 1.25 : 1.5);
         var w = Math.max(1, Math.round(r.width * hustota));
         var h = Math.max(1, Math.round(r.height * hustota));
         if (plocha.width !== w || plocha.height !== h) {
@@ -346,6 +348,35 @@
     if (s) sceny.push(s);
   });
   if (!sceny.length) return;
+
+  /* Každá scéna si stráži vlastnú veľkosť.
+   *
+   * Prečo to nestačilo merať pri vzniku a pri zmene okna: plátno sa meria skôr,
+   * než sa dopočítajú fonty a dokreslí rozloženie, takže dostane inú veľkosť
+   * než akú nakoniec má. Obraz sa potom roztiahne a na mobile z toho vznikli
+   * obdĺžnikové seky. Na telefóne k tomu pribúda skrývanie adresného riadka,
+   * ktoré mení výšku okna bez udalosti resize.
+   * ResizeObserver je jediné, čo si to všimne spoľahlivo. */
+  if ('ResizeObserver' in window) {
+    var ro = new ResizeObserver(function (zaznamy) {
+      zaznamy.forEach(function (z) {
+        for (var i = 0; i < sceny.length; i++) {
+          if (sceny[i].plocha !== z.target) continue;
+          sceny[i].rozmer();
+          // Po zmene veľkosti je obsah plátna neplatný, prekresliť hneď,
+          // nečakať na ďalší snímok slučky.
+          sceny[i].kresli(performance.now() + (tichy ? 9000 : 0));
+        }
+      });
+    });
+    sceny.forEach(function (s) { ro.observe(s.plocha); });
+  }
+  // Fonty menia výšku textu a tým aj výšku úvodu.
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(function () {
+      sceny.forEach(function (s) { s.rozmer(); s.kresli(performance.now() + (tichy ? 9000 : 0)); });
+    });
+  }
 
   // ── jedna spoločná slučka pre všetky scény ────────────────────────────────
   var bezi = false;
