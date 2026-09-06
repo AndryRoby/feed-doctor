@@ -754,3 +754,31 @@ body.noc .band .wrap{padding-top:clamp(8px,1vw,16px);padding-bottom:clamp(8px,1v
 body.noc .band ol,body.noc .band ul{gap:clamp(26px,3.2vw,52px)}
 body.noc .band li{padding-right:clamp(10px,1.4vw,24px)}
 body.noc .band li b,body.noc .band li strong{display:block;margin-bottom:10px;line-height:1.35}
+
+/* Natívne ovládacie prvky na tmavom. Prehliadač im dáva vlastný svetlý vzhľad,
+   takže na tmavej ploche svietia ako cudzie teleso. Toto je jediné miesto,
+   kde sa dotýkame vzhľadu formulárov, aby sa to nemuselo riešiť v nástrojoch. */
+body.noc input,body.noc select,body.noc textarea{
+  background:rgba(255,255,255,.045);color:var(--ink);border:1px solid var(--line);
+  border-radius:9px;font-family:var(--ui)}
+body.noc input::placeholder,body.noc textarea::placeholder{color:var(--muted)}
+body.noc input:focus,body.noc select:focus,body.noc textarea:focus{
+  border-color:var(--accent);outline:none;box-shadow:0 0 0 3px rgba(242,100,60,.18)}
+body.noc input[type="file"]{padding:8px 10px}
+body.noc input[type="file"]::file-selector-button{
+  background:rgba(255,255,255,.09);color:var(--ink);border:1px solid var(--line);
+  border-radius:7px;padding:6px 12px;margin-right:12px;cursor:pointer;
+  font:500 13.5px/1 var(--ui)}
+body.noc input[type="file"]::file-selector-button:hover{background:rgba(255,255,255,.16)}
+body.noc select{appearance:none;padding-right:34px;
+  background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
+  background-position:calc(100% - 18px) 52%,calc(100% - 13px) 52%;
+  background-size:5px 5px,5px 5px;background-repeat:no-repeat}
+body.noc option{background:var(--card-plna);color:var(--ink)}
+body.noc input[type="checkbox"],body.noc input[type="radio"]{accent-color:var(--accent)}
+/* Tabuľky s výsledkami: striedavé riadky, aby sa dvesto riadkov dalo čítať. */
+body.noc table{border-color:var(--line)}
+body.noc th{color:var(--ink);border-bottom:1px solid var(--line);font-weight:600}
+body.noc td{border-bottom:1px solid rgba(255,255,255,.055)}
+body.noc tbody tr:nth-child(even){background:rgba(255,255,255,.022)}
+body.noc tbody tr:hover{background:rgba(242,100,60,.06)}
