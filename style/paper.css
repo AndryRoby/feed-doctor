@@ -1,0 +1,421 @@
+/* ARLing Paper v2. Jediný zdroj vzhľadu pre všetky naše stránky.
+   Zdroj: ops/design/paper/paper.css v AI-OS. Do produktov sa kopíruje skriptom
+   ops/design/sync-paper.mjs, takže každá stránka si nesie vlastnú kópiu a nezávisí od cudzej domény.
+   Pravidlá, ktoré tento súbor vynucuje, sú v ops/design/paper-v2.md. Neupravovať v produkte. */
+
+/* ── 1. Fonty. Nadpisy bezpätkovo, text pätkovo, licencia OFL, hostené u nás. ── */
+@font-face{font-family:"ARLing Sans";src:url(../fonts/arling-sans.woff2) format("woff2-variations"),url(../fonts/arling-sans.woff2) format("woff2");font-weight:400 700;font-style:normal;font-display:swap}
+@font-face{font-family:"ARLing Serif";src:url(../fonts/arling-serif.woff2) format("woff2-variations"),url(../fonts/arling-serif.woff2) format("woff2");font-weight:400 600;font-style:normal;font-display:swap}
+@font-face{font-family:"ARLing Serif";src:url(../fonts/arling-serif-italic.woff2) format("woff2");font-weight:400;font-style:italic;font-display:swap}
+
+/* ── 2. Tokeny ── */
+:root{
+  --paper:#faf9f5;        /* základ */
+  --paper-deep:#f0eee6;   /* každá druhá sekcia */
+  --card:#ffffff;         /* karta, snímka, scéna */
+  --ink:#141413;          /* nadpisy, tmavá sekcia */
+  --body:#3d3d3a;         /* text */
+  --muted:#5e5d59;        /* metadáta */
+  --line:#e4e2d8;         /* vlasové linky */
+  --accent:#b23a1d;       /* náš tehlový */
+  --accent-dark:#8f2e17;  /* hover */
+  --accent-light:#d0603c; /* na atramente */
+  --ok:#4a6b3f;
+
+  --display:"ARLing Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --text:"ARLing Serif",Georgia,"Times New Roman",serif;
+  --ui:"ARLing Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+
+  --wrap:min(1432px,89vw);
+  --gap:clamp(28px,4vw,64px);
+  --sec:clamp(56px,6.5vw,116px);
+  --radius:14px;
+  --ease:cubic-bezier(.2,.7,.2,1);
+  --spring:cubic-bezier(.16,1,.3,1);
+}
+
+/* ── 3. Základ ── */
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--body);
+  font:clamp(17px,1.25vw,20px)/1.45 var(--text);-webkit-font-smoothing:antialiased}
+.wrap{width:var(--wrap);margin:0 auto}
+img,svg,video{max-width:100%}
+img{height:auto}
+::selection{background:rgba(178,58,29,.18)}
+:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+.skip{position:absolute;left:-9999px}
+.skip:focus{left:12px;top:12px;background:var(--card);border:1px solid var(--ink);padding:8px 12px;z-index:99;font-family:var(--ui)}
+
+/* ── 4. Zrno a atramentový nádych. Jediné dve trvalé slučky na stránku. ── */
+.wash{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.wash i{position:absolute;display:block;border-radius:50%;filter:blur(90px);opacity:.10}
+.wash i:nth-child(1){width:52vw;height:52vw;left:-10vw;top:-12vw;
+  background:radial-gradient(circle,#b23a1d 0%,transparent 68%);animation:breathe 26s var(--ease) infinite alternate}
+.wash i:nth-child(2){width:44vw;height:44vw;right:-8vw;top:22vh;
+  background:radial-gradient(circle,#8a6a3b 0%,transparent 70%);animation:breathe 34s var(--ease) infinite alternate-reverse}
+@keyframes breathe{from{transform:translate3d(0,0,0) scale(1)}to{transform:translate3d(2.5vw,3vh,0) scale(1.12)}}
+body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:1;opacity:.35;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.055'/%3E%3C/svg%3E")}
+header,main,footer{position:relative;z-index:2}
+
+/* ── 5. Hlavička ── */
+header{border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5;
+  background:color-mix(in srgb,var(--paper) 86%,transparent);backdrop-filter:saturate(1.2) blur(8px)}
+.bar{display:flex;align-items:center;justify-content:space-between;height:66px;gap:18px}
+.brand{display:flex;align-items:center;gap:11px;text-decoration:none;color:var(--ink)}
+.brand b{font:600 21px/1 var(--display);letter-spacing:-.01em}
+.brand span{color:var(--muted);font-family:var(--ui);font-size:13px;border-left:1px solid var(--line);padding-left:11px}
+.bar nav{display:flex;gap:24px;align-items:center}
+.bar nav a{font-family:var(--ui);font-size:15px;color:var(--body);text-decoration:none;position:relative;padding:4px 0}
+.bar nav a::after{content:"";position:absolute;left:0;bottom:0;height:1px;width:0;background:var(--accent);transition:width .22s var(--ease)}
+.bar nav a:hover::after,.bar nav a[aria-current="page"]::after{width:100%}
+.lang{font-family:var(--ui);font-size:14px;color:var(--body);background:var(--card);
+  border:1px solid var(--line);border-radius:10px;padding:7px 10px}
+
+/* ── 6. Typografia ── */
+h1{font:700 clamp(34px,4.6vw,64px)/1.1 var(--display);color:var(--ink);letter-spacing:-.02em;margin:0 0 clamp(14px,1.6vw,22px)}
+h1 .l{display:block}
+h2{font:600 clamp(22px,2.1vw,30px)/1.2 var(--display);color:var(--ink);letter-spacing:-.015em;margin:0 0 10px}
+h3{font:600 clamp(18px,1.5vw,22px)/1.3 var(--display);color:var(--ink);letter-spacing:-.01em;margin:0 0 8px}
+p{margin:0 0 12px;max-width:68ch}
+.lead{font-size:clamp(18px,1.5vw,23px);line-height:1.4;max-width:600px;margin:0 0 clamp(20px,2.2vw,30px)}
+.kicker{display:flex;align-items:center;gap:9px;font-family:var(--ui);font-size:12px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--accent);margin:0 0 10px}
+.kicker svg{width:18px;height:18px;flex:none}
+.muted{color:var(--muted)}
+.small{font-family:var(--ui);font-size:14px;color:var(--muted)}
+a{color:var(--ink);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}
+a:hover{color:var(--accent)}
+code,kbd,pre{font-family:var(--mono);font-size:.92em}
+pre{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow-x:auto}
+
+/* ── 7. Sekcie a rytmus ── */
+section{padding:var(--sec) 0;border-top:1px solid var(--line);position:relative}
+.deep{background:var(--paper-deep)}
+.band{background:var(--ink);color:#d7d3c8;border-top:none}
+.band h2,.band h3{color:#fffdf8}
+.band .kicker{color:var(--accent-light)}
+.band a{color:#fffdf8}
+.rule{height:1px;background:var(--line);margin:26px 0 30px;transform-origin:left;transform:scaleX(0);transition:transform .8s var(--ease)}
+.in .rule{transform:scaleX(1)}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(270px,100%),1fr));gap:var(--gap)}
+.num{font-family:var(--ui);font-size:12px;letter-spacing:.12em;color:var(--accent);margin:0 0 6px}
+
+/* ── 8. Úvod stránky: text vľavo, skutočný artefakt vpravo ── */
+.hero{display:grid;grid-template-columns:7fr 5fr;gap:var(--gap);align-items:center;
+  padding:clamp(44px,6vw,104px) 0 clamp(40px,5vw,88px)}
+.proof{font-family:var(--ui);font-size:14px;color:var(--muted);margin-top:22px}
+.proof b{color:var(--ink)}
+.shot{border:1px solid var(--line);border-radius:var(--radius);background:var(--card);
+  box-shadow:0 10px 30px rgba(20,20,19,.07);overflow:hidden}
+.shot .chrome{display:flex;gap:6px;padding:10px 12px;border-bottom:1px solid var(--line)}
+.shot .chrome i{width:9px;height:9px;border-radius:50%;background:rgba(20,20,19,.16);display:block}
+.shot img{display:block;width:100%}
+
+/* ── 9. Index s bodkovanými vodičmi. Zoznamy nástrojov sú index, nie mriežka kariet. ── */
+.index{display:flex;flex-direction:column;align-items:stretch;gap:2px;margin:clamp(18px,2vw,28px) 0 0}
+.index a{display:flex;align-items:baseline;gap:10px;color:var(--ink);text-decoration:none;
+  font-size:clamp(15px,1.05vw,17px);padding:7px 0;line-height:1.3}
+.index .n{font-family:var(--ui);font-variant-numeric:tabular-nums;color:var(--accent);font-size:13px;letter-spacing:.06em;flex:none;width:2.1em}
+.index .t{flex:0 1 auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.index .dots{flex:1 1 auto;border-bottom:1px dotted #a39b8c;transform:translateY(-5px);min-width:20px}
+.index .c{flex:none;font-family:var(--ui);font-size:14px;color:var(--muted)}
+.index a:hover .t{color:var(--accent)}
+.index a:hover .c{color:var(--ink)}
+
+/* ── 10. Tlačidlá a odkaz so šípkou ── */
+.btn{display:inline-flex;align-items:center;gap:8px;height:46px;padding:0 20px;border-radius:12px;
+  font:500 15px/1 var(--ui);text-decoration:none;border:1px solid transparent;cursor:pointer;
+  transition:background .16s var(--ease),color .16s var(--ease),transform .16s var(--ease)}
+.btn-solid{background:var(--accent);color:#fff}
+.btn-solid:hover{background:var(--accent-dark);color:#fff;transform:translateY(-1px)}
+.btn-line{border-color:var(--ink);color:var(--ink)}
+.btn-line:hover{background:var(--ink);color:var(--paper)}
+.cta{display:flex;gap:12px;flex-wrap:wrap}
+.go{font-family:var(--ui);font-weight:500;color:var(--ink);text-decoration:none;display:inline-flex;align-items:center;gap:7px}
+.go svg{transition:transform .3s var(--spring)}
+.go:hover{color:var(--accent)}
+.go:hover svg{transform:translateX(4px)}
+
+/* ── 11. Karta smie existovať len tam, kde nesie objekt: výrobok alebo plán ── */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px;
+  box-shadow:0 2px 6px rgba(20,20,19,.04)}
+.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(280px,100%),1fr));gap:18px}
+.plan{position:relative;overflow:hidden}
+.plan.pick::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--accent)}
+.plan .pill{position:absolute;right:16px;top:14px;font-family:var(--ui);font-size:11px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--accent)}
+.price{font:600 clamp(28px,2.4vw,36px)/1 var(--display);color:var(--ink);margin:6px 0 2px}
+.price small{font:400 14px/1 var(--ui);color:var(--muted)}
+
+/* ── 12. Tabuľky. Na mobile sa rozložia na riadky, nikdy neutekajú do strany. ── */
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--radius);background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{text-align:left;padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:500 13px/1.3 var(--ui);letter-spacing:.04em;color:var(--muted);text-transform:uppercase}
+/* Posledný riadok tabuľky nemá spodnú linku, ale len tam, kde je tabuľka naozaj tabuľkou.
+   Pod 600 px sa každý <tr> mení na kartu a vnútorné linky potrebuje aj posledná z nich;
+   bez tejto závory prepíše tr:last-child td to, čo si mobilný blok nížie nastaví. */
+@media (min-width:601px){tr:last-child td{border-bottom:none}}
+@media (max-width:600px){
+  .tablewrap{border:none;background:none;overflow:visible}
+  table,thead,tbody,tr,th,td{display:block;width:100%}
+  thead{display:none}
+  tr{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:12px;padding:6px 0}
+  td{border-bottom:1px solid var(--line);padding:10px 14px}
+  td:last-child{border-bottom:none}
+  td::before{content:attr(data-th);display:block;font:500 11px/1.3 var(--ui);letter-spacing:.08em;
+    text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+}
+
+/* ── 13. Pohyb. Príchod sekcií, kresba linky, nadpis po slovách. ── */
+.r{opacity:0;transform:translateY(10px);filter:blur(4px);animation:poistka-zobraz 0s linear 3s forwards;
+  transition:opacity .55s var(--ease),transform .55s var(--ease),filter .55s var(--ease)}
+.in .r,.r.in{opacity:1;transform:none;filter:none}
+/* Poistka: keby JavaScript zlyhal alebo bol vypnuty, obsah sa aj tak ukaze po 3 sekundach.
+   Bez tohto bola stranka bez skriptov uplne prazdna, co je horsie nez ziadna animacia. */
+@keyframes poistka-zobraz{to{opacity:1;transform:none;filter:none}}
+@media (scripting: none){ .r,.w{opacity:1 !important;transform:none !important;filter:none !important} }
+.d1{transition-delay:.06s}.d2{transition-delay:.12s}.d3{transition-delay:.18s}
+.d4{transition-delay:.26s}.d5{transition-delay:.32s}.d6{transition-delay:.38s}
+.w{display:inline-block;opacity:0;transform:translateY(22px);
+  transition:opacity .8s var(--spring),transform .8s var(--spring)}
+.in .w{opacity:1;transform:none}
+
+/* ── 14. Kreslená scéna: monolinia, nakreslí sa raz, tri svetlá ── */
+.scene{position:relative;border:1px solid var(--line);border-radius:16px;background:var(--scene-bg,var(--card));
+  padding:18px 18px 12px;transition:background .6s var(--ease),border-color .6s var(--ease)}
+.scene svg{display:block;width:100%;height:auto}
+.scene .s{fill:none;stroke:var(--scene-ink,var(--ink));stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;
+  stroke-dasharray:1;stroke-dashoffset:1;animation:draw 1.1s var(--ease) forwards}
+.scene .a{stroke:var(--scene-accent,var(--accent))}
+.scene .g1 .s{animation-delay:.05s}.scene .g2 .s{animation-delay:.3s}.scene .g3 .s{animation-delay:.55s}
+.scene .g4 .s{animation-delay:.75s}.scene .g5 .s{animation-delay:.95s}.scene .g6 .s{animation-delay:1.15s}
+@keyframes draw{to{stroke-dashoffset:0}}
+.scene .cursor{fill:var(--scene-accent,var(--accent));opacity:0;animation:blink 1.1s steps(2,start) infinite 1.9s}
+@keyframes blink{50%{opacity:1}}
+.scene .steam{animation:draw 1.1s var(--ease) forwards 1.15s,steam 4s ease-in-out 2.4s infinite}
+@keyframes steam{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+.scene text{font-family:var(--ui);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+  fill:var(--scene-ink,var(--ink));opacity:0;animation:fadein .6s var(--ease) 1.5s forwards}
+@keyframes fadein{to{opacity:.62}}
+.scene .cap{font-family:var(--ui);margin:8px 2px 0;font-size:12.5px;color:var(--muted);
+  display:flex;justify-content:space-between;gap:12px}
+.looks{position:absolute;right:14px;top:12px;display:flex;gap:6px;z-index:1}
+.looks button{font-family:var(--ui);font-size:12px;border:1px solid var(--line);background:var(--card);
+  color:var(--muted);border-radius:999px;padding:4px 10px;cursor:pointer;display:flex;align-items:center;gap:6px}
+.looks button i{width:10px;height:10px;border-radius:50%;display:block;background:var(--sw);border:1px solid rgba(20,20,19,.15)}
+.looks button[aria-pressed="true"]{border-color:var(--ink);color:var(--ink)}
+.scene[data-look="rano"]{--scene-bg:#fbf4e6;--scene-ink:#4a3f33;--scene-accent:#c4552f;border-color:#e6d9c4}
+.scene[data-look="den"]{--scene-bg:var(--card);--scene-ink:var(--ink);--scene-accent:var(--accent)}
+.scene[data-look="vecer"]{--scene-bg:#141413;--scene-ink:#f0eee6;--scene-accent:#d97757;border-color:#141413}
+.scene[data-look="vecer"] .cap{color:#a8a294}
+.scene[data-look="vecer"] .looks button{background:#2a2825;border-color:#3d3a34;color:#c9c2b4}
+.scene[data-look="vecer"] .looks button[aria-pressed="true"]{border-color:#e9e4d8;color:#fffdf8}
+
+
+/* ── 15. Bočný register: vie, kde na stránke ste.
+   Celý stojí v ľavom okraji: čiarky sú zarovnané na pravú hranu registra, ktorá je 40 px od stĺpca
+   textu, popisky rastú doľava do prázdna a sú čiteľné vždy, nie až pri prejdení myšou.
+   Preto sa register ukazuje len tam, kde sa čiarka aj popis zmestia mimo obsahu. Pod tou hranicou
+   sa skryje celý: samotné nepopísané čiarky pri texte sú smeti, nie register.
+   Hranica vychádza z --wrap stránky: polovica obsahu + 40 px odstup + šírka čiarky a najdlhšieho
+   popisu. Stránka, ktorá má užší stĺpec než --wrap (napríklad článok v Notes), si hranicu
+   posunie nižšie vlastným @media vo svojom <style>. ── */
+.rail{position:fixed;right:calc(50% + var(--wrap)/2 + 40px);top:50%;transform:translateY(-50%);z-index:4;
+  display:flex;flex-direction:column;gap:13px;
+  opacity:0;pointer-events:none;transition:opacity .4s var(--ease)}
+.rail.on{opacity:1;pointer-events:auto}
+/* row-reverse: čiarka je vpravo, popis rastie doľava. Riadky sa natáhnu na šírku registra,
+   takže na stránkach, ktoré si šírku určia samy, sa dlhý popis skráti tromi bodkami. */
+.rail a{display:flex;flex-direction:row-reverse;align-items:center;gap:9px;white-space:nowrap;
+  text-decoration:none;color:var(--muted);transition:color .3s var(--ease);
+  font-family:var(--ui);font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+.rail i{display:block;width:22px;height:1px;background:currentColor;flex:none}
+.rail span{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.rail a:hover{color:var(--ink)}
+.rail a[aria-current="true"]{color:var(--accent)}
+@media (max-width:1719px){.rail{display:none}}
+
+
+/* ── 16. Pripnutá scéna s krokmi ── */
+.steps{display:grid;grid-template-columns:5fr 6fr;gap:var(--gap);align-items:start}
+.step{padding:26vh 0;opacity:.32;transition:opacity .45s var(--ease)}
+.step:first-child{padding-top:2vh}
+.step:last-child{padding-bottom:20vh}
+.step.act{opacity:1}
+.step .tag{display:block;font-family:var(--ui);font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--accent);margin-bottom:8px}
+.stick{position:sticky;top:calc(50vh - 150px)}
+.stage{position:relative;border:1px solid var(--line);border-radius:16px;background:var(--card);padding:20px;min-height:300px}
+.stage svg{display:block;width:100%;height:auto}
+.stage .fig{opacity:0;transition:opacity .45s var(--ease);position:absolute;inset:20px}
+.stage .fig:first-child{position:static}
+.stage[data-step="1"] .fig:nth-child(1),.stage[data-step="2"] .fig:nth-child(2),.stage[data-step="3"] .fig:nth-child(3){opacity:1}
+.stage .p{fill:none;stroke:var(--ink);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.stage .pa{stroke:var(--accent)}
+.stage .t{font-family:var(--ui);font-size:11px;letter-spacing:.08em;fill:var(--muted)}
+.bars rect{transform-origin:bottom;transform:scaleY(0);transition:transform .6s var(--spring)}
+.stage[data-step="3"] .bars rect{transform:scaleY(1)}
+.stage[data-step="3"] .bars rect:nth-child(2){transition-delay:.08s}
+.stage[data-step="3"] .bars rect:nth-child(3){transition-delay:.16s}
+.stage[data-step="3"] .bars rect:nth-child(4){transition-delay:.24s}
+
+  /* ── fotka v uvode: Ken Burns podla scrollu, parallax podla mysi ── */
+  .photo{position:relative;overflow:hidden;border-radius:16px;background:#efece3;
+    box-shadow:0 18px 50px rgba(20,20,19,.10);
+    clip-path:inset(0 0 100% 0);transition:clip-path 1.1s var(--spring)}
+  .in .photo,.photo.in{clip-path:inset(0 0 0 0)}
+  .photo img{display:block;width:100%;height:auto;
+    transform:translate3d(calc(var(--px,0)*7px),calc(var(--py,0)*7px),0) scale(1.06);
+    transition:transform .6s var(--ease);will-change:transform}
+  /* kde to prehliadac vie, zoom riadi scroll, nie cas */
+  @supports (animation-timeline: view()){
+    .photo img{animation:kenburns linear both;animation-timeline:view();animation-range:entry 10% exit 90%}
+    @keyframes kenburns{from{scale:1.12}to{scale:1.0}}
+  }
+  /* kde nevie, jeden velmi pomaly dych */
+  @supports not (animation-timeline: view()){
+    .photo img{animation:kenburns-t 40s ease-in-out infinite alternate}
+    @keyframes kenburns-t{from{scale:1.02}to{scale:1.09}}
+  }
+  .photo::after{content:"";position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(180deg,rgba(250,249,245,.20),rgba(250,249,245,0) 42%,rgba(20,20,19,.10));
+    mix-blend-mode:normal}
+  .photo .credit{position:absolute;left:14px;bottom:12px;z-index:2;font-family:var(--ui);font-size:11.5px;
+    letter-spacing:.08em;text-transform:uppercase;color:#fffdf8;text-shadow:0 1px 6px rgba(20,20,19,.5)}
+  @media (prefers-reduced-motion:reduce){
+    .photo{clip-path:none}
+    .photo img{animation:none;transform:none;scale:1}
+  }
+
+  /* ── široký pás v strede, ktorý sa pri scrollovaní roztiahne ── */
+  .banner{margin:clamp(28px,4vw,64px) auto clamp(10px,1.5vw,20px);width:min(1432px,89vw)}
+  .banner .frame{position:relative;overflow:hidden;border-radius:22px;background:#efece3;
+    box-shadow:0 24px 60px rgba(20,20,19,.12);width:64%;margin:0 auto;aspect-ratio:16/9}
+  .banner img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+    transform:translate3d(calc(var(--px,0)*8px),calc(var(--py,0)*8px),0);
+    transition:transform .6s var(--ease);will-change:transform}
+  .banner .over{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;
+    padding:clamp(18px,2.4vw,34px);gap:6px;
+    background:linear-gradient(180deg,rgba(20,20,19,0) 42%,rgba(20,20,19,.55))}
+  .banner .over b{font:500 clamp(28px,3.6vw,52px)/1.1 var(--text);color:#fffdf8;letter-spacing:-.01em}
+  .banner .over span{font-family:var(--ui);font-size:clamp(13px,1vw,15px);color:#ece8dd;max-width:44ch}
+  .banner .cap{display:flex;justify-content:space-between;gap:12px;margin:10px 4px 0;
+    font-family:var(--ui);font-size:12.5px;color:var(--muted)}
+
+  /* kde to prehliadač vie, šírku aj zaoblenie riadi scroll */
+  @supports (animation-timeline: view()){
+    .banner .frame{animation:rozsir linear both;animation-timeline:view();animation-range:entry 30% cover 55%}
+    @keyframes rozsir{from{width:64%;border-radius:22px}to{width:100%;border-radius:14px}}
+    .banner img{animation:zoom linear both;animation-timeline:view();animation-range:entry 20% exit 90%}
+    @keyframes zoom{from{scale:1.16}to{scale:1.02}}
+  }
+  /* kde nevie, pás je rovno na plnú šírku a fotka len jemne dýcha */
+  @supports not (animation-timeline: view()){
+    .banner .frame{width:100%;border-radius:14px}
+    .banner img{animation:dych 40s ease-in-out infinite alternate}
+    @keyframes dych{from{scale:1.02}to{scale:1.08}}
+  }
+  @media (max-width:860px){ .banner .frame{width:100%;border-radius:14px;aspect-ratio:4/3} }
+  @media (prefers-reduced-motion:reduce){
+    .banner .frame{width:100%;border-radius:14px;animation:none}
+    .banner img{animation:none;transform:none;scale:1}
+  }
+
+/* ── 17. Pätička ── */
+footer{padding:44px 0 60px;border-top:1px solid var(--line);color:var(--muted);font-family:var(--ui);font-size:14px}
+footer a{color:var(--body)}
+.foot{display:flex;flex-wrap:wrap;gap:18px 26px;justify-content:space-between;align-items:flex-start}
+
+/* ── 18. Šírky ── */
+@media (max-width:860px){
+  .hero{grid-template-columns:1fr}
+  .steps{grid-template-columns:1fr}
+  .step{padding:18px 0;opacity:1}
+  .stick{position:static;margin-bottom:18px}
+  .stage .fig{position:static;opacity:1}
+  .shot,.scene{max-width:560px}
+}
+@media (max-width:720px){
+  .bar{flex-wrap:wrap;height:auto;padding:10px 0 4px;row-gap:6px}
+  .bar nav{order:3;width:100%;gap:18px;font-size:14px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none}
+  .bar nav::-webkit-scrollbar{display:none}
+}
+@media (min-width:1700px){
+  .hero{grid-template-columns:6.5fr 5.5fr}
+}
+
+/* ── 19. Kto nechce pohyb, nedostane žiadny ── */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none !important;transition:none !important}
+  html{scroll-behavior:auto}
+  .r,.w{opacity:1;transform:none;filter:none}
+  .rule{transform:scaleX(1)}
+  .rail{opacity:1}
+  .step{opacity:1}
+  .stick{position:static}
+  .stage .fig{position:static;opacity:1}
+  .scene .s{stroke-dashoffset:0}
+  .scene .cursor,.scene text{opacity:.62}
+  .bars rect{transform:none}
+}
+
+/* ── 20. Vrstva remesla: veci, ktoré robia rozdiel medzi „pekné" a „hotové" ──
+   Prevzaté ako technika, nie ako vzhľad, z rozboru anthropic.com (5. 9. 2026).
+   Každá položka rieši konkrétnu chybu, ktorá je inak vidieť. */
+
+/* 20.1 Orezanie prázdneho miesta v riadkovaní (leading trim).
+   Font má nad veľkými písmenami a pod dotiahnutými ťahmi prázdno, ktoré sa
+   pripočíta k medzere medzi nadpisom a textom. Bez tohto sedí nadpis opticky
+   nižšie, než má, a odstupy nikdy nesedia s mriežkou. */
+h1,h2,h3,.lead{--trim-top:.36em;--trim-bottom:.34em}
+h1::before,h2::before,h3::before,.lead::before{content:"";display:table;margin-bottom:calc(-0.5lh + var(--trim-top))}
+h1::after,h2::after,h3::after,.lead::after{content:"";display:table;margin-top:calc(-0.5lh + var(--trim-bottom))}
+
+/* 20.2 Dvanásťstĺpcová mriežka ako premenné, aby sa dala použiť kdekoľvek. */
+:root{
+  --stlpcov:12;
+  --medzera:clamp(18px,1.9vw,31px);
+  --stlpec:calc((var(--wrap) - (var(--stlpcov) - 1) * var(--medzera)) / var(--stlpcov));
+}
+.grid12{display:grid;grid-template-columns:repeat(var(--stlpcov),minmax(0,1fr));gap:var(--medzera)}
+@media (max-width:860px){ .grid12{grid-template-columns:repeat(4,minmax(0,1fr))} }
+
+/* 20.3 Rozbaľovanie bez počítania výšky: mriežka z 0fr na 1fr.
+   Riešenie s max-height buď skáče, alebo potrebuje JavaScript na zmeranie. */
+.rozbal{display:grid;grid-template-rows:0fr;transition:grid-template-rows .4s cubic-bezier(.77,0,.175,1)}
+.rozbal>div{min-height:0;overflow:hidden}
+[aria-expanded="true"]+.rozbal{grid-template-rows:1fr}
+
+/* 20.4 Karta s obrázkom: pri prejdení myšou sa obrázok priblíži o 5 %. */
+.card-img{overflow:hidden;border-radius:10px}
+.card-img img{display:block;width:100%;height:auto;transition:transform .25s var(--ease)}
+a:hover .card-img img,.card:hover .card-img img{transform:scale(1.05)}
+
+/* 20.5 Odkaz mimo stránku má šípku, ktorá sa pootočí. */
+.ext::after{content:"";display:inline-block;width:.7em;height:.7em;margin-left:.35em;
+  background:currentColor;-webkit-mask:var(--sipka) center/contain no-repeat;mask:var(--sipka) center/contain no-repeat;
+  transform:rotate(-45deg);transition:transform .25s var(--spring)}
+:root{--sipka:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 12h13M13 6l6 6-6 6' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+.ext:hover::after{transform:rotate(-45deg) translateX(3px)}
+
+/* 20.6 Dialóg: natívny <dialog>, tlmené pozadie a jemné vynorenie. */
+dialog{border:1px solid var(--line);border-radius:var(--radius);background:var(--card);color:var(--body);
+  padding:clamp(18px,2.4vw,32px);max-width:min(560px,92vw)}
+dialog::backdrop{background:color-mix(in srgb,var(--ink) 62%,transparent)}
+dialog[open]{animation:dialog-in .4s cubic-bezier(.77,0,.175,1)}
+@keyframes dialog-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* 20.7 Monogram sa pri prvom načítaní dokreslí. Naša obdoba ich Lottie loga,
+   ale bez knižnice: dve cesty a jeden prechod. */
+.brand svg .draw{stroke:var(--ink);stroke-width:.8;fill-opacity:0;
+  animation:mono .8s var(--ease) .1s forwards}
+@keyframes mono{to{fill-opacity:1}}
+
+@media (prefers-reduced-motion:reduce){
+  .card-img img,.ext::after,dialog[open],.brand svg .draw{transition:none;animation:none}
+  .rozbal{transition:none}
+}

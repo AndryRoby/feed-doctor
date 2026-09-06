@@ -1,0 +1,10 @@
+Schibsted Grotesk (c) Schibsted Media Group, SIL Open Font License 1.1
+Source: https://github.com/google/fonts/tree/main/ofl/schibstedgrotesk
+
+Source Serif 4 (c) Adobe, SIL Open Font License 1.1
+Source: https://github.com/google/fonts/tree/main/ofl/sourceserif4
+
+Both files here are subsets: Latin, Latin-1, Latin Extended-A (Slovak, Czech,
+German, Hungarian, Polish), general punctuation and currency. Variable weight
+axis kept (sans 400-700, serif 400-600); optical size axis pinned.
+Full OFL text: https://openfontlicense.org/
