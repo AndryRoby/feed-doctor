@@ -191,6 +191,8 @@ th{font:500 13px/1.3 var(--ui);letter-spacing:.04em;color:var(--muted);text-tran
 html.js .r{opacity:0;transform:translateY(8px);
   transition:opacity .4s var(--ease),transform .4s var(--ease)}
 .in .r,.r.in{opacity:1;transform:none}
+/* Uvod stranky sa neskryva nikdy: je to prve, co clovek vidi. */
+.hero .r,.hero .w,h1 .w{opacity:1 !important;transform:none !important}
 @media (scripting: none){ .r,.w{opacity:1 !important;transform:none !important;filter:none !important} }
 .d1{transition-delay:.06s}.d2{transition-delay:.12s}.d3{transition-delay:.18s}
 .d4{transition-delay:.26s}.d5{transition-delay:.32s}.d6{transition-delay:.38s}
