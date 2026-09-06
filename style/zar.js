@@ -66,7 +66,9 @@
     '  return zvisle * mix(0.62, 1.0, okraj);',
     '}',
     'vec4 zloz(vec3 farba, float sila, float mierka){',
-    '  float a = clamp(sila * mierka, 0.0, 0.92) + rozptyl(gl_FragCoord.xy) * 0.012;',
+    // Strop 0.55: pod pozadim je text a ten musi ostat citatelny.
+    // Vyssie hodnoty vyzerali efektne na prazdnej ploche a necitatelne s obsahom.
+    '  float a = clamp(sila * mierka, 0.0, 0.55) + rozptyl(gl_FragCoord.xy) * 0.010;',
     '  return vec4(farba, clamp(a, 0.0, 1.0));',
     '}',
     '',
@@ -94,7 +96,7 @@
     '  vec3 f = mix(UHLIK, ZERAZ, clamp(jas * 1.5, 0.0, 1.0));',
     '  f = mix(f, JANTAR, clamp(jas * 0.95 - 0.35, 0.0, 1.0));',
     '  f = mix(f, BIELA,  clamp(jas * 0.80 - 0.72, 0.0, 1.0));',
-    '  gl_FragColor = zloz(f, clamp(jas, 0.0, 1.4) * utlm(uv), 0.72);',
+    '  gl_FragColor = zloz(f, clamp(jas, 0.0, 1.0) * utlm(uv), 0.30);',
     '}',
   ].join('\n');
 
@@ -112,7 +114,7 @@
     '  float teplo = clamp(r.x * 1.05 - 0.30, 0.0, 1.0);',
     '  vec3 f = mix(UHLIK, ZERAZ, jadro);',
     '  f = mix(f, JANTAR, teplo * 0.8);',
-    '  gl_FragColor = zloz(f, (jadro * 0.9 + teplo * 0.5) * utlm(uv), 0.62);',
+    '  gl_FragColor = zloz(f, (jadro * 0.9 + teplo * 0.5) * utlm(uv), 0.34);',
     '}',
   ].join('\n');
 
@@ -136,7 +138,7 @@
     '  float zaves = smoothstep(0.30, 0.95, fbm(p * 1.1 + vec2(cas * 0.012, 0.0))) * 0.42;',
     '  vec3 f = mix(UHLIK, JANTAR, clamp(b * 1.1, 0.0, 1.0));',
     '  f = mix(f, BIELA, clamp(b * 0.7 - 0.45, 0.0, 1.0));',
-    '  gl_FragColor = zloz(f, (b * 1.15 + zaves * 0.85) * utlm(uv), 0.92);',
+    '  gl_FragColor = zloz(f, (b * 1.0 + zaves * 0.55) * utlm(uv), 0.48);',
     '}',
   ].join('\n');
 
@@ -152,7 +154,7 @@
     '  float jas = luc * (0.65 + 0.5 * fbm(p * 2.4 + vec2(cas * 0.010, -cas * 0.008)));',
     '  vec3 f = mix(UHLIK, ZERAZ, clamp(jas * 1.25, 0.0, 1.0));',
     '  f = mix(f, JANTAR, clamp(jas * 0.7 - 0.30, 0.0, 1.0));',
-    '  gl_FragColor = zloz(f, jas * 1.30 * utlm(uv), 0.68);',
+    '  gl_FragColor = zloz(f, jas * 1.0 * utlm(uv), 0.36);',
     '}',
   ].join('\n');
 
@@ -170,7 +172,7 @@
     '  vec3 f = mix(UHLIK, ZERAZ, clamp(jas * 1.3, 0.0, 1.0));',
     '  f = mix(f, JANTAR, clamp(jas * 0.9 - 0.40, 0.0, 1.0));',
     '  f = mix(f, BIELA,  clamp(jas * 0.7 - 0.80, 0.0, 1.0));',
-    '  gl_FragColor = zloz(f, jas * 1.45 * utlm(uv), 0.82);',
+    '  gl_FragColor = zloz(f, jas * 1.1 * utlm(uv), 0.42);',
     '}',
   ].join('\n');
 
@@ -189,7 +191,7 @@
     '  float jas = (ciara * 0.30 + uzol * 0.95) * zivot;',
     '  vec3 c = mix(UHLIK, ZERAZ, clamp(jas * 1.4, 0.0, 1.0));',
     '  c = mix(c, JANTAR, clamp(uzol * zivot * 1.2 - 0.25, 0.0, 1.0));',
-    '  gl_FragColor = zloz(c, jas * 1.30 * utlm(uv), 0.88);',
+    '  gl_FragColor = zloz(c, jas * 1.0 * utlm(uv), 0.46);',
     '}',
   ].join('\n');
 
@@ -205,7 +207,7 @@
     '  jas += pow(0.12 / (d + 0.12), 2.2) * 0.35;',
     '  vec3 f = mix(UHLIK, ZERAZ, clamp(jas * 1.35, 0.0, 1.0));',
     '  f = mix(f, JANTAR, clamp(jas * 0.8 - 0.35, 0.0, 1.0));',
-    '  gl_FragColor = zloz(f, jas * 1.35 * utlm(uv), 0.80);',
+    '  gl_FragColor = zloz(f, jas * 1.05 * utlm(uv), 0.42);',
     '}',
   ].join('\n');
 
@@ -220,7 +222,7 @@
     '  float jas = smoothstep(0.36, 0.92, b) * smoothstep(0.02, 0.55, p.y) * smoothstep(1.2, 0.6, p.y);',
     '  vec3 f = mix(UHLIK, ZERAZ, clamp(jas * 1.1, 0.0, 1.0));',
     '  f = mix(f, JANTAR, clamp(jas * 0.6 - 0.35, 0.0, 1.0));',
-    '  gl_FragColor = zloz(f, jas * 1.60 * utlm(uv), 0.78);',
+    '  gl_FragColor = zloz(f, jas * 1.2 * utlm(uv), 0.40);',
     '}',
   ].join('\n');
 
@@ -245,7 +247,7 @@
     '  vec3 f = mix(UHLIK, ZERAZ, clamp(jas * 1.5, 0.0, 1.0));',
     '  f = mix(f, JANTAR, clamp(i * 1.1 - 0.20, 0.0, 1.0));',
     '  f = mix(f, BIELA,  clamp(i * 0.9 - 0.60, 0.0, 1.0));',
-    '  gl_FragColor = zloz(f, jas * 1.35 * utlm(uv), 0.86);',
+    '  gl_FragColor = zloz(f, jas * 1.0 * utlm(uv), 0.44);',
     '}',
   ].join('\n');
 

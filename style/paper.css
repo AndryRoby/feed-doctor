@@ -665,7 +665,9 @@ body.noc .hero-noc{padding-top:clamp(48px,9vh,120px);padding-bottom:clamp(48px,9
 .hero-noc>*:not(.zar-plocha){position:relative;z-index:1}
 /* Plátno ide cez celú šírku okna, nie len cez obsahový stĺpec, aby svetlo
    nekončilo zvislou hranou tam, kde sa končí text. */
-.zar-plocha{position:absolute;top:0;bottom:0;left:50%;transform:translateX(-50%);
+/* Plátno siaha aj POD hlavičku, inak je hore pás holého pozadia a hlavička
+   vyzerá ako neprehľadná lišta namiesto priehľadnej. */
+.zar-plocha{position:absolute;top:calc(-1 * var(--hlavicka));bottom:0;left:50%;transform:translateX(-50%);
   width:100vw;max-width:none;height:100%;display:block;
   pointer-events:none;z-index:0;opacity:0;transition:opacity 1.1s var(--ease);
   -webkit-mask-image:linear-gradient(180deg,#000 0%,#000 58%,transparent 100%);
@@ -739,3 +741,16 @@ html{scroll-padding-top:calc(var(--hlavicka) + 16px)}
 .brand svg{width:48px;height:auto;flex:none;display:block}
 .brand b{font:700 20px/1 var(--display);letter-spacing:-.015em}
 @media (max-width:520px){ .brand svg{width:40px} .brand b{font-size:18px} }
+
+/* Vzduch. Sekcie boli natlačené: menovka, nadpis a stĺpce sa dotýkali.
+   Jedna stupnica rozostupov, nič medzi tým, aby sa to znovu nerozišlo. */
+body.noc .kicker{margin:0 0 clamp(14px,1.6vw,22px)}
+body.noc section>.wrap>h2:first-of-type,body.noc section .wrap>h2{margin-top:0}
+body.noc .rule{margin:clamp(22px,2.4vw,34px) 0 clamp(28px,3vw,44px)}
+body.noc .two,body.noc .three,body.noc .dopyt-blok{gap:clamp(28px,4vw,64px)}
+body.noc .band .wrap{padding-top:clamp(8px,1vw,16px);padding-bottom:clamp(8px,1vw,16px)}
+/* Zoznam očíslovaných sľubov: stĺpce potrebujú medzi sebou skutočnú medzeru
+   a pod číslom vzduch, inak to vyzerá ako natlačená tabuľka. */
+body.noc .band ol,body.noc .band ul{gap:clamp(26px,3.2vw,52px)}
+body.noc .band li{padding-right:clamp(10px,1.4vw,24px)}
+body.noc .band li b,body.noc .band li strong{display:block;margin-bottom:10px;line-height:1.35}
