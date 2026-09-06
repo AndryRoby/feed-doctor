@@ -61,14 +61,17 @@
     // scen svieti, takze sest z osmich vyzeralo ako cierna plocha. Teraz je to
     // len jemne pritlmenie, nie vypnutie.
     'float utlm(vec2 uv){',
-    '  float zvisle = mix(0.55, 1.0, smoothstep(1.18, -0.05, uv.y));',
+    '  float zvisle = mix(0.30, 1.0, smoothstep(1.02, 0.10, uv.y));',
     '  float okraj  = smoothstep(0.0, 0.22, uv.x) * smoothstep(1.0, 0.78, uv.x);',
     '  return zvisle * mix(0.62, 1.0, okraj);',
     '}',
     'vec4 zloz(vec3 farba, float sila, float mierka){',
     // Strop 0.55: pod pozadim je text a ten musi ostat citatelny.
     // Vyssie hodnoty vyzerali efektne na prazdnej ploche a necitatelne s obsahom.
-    '  float a = clamp(sila * mierka, 0.0, 0.55) + rozptyl(gl_FragCoord.xy) * 0.010;',
+    '  float a = clamp(sila * mierka, 0.0, 0.42);',
+    '  // Rozptyl len tam, kde uz nejake svetlo je. Ked sa pridaval aj do',
+    '  // uplnej tmy, videl ho clovek ako zrnenie na prazdnej ploche.',
+    '  a += rozptyl(gl_FragCoord.xy) * 0.010 * smoothstep(0.02, 0.14, a);',
     '  return vec4(farba, clamp(a, 0.0, 1.0));',
     '}',
     '',
