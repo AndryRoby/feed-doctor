@@ -580,12 +580,19 @@ body.noc header{position:fixed;top:0;left:0;right:0;z-index:50;
   transition:background .3s var(--ease),border-color .3s var(--ease),backdrop-filter .3s var(--ease)}
 body.noc.posunute header{background:rgba(10,9,8,.72);border-bottom-color:var(--line);
   backdrop-filter:saturate(150%) blur(14px);-webkit-backdrop-filter:saturate(150%) blur(14px)}
-/* Pevná hlavička prekrýva obsah, preto úvodná sekcia začína pod ňou. */
-body.noc main>:first-child{padding-top:66px}
+/* Pevná hlavička prekrýva obsah, preto úvodná sekcia začína pod ňou. Výšku
+   meria /style/vzhlad.js do --hlavicka, lebo na úzkej obrazovke a v nemčine
+   sa hlavička zalamuje a pevné číslo by nadpis prekrylo. 66 px je len záloha
+   pre prípad, že skript nebeží. */
+:root{--hlavicka:66px}
+/* Rezerva patrí na <main>, nie na jeho prvé dieťa. Keď sme ju dávali dieťaťu,
+   NAHRADILA jeho vlastné odsadenie a nadpis sa zlepil s hlavičkou. Takto sa
+   pripočíta a vlastné odsadenie sekcie ostane. */
+body.noc main{padding-top:var(--hlavicka)}
 
 /* Hero cez celú výšku, obsah na stred. Vzor to má takto a je to jediný dôvod,
    prečo tá stránka pôsobí priestranne: nič iné tam nad ohybom nie je. */
-.hero-noc{min-height:calc(100vh - 66px);display:flex;flex-direction:column;justify-content:center;
+.hero-noc{min-height:calc(100vh - var(--hlavicka));display:flex;flex-direction:column;justify-content:center;
   align-items:center;text-align:center;padding:clamp(48px,9vh,120px) 0;position:relative;z-index:2}
 .hero-noc h1{margin:0;max-width:17ch}
 .hero-noc .lead{font-size:clamp(17px,1.5vw,21px);line-height:1.6;
@@ -611,7 +618,6 @@ body.noc .hero-noc{padding-top:clamp(48px,9vh,120px);padding-bottom:clamp(48px,9
 @media (max-width:720px){
   .hero-noc{min-height:0;padding:clamp(40px,8vh,72px) 0 clamp(44px,9vh,80px)}
   .hero-noc .fakty{gap:10px 18px;font-size:12.5px}
-  body.noc main>:first-child{padding-top:56px}
 }
 @media (prefers-reduced-motion:reduce){
   body.noc header,body.noc .karta,body.noc .btn-solid{transition:none}
@@ -666,3 +672,70 @@ body.noc .hero-noc{padding-top:clamp(48px,9vh,120px);padding-bottom:clamp(48px,9
   mask-image:linear-gradient(180deg,#000 0%,#000 58%,transparent 100%)}
 body.noc .zar-plocha{opacity:1}
 @media (prefers-reduced-motion:reduce){ .zar-plocha{transition:none} }
+
+/* Plátno v hero blokoch, ktoré nie sú .hero-noc (produktové stránky majú
+   vlastný úvod). Rovnaké pravidlá: pod obsahom, cez celú šírku, bez hrán. */
+.hero,.hero-alt{position:relative;isolation:isolate}
+.hero>*:not(.zar-plocha),.hero-alt>*:not(.zar-plocha){position:relative;z-index:1}
+
+
+/* Hlavička: značka vľavo, všetko ostatné vpravo v jednej skupine.
+   Predtým bola navigácia na strede a prepínač jazyka úplne vpravo, takže
+   medzi nimi zívala diera a nič nebolo zarovnané. */
+.bar{gap:clamp(16px,3vw,40px)}
+.bar nav{margin-left:auto;display:flex;align-items:center;gap:clamp(14px,1.6vw,26px)}
+.bar .langsel{margin-left:clamp(10px,1.4vw,20px)}
+@media (max-width:720px){
+  .bar{flex-wrap:wrap;row-gap:8px}
+  .bar nav{margin-left:0;order:3;width:100%;overflow-x:auto;gap:18px;padding-bottom:2px}
+  .bar .langsel{margin-left:auto}
+}
+
+/* Váha písma ako nástroj, nie ako náhoda.
+   Náš rez má 400 až 700, tak nech je vidieť, na čo ktorá váha je. Keď je
+   všetko tučné, nič nie je dôležité; keď je všetko tenké, stránka nemá kostru.
+     700  hlavný nadpis a nadpisy sekcií, jediné miesto, kde kričíme
+     600  podnadpisy, hlavné tlačidlo, menovky sekcií
+     500  navigácia, vedľajšie tlačidlo, odznaky
+     400  bežný text a metadáta
+   Nič medzi tým, aby sa stupnica nerozmazala. */
+body.noc h1,body.noc h2{font-weight:700}
+body.noc h3{font-weight:600;letter-spacing:-.01em}
+body.noc .kicker{font-weight:600}
+body.noc .bar nav a{font-weight:500;color:var(--body)}
+body.noc .bar nav a:hover{color:var(--ink)}
+body.noc .btn-solid{font-weight:600}
+body.noc .btn-line{font-weight:500}
+body.noc .odznak,body.noc .tag,body.noc .lbl{font-weight:500}
+body.noc .lead{font-weight:400}
+body.noc b,body.noc strong{font-weight:600;color:var(--ink)}
+/* Metadáta a poznámky pod čiarou nesmú konkurovať textu. */
+body.noc .fakty,body.noc .mini,body.noc .zdroje,body.noc .byline{font-weight:400}
+
+/* Položka prepínača, ktorá vedie len na domovskú stránku daného jazyka.
+   Vyzerá inak zámerne: sľubovať preklad, ktorý neexistuje, je horšie než
+   povedať rovno, kam sa klikom dostanem. */
+.langsel .len-domov{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.langsel .len-domov span{font-size:11px;letter-spacing:.04em;color:var(--muted);opacity:.85}
+
+/* Plynulejší príchod sekcií. Predtým to bolo krátke trhnutie (.45 s, posun 8 px),
+   čo pri veľkých blokoch pôsobí ako preblik. Teraz dlhší a mäkší nábeh s malou
+   zmenou mierky: oko to prečíta ako "prišlo to", nie ako "skočilo to".
+   Východiskový stav je stále viditeľný, takže bez skriptu sa nič neskryje. */
+.r{animation:prichod .72s var(--spring) both}
+@keyframes prichod{from{opacity:.001;transform:translate3d(0,14px,0) scale(.994)}to{opacity:1;transform:none}}
+.d1{animation-delay:.06s}.d2{animation-delay:.12s}.d3{animation-delay:.18s}
+.d4{animation-delay:.24s}.d5{animation-delay:.30s}.d6{animation-delay:.36s}
+/* Kotvy nesmú skončiť pod pevnou hlavičkou. */
+html{scroll-padding-top:calc(var(--hlavicka) + 16px)}
+@media (prefers-reduced-motion:reduce){
+  .r{animation:none}
+  html{scroll-behavior:auto}
+}
+
+/* Značka v hlavičke. Monogram je široký (488:215), takže pri rovnakej výške ako
+   text pôsobí drobne. Riadi sa odtiaľto, aby sa nemuselo prepisovať 102 stránok. */
+.brand{gap:13px}
+.brand svg{width:48px;height:auto;flex:none;display:block}
+.brand b{font:700 20px/1 var(--display);letter-spacing:-.015em}
+@media (max-width:520px){ .brand svg{width:40px} .brand b{font-size:18px} }
