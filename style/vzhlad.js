@@ -90,3 +90,30 @@ document.documentElement.classList.add('js');
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', prepni);
   else prepni();
 })();
+
+/* Skutočná výška pevnej hlavičky do premennej --hlavicka.
+ *
+ * Prečo sa meria a nehádže: hlavička sa na úzkej obrazovke zalamuje do dvoch
+ * riadkov a v nemčine aj do troch, lebo "Wie wir arbeiten" je dlhšie než
+ * "Ako pracujeme". Pevné číslo v CSS by v jednom jazyku sedelo a v druhom by
+ * hlavička prekryla nadpis. Meria sa pri načítaní, pri zmene veľkosti okna
+ * a keď sa dopočítajú fonty (vtedy sa výška ešte zmení).
+ */
+(function () {
+  'use strict';
+  function hlavickaVyska() {
+    var h = document.querySelector('header');
+    if (!h) return;
+    var v = Math.round(h.getBoundingClientRect().height);
+    if (v > 0) document.documentElement.style.setProperty('--hlavicka', v + 'px');
+  }
+  function pripoj() {
+    hlavickaVyska();
+    window.addEventListener('resize', hlavickaVyska, { passive: true });
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(hlavickaVyska);
+    // istota pre prípad, že sa niečo dokreslí neskôr
+    setTimeout(hlavickaVyska, 400);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', pripoj);
+  else pripoj();
+})();
