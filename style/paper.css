@@ -788,3 +788,8 @@ body.noc tbody tr:hover{background:rgba(242,100,60,.06)}
    robilo CSS. Odkedy kreslí shader, len sa s ním sčítavali a hore vznikol
    oranžový záves cez hlavičku. Na svetlej ploche ostávajú. */
 body.noc .wash i,body.noc .wash::after{display:none}
+
+
+/* Prvá sekcia pod priehľadnou hlavičkou nesmie mať hornú linku. Vyzeralo to
+   ako spodná hrana hlavičky, hoci hlavička je hore zámerne bez nej. */
+body.noc .hero-noc,body.noc main>section:first-of-type,body.noc main>.wrap:first-child{border-top:0}

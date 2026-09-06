@@ -321,6 +321,12 @@
       },
       kresli: function (teraz) {
         if (s.zaciatok === null) s.zaciatok = teraz;
+        // Platno sa MUSI pred kazdym snimkom vymazat. S preserveDrawingBuffer
+        // a zapnutym miesanim sa inak kazdy snimok priratal k predchadzajucemu
+        // a obraz sa po niekolkych sekundach prepalil do oranzova. Na snimke
+        // hned po nacitani to nebolo vidiet, na zivej stranke ano.
+        gl.clearColor(0, 0, 0, 0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
         gl.useProgram(program);
         gl.bindBuffer(gl.ARRAY_BUFFER, buf);
         gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
