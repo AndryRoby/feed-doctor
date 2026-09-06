@@ -689,8 +689,21 @@ body.noc .zar-plocha{opacity:1}
 .bar .langsel{margin-left:clamp(10px,1.4vw,20px)}
 @media (max-width:720px){
   .bar{flex-wrap:wrap;row-gap:8px}
-  .bar nav{margin-left:0;order:3;width:100%;overflow-x:auto;gap:18px;padding-bottom:2px}
+  /* Navigacia je na uzkej obrazovke jeden posuvatelny riadok.
+     Bez white-space:nowrap sa dlhe polozky ("Ako to funguje") zalomili
+     dovnutra odkazu a hlavicka narastla na dva riadky s odseknutym koncom.
+     Andrej to nahlasil 6. 9. 2026 na /asistent/ na telefone.
+     Maska napravo je jediny signal, ze sa da posunut dalej. */
+  .bar nav{margin-left:0;order:3;width:100%;overflow-x:auto;gap:18px;padding-bottom:2px;
+           flex-wrap:nowrap;scrollbar-width:none;-webkit-overflow-scrolling:touch;
+           -webkit-mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 26px),transparent 100%);
+           mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 26px),transparent 100%)}
+  .bar nav::-webkit-scrollbar{display:none}
+  .bar nav a{white-space:nowrap;flex:none}
   .bar .langsel{margin-left:auto}
+  /* Znacka sa nesmie zalomit ani tlacit navigaciu */
+  .bar .brand{flex:none;min-width:0}
+  .bar .brand span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:38vw}
 }
 
 /* Váha písma ako nástroj, nie ako náhoda.
