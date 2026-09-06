@@ -30,16 +30,51 @@
   var platna = document.querySelectorAll('canvas.zar-plocha');
   if (!platna.length) return;
 
+  /* Myš a scroll. Jeden spoločný stav pre všetky plátna na stránke: keby si
+     ho každé plátno počítalo samo, pri troch scénach by sme tri razy počúvali
+     tú istú udalosť. Hodnoty sa iba zapisujú, dotahujú sa až v kresli().
+     Pri dotykovom zariadení myš nie je, tam ostane 0.5 a scéna sa hýbe sama. */
+  var MYS = { x: 0.5, y: 0.5, p: 0, z: 0, cx: 0.5, cy: 0.5, cp: 0, cz: 0 };
+  /* Hover na prvku s data-zar-zrychli zrychli tok. Jediny bod, kde UI
+     hovori scene, co sa deje, a je zamerne maly. */
+  document.querySelectorAll('[data-zar-zrychli]').forEach(function (el) {
+    el.addEventListener('pointerenter', function () { MYS.cz = 1; });
+    el.addEventListener('pointerleave', function () { MYS.cz = 0; });
+    el.addEventListener('focus', function () { MYS.cz = 1; });
+    el.addEventListener('blur', function () { MYS.cz = 0; });
+  });
+  var jemny = window.matchMedia && window.matchMedia('(pointer: fine)').matches;
+  if (jemny) {
+    window.addEventListener('pointermove', function (e) {
+      MYS.cx = e.clientX / Math.max(1, window.innerWidth);
+      MYS.cy = 1 - e.clientY / Math.max(1, window.innerHeight);
+    }, { passive: true });
+  }
+  window.addEventListener('scroll', function () {
+    var v = document.documentElement.scrollHeight - window.innerHeight;
+    MYS.cp = v > 0 ? Math.min(1, window.scrollY / v) : 0;
+  }, { passive: true });
+
+
   var tichy = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var VRCHOL = 'attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}';
 
   /* Spoločný základ: šum, fBm, rozptyl, paleta a stlmenie k okrajom.
      Rozptyl (dither) nie je ozdoba. Bez neho sú na tmavom prechode vidieť
      pruhy, lebo osem bitov na kanál nestačí na jemný prechod v tmavých tónoch. */
+  // Strop krycej sily shaderu. Mení sa spolu s meraním kontrastu, nie od oka.
+  var STROP = '0.66';
+
   var ZAKLAD = [
     'precision highp float;',
     'uniform vec2 rozmer;',
     'uniform float cas;',
+    // Poloha myši v rozsahu 0 az 1 a poloha scrollu, obe uz vyhladene.
+    // Scena sa nimi ma len jemne prihnut, nie skakat: preto sa hodnoty
+    // dotahuju postupne v kresli() a nie priamo z udalosti.
+    'uniform vec2 mys;',
+    'uniform float posun;',
+    'uniform float zrych;',
     'float sum(vec2 v){ return fract(sin(dot(v, vec2(127.1, 311.7))) * 43758.5453123); }',
     'float hladky(vec2 v){',
     '  vec2 i = floor(v), f = fract(v);',
@@ -53,10 +88,14 @@
     '  return h;',
     '}',
     'float rozptyl(vec2 s){ return fract(sin(dot(s, vec2(12.9898, 78.233))) * 43758.5453) - 0.5; }',
-    'const vec3 UHLIK  = vec3(0.42, 0.15, 0.07);',
-    'const vec3 ZERAZ  = vec3(0.97, 0.40, 0.24);',
-    'const vec3 JANTAR = vec3(1.00, 0.72, 0.40);',
-    'const vec3 BIELA  = vec3(1.00, 0.94, 0.88);',
+    // Paleta. Andrej ju zadal 6. 9. 2026 v hodnotách pre CSS, tu sú tie isté
+    // prevedene do rozsahu 0 az 1: #FF6A00, #FF3B1F, #FF9F3D.
+    // UHLIK je tlmene jadro, z ktoreho sa mieša smerom k svetlu.
+    'const vec3 UHLIK  = vec3(0.38, 0.11, 0.04);',
+    'const vec3 ZERAZ  = vec3(1.00, 0.231, 0.122);',  // #FF3B1F signal
+    'const vec3 OHEN   = vec3(1.00, 0.416, 0.000);',  // #FF6A00 primary
+    'const vec3 JANTAR = vec3(1.00, 0.624, 0.239);',  // #FF9F3D accent
+    'const vec3 BIELA  = vec3(1.00, 0.96, 0.92);',
     // Stlmenie k okrajom. Bolo priostre: nasobilo nulou presne tam, kde vacsina
     // scen svieti, takze sest z osmich vyzeralo ako cierna plocha. Teraz je to
     // len jemne pritlmenie, nie vypnutie.
@@ -66,9 +105,12 @@
     '  return zvisle * mix(0.62, 1.0, okraj);',
     '}',
     'vec4 zloz(vec3 farba, float sila, float mierka){',
-    // Strop 0.55: pod pozadim je text a ten musi ostat citatelny.
-    // Vyssie hodnoty vyzerali efektne na prazdnej ploche a necitatelne s obsahom.
-    '  float a = clamp(sila * mierka, 0.0, 0.42);',
+    // Strop krycej sily. Nie je odhadnuty od oka: meria sa cez
+    // ops/design/kontrast.mjs, ktory odfoti stranku s priehladnymi pismenami
+    // a zisti, ako svetly je najsvetlejsi bod pozadia presne pod textom.
+    // Drzana hranica je bezny text 6.0 a velky text 4.5 podla WCAG, teda nad
+    // normou 4.5 a 3.0. Ked sa strop zdvihne, meranie sa musi zopakovat.
+    '  float a = clamp(sila * mierka, 0.0, ' + STROP + ');',
     '  // Rozptyl len tam, kde uz nejake svetlo je. Ked sa pridaval aj do',
     '  // uplnej tmy, videl ho clovek ako zrnenie na prazdnej ploche.',
     '  // Rozptyl musi byt aj v tmavych tonoch, prave tam su pruhy najhorsie.',
@@ -123,63 +165,357 @@
     '}',
   ].join('\n');
 
-  /* prach: pole svietiacich bodov, ktoré sa unášajú a blikajú. Hĺbka bez kresby.
-     Pre produktové stránky. */
-  V.prach = [
-    'float bod(vec2 p, float mriezka, float rychlost, float posun){',
-    '  vec2 g = p * mriezka;',
-    '  g.y += cas * rychlost + posun;',
-    '  vec2 i = floor(g), f = fract(g);',
-    '  float s = sum(i + posun);',
-    '  vec2 stred = vec2(0.5) + 0.34 * vec2(sin(s * 17.0 + cas * 0.25), cos(s * 11.0 + cas * 0.19));',
-    '  float velkost = mix(0.020, 0.075, fract(s * 7.3));',
-    '  float blik = 0.55 + 0.45 * sin(cas * (0.25 + fract(s * 3.1) * 0.4) + s * 30.0);',
-    '  return pow(velkost / (length(f - stred) + velkost), 3.2) * blik * step(0.42, s);',
-    '}',
+  /* ─────────────────── scény podľa Andrejovho výberu, 6. 9. 2026 ───────────────────
+     Vybral si: particle flow, wireframe mesh, dark particles, smoke flow, light streaks.
+     Sú písané tak, aby boli výrazne svetlejšie než pôvodná sada, a pritom aby text
+     nad nimi držal kontrast. Overuje sa to meraním, nie okom. */
+
+  /* tok: particle flow. Pole svetelných bodov, ktoré tečie po smere zo šumu.
+     Body sa nekreslia z bufferu, ale počítajú sa priamo v pixeli: pre každý pixel
+     sa pozrieme na deväť okolitých buniek mriežky a v každej je jedna častica.
+     Je to lacnejšie než skutočný časticový systém a nepotrebuje to knižnicu. */
+  V.tok = [
     'void main(){',
     '  vec2 uv = gl_FragCoord.xy / rozmer.xy;',
     '  vec2 p = uv; p.x *= rozmer.x / rozmer.y;',
-    '  float b = bod(p, 7.0, 0.020, 0.0) * 0.9 + bod(p, 12.0, 0.032, 3.7) * 0.6 + bod(p, 19.0, 0.048, 8.1) * 0.35;',
-    '  float zaves = smoothstep(0.30, 0.95, fbm(p * 1.1 + vec2(cas * 0.012, 0.0))) * 0.42;',
-    '  vec3 f = mix(UHLIK, JANTAR, clamp(b * 1.1, 0.0, 1.0));',
-    '  f = mix(f, BIELA, clamp(b * 0.7 - 0.45, 0.0, 1.0));',
-    '  gl_FragColor = zloz(f, (b * 1.0 + zaves * 0.55) * utlm(uv), 0.48);',
+    // jeden fbm na pixel určí smer toku, častice sa potom posúvajú po ňom
+    '  float smerUhol = fbm(p * 0.85 + vec2(cas * 0.010, -cas * 0.006)) * 6.2831 + (mys.x - 0.5) * 0.9;',
+    '  vec2 smer = vec2(cos(smerUhol), sin(smerUhol));',
+    '  float jas = 0.0;',
+    '  float ostry = 0.0;',
+    '  for (int i = 0; i < 2; i++) {',
+    '    float vrstva = float(i);',
+    '    float husto = 17.0 + vrstva * 13.0;',
+    '    vec2 q = (p - smer * (cas * 0.022 + vrstva * 0.004)) * husto;',
+    '    vec2 b = floor(q);',
+    '    for (int dy = -1; dy <= 1; dy++) {',
+    '      for (int dx = -1; dx <= 1; dx++) {',
+    '        vec2 c = b + vec2(float(dx), float(dy));',
+    '        float h  = sum(c + vrstva * 41.3);',
+    '        float h2 = sum(c + vrstva * 13.1 + 7.7);',
+    '        vec2 stred = c + vec2(h, h2);',
+    '        float d = length(q - stred);',
+    '        float sila = 0.3 + 0.7 * h;',
+    '        jas   += (0.0070 / (d * d + 0.0020)) * sila;',
+    '        ostry += (0.0026 / (d * d + 0.00026)) * sila;',
+    '      }',
+    '    }',
+    '  }',
+    // tok je hustejší v strede pásu, ktorý ide zľava dole doprava hore
+    '  float pas = 1.0 - smoothstep(0.0, 0.34, abs((uv.y - 0.13) - (uv.x - 0.5) * 0.20));',
+    '  jas *= 0.22 + 1.05 * pas;',
+    '  ostry *= 0.15 + 1.30 * pas;',
+    '  vec3 f = mix(UHLIK, ZERAZ, clamp(jas * 1.5, 0.0, 1.0));',
+    '  f = mix(f, OHEN,   clamp(jas * 1.05 - 0.22, 0.0, 1.0));',
+    '  f = mix(f, JANTAR, clamp(ostry * 0.9 - 0.10, 0.0, 1.0));',
+    '  f = mix(f, BIELA,  clamp(ostry * 0.7 - 0.55, 0.0, 1.0));',
+    '  gl_FragColor = zloz(f, clamp(jas + ostry * 0.8, 0.0, 1.4) * utlm(uv), 0.38);',
     '}',
   ].join('\n');
 
-  /* luc: jeden široký šikmý pruh svetla, ktorý veľmi pomaly prechádza plochou.
-     Najpokojnejšia, takmer statická. Pre právne texty a dokumentáciu. */
-  V.luc = [
+  /* mriezka: wireframe mesh. Mriežka v perspektíve, ktorá sa vlní ako krajina
+     a uteká k horizontu. Čiary sa smerom do diaľky zahusťujú, preto sa hrúbka
+     čiary škáluje hĺbkou, inak by sa pri horizonte zliali do plochy. */
+  V.mriezka = [
     'void main(){',
     '  vec2 uv = gl_FragCoord.xy / rozmer.xy;',
-    '  vec2 p = uv; p.x *= rozmer.x / rozmer.y;',
-    '  float os = p.x * cos(-0.55) - p.y * sin(-0.55);',
-    '  float d = abs(os - (0.15 + 0.5 * sin(cas * 0.021)));',
-    '  float luc = pow(0.30 / (d + 0.30), 3.4);',
-    '  float jas = luc * (0.65 + 0.5 * fbm(p * 2.4 + vec2(cas * 0.010, -cas * 0.008)));',
-    '  vec3 f = mix(UHLIK, ZERAZ, clamp(jas * 1.25, 0.0, 1.0));',
-    '  f = mix(f, JANTAR, clamp(jas * 0.7 - 0.30, 0.0, 1.0));',
-    '  gl_FragColor = zloz(f, jas * 1.0 * utlm(uv), 0.36);',
+    '  float horizont = 0.68;',
+    '  float podHorizontom = horizont - uv.y;',
+    // pod horizontom je zem, nad ním nič; smoothstep drží mäkký prechod
+    '  float zem = smoothstep(0.0, 0.03, podHorizontom);',
+    '  float hlbka = 0.14 / max(podHorizontom, 0.004);',
+    '  vec2 p = vec2((uv.x - 0.5 + (mys.x - 0.5) * 0.10) * hlbka * 2.2, hlbka - cas * 0.30 - posun * 6.0);',
+    '  float vyska = (fbm(p * 0.32 + vec2(0.0, cas * 0.02)) - 0.5) * 0.9;',
+    '  vec2 g = p + vec2(0.0, vyska * 0.5);',
+    '  vec2 f2 = abs(fract(g) - 0.5);',
+    // hrúbka čiary rastie s hĺbkou, aby sa vzdialené čiary nezliali
+    '  float hrubka = 0.020 + 0.055 / (1.0 + hlbka * 0.55);',
+    '  float ciara = 1.0 - smoothstep(0.0, hrubka, min(f2.x, f2.y));',
+    '  float uzol  = 1.0 - smoothstep(0.0, hrubka * 2.2, length(f2));',
+    // hrebene krajiny svietia viac než údolia
+    '  float hreben = smoothstep(-0.05, 0.42, vyska);',
+    '  float dohlad = smoothstep(9.0, 0.6, hlbka);',
+    '  float jas = (ciara * 0.85 + uzol * 0.9) * (0.30 + 0.85 * hreben) * dohlad * zem;',
+    '  vec3 f = mix(UHLIK, ZERAZ, clamp(jas * 1.6, 0.0, 1.0));',
+    '  f = mix(f, OHEN,   clamp(jas * 1.2 - 0.30, 0.0, 1.0));',
+    '  f = mix(f, JANTAR, clamp(uzol * hreben * dohlad * 1.3 - 0.35, 0.0, 1.0));',
+    // slabá žiara pri horizonte, aby scéna nekončila ostrou hranou
+    '  float zaria = smoothstep(0.10, 0.0, abs(podHorizontom)) * 0.35;',
+    '  f = mix(f, OHEN, zaria);',
+    '  gl_FragColor = zloz(f, clamp(jas + zaria * 0.7, 0.0, 1.3) * utlm(uv), 0.44);',
     '}',
   ].join('\n');
 
-  /* zoraz: zvislé závoje ako polárna žiara, len teplé. Slávnostná, pre úvody. */
-  V.zoraz = [
+  /* iskry: dark particles. Prevažne tmavá plocha, po ktorej stúpajú ojedinelé
+     žeravé body. Najtmavšia zo sady, takže znesie najviac textu nad sebou. */
+  V.iskry = [
     'void main(){',
     '  vec2 uv = gl_FragCoord.xy / rozmer.xy;',
     '  vec2 p = uv; p.x *= rozmer.x / rozmer.y;',
-    '  float posun = fbm(vec2(p.x * 2.2 + cas * 0.030, cas * 0.018)) - 0.5;',
-    '  float x = p.x + posun * 0.30;',
-    '  float pramen = pow(0.055 / (abs(fract(x * 2.6) - 0.5) * 0.9 + 0.055), 1.9);',
-    '  pramen += pow(0.038 / (abs(fract(x * 4.1 + 0.33) - 0.5) * 0.9 + 0.038), 1.7) * 0.7;',
-    '  float vyska = smoothstep(0.05, 0.62, p.y) * smoothstep(1.15, 0.55, p.y);',
-    '  float jas = pramen * vyska * (0.55 + 0.6 * fbm(p * 1.6 + vec2(0.0, -cas * 0.05)));',
-    '  vec3 f = mix(UHLIK, ZERAZ, clamp(jas * 1.3, 0.0, 1.0));',
-    '  f = mix(f, JANTAR, clamp(jas * 0.9 - 0.40, 0.0, 1.0));',
-    '  f = mix(f, BIELA,  clamp(jas * 0.7 - 0.80, 0.0, 1.0));',
-    '  gl_FragColor = zloz(f, jas * 1.1 * utlm(uv), 0.42);',
+    '  float jas = 0.0;',
+    '  float jadro = 0.0;',
+    '  for (int i = 0; i < 3; i++) {',
+    '    float vrstva = float(i);',
+    '    float husto = 6.0 + vrstva * 5.0;',
+    '    float rychlost = 0.030 + vrstva * 0.016;',
+    '    vec2 q = (p + vec2(0.0, -cas * rychlost)) * husto;',
+    '    vec2 b = floor(q);',
+    '    for (int dy = -1; dy <= 1; dy++) {',
+    '      for (int dx = -1; dx <= 1; dx++) {',
+    '        vec2 c = b + vec2(float(dx), float(dy));',
+    '        float h  = sum(c + vrstva * 27.4);',
+    '        float h2 = sum(c + vrstva * 9.3 + 3.1);',
+    // iskrí len časť buniek, inak by to bola rovnomerná mriežka bodiek
+    '        float ziva = step(0.62, h2);',
+    '        vec2 stred = c + vec2(h, h2) + vec2(sin(cas * 0.5 + h * 20.0) * 0.12, 0.0);',
+    '        float d = length(q - stred);',
+    '        float blik = 0.45 + 0.55 * sin(cas * (0.6 + h) + h2 * 30.0);',
+    '        jas   += (0.010 / (d * d + 0.0030)) * ziva * blik;',
+    '        jadro += (0.0022 / (d * d + 0.00022)) * ziva * blik;',
+    '      }',
+    '    }',
+    '  }',
+    // teplý opar pri spodnej hrane, akoby zdroj žiaru bol pod obrazom
+    '  float opar = smoothstep(0.55, -0.05, uv.y) * 0.22 * (0.6 + 0.4 * fbm(p * 1.6 + vec2(cas * 0.02, 0.0)));',
+    '  vec3 f = mix(UHLIK, ZERAZ, clamp((jas + opar) * 1.7, 0.0, 1.0));',
+    '  f = mix(f, OHEN,   clamp(jadro * 1.1 - 0.06, 0.0, 1.0));',
+    '  f = mix(f, JANTAR, clamp(jadro * 0.9 - 0.42, 0.0, 1.0));',
+    '  f = mix(f, BIELA,  clamp(jadro * 0.6 - 0.80, 0.0, 1.0));',
+    '  gl_FragColor = zloz(f, clamp(jas + jadro * 0.8 + opar, 0.0, 1.3) * utlm(uv), 0.46);',
     '}',
   ].join('\n');
+
+  /* dym: smoke flow. Stuhy hustého dymu presvietené zospodu. Nie je to
+     fotorealistický dym, na to by bolo treba objemové vzorkovanie; je to
+     dvojnásobne skrútený fbm, čo dá podobný pocit za zlomok ceny. */
+  V.dym = [
+    'void main(){',
+    '  vec2 uv = gl_FragCoord.xy / rozmer.xy;',
+    '  vec2 p = uv; p.x *= rozmer.x / rozmer.y;',
+    // prvé skrútenie: kam sa má pole ohnúť
+    '  vec2 q = vec2(fbm(p * 1.1 + vec2(0.0, cas * 0.026)),',
+    '                fbm(p * 1.1 + vec2(4.7, -cas * 0.021) + 3.2));',
+    // druhé skrútenie: až toto dá dymu jeho charakteristické chvosty
+    '  vec2 r = vec2(fbm(p * 1.5 + 3.4 * q + vec2(1.7, 9.2) + cas * 0.014),',
+    '                fbm(p * 1.5 + 3.4 * q + vec2(8.3, 2.8) - cas * 0.011));',
+    '  float hustota = fbm(p * 1.9 + 2.6 * r);',
+    // stuha: úzky pás okolo diagonály, kde je dym najhustejší
+    '  float os = (uv.y - 0.42 - (mys.y - 0.5) * 0.10) - (uv.x - 0.5) * 0.42 + (r.x - 0.5) * 0.30;',
+    '  float stuha = exp(-abs(os) * 5.2);',
+    '  float jas = pow(clamp(hustota, 0.0, 1.0), 1.5) * stuha;',
+    // presvietenie: tam, kde je dym tenší, presvitá viac svetla
+    '  float presvit = pow(stuha, 2.6) * smoothstep(0.30, 0.85, hustota);',
+    '  vec3 f = mix(UHLIK, ZERAZ, clamp(jas * 2.0, 0.0, 1.0));',
+    '  f = mix(f, OHEN,   clamp(jas * 1.5 - 0.25, 0.0, 1.0));',
+    '  f = mix(f, JANTAR, clamp(presvit * 1.4 - 0.20, 0.0, 1.0));',
+    '  f = mix(f, BIELA,  clamp(presvit * 1.0 - 0.62, 0.0, 1.0));',
+    '  gl_FragColor = zloz(f, clamp(jas * 1.2 + presvit * 0.8, 0.0, 1.3) * utlm(uv), 0.42);',
+    '}',
+  ].join('\n');
+
+  /* pruhy: light streaks. Rýchle svetelné ťahy naprieč obrazom. Najdynamickejšia
+     scéna, preto má najužší pás: mimo neho musí ostať miesto na text. */
+  V.pruhy = [
+    'void main(){',
+    '  vec2 uv = gl_FragCoord.xy / rozmer.xy;',
+    '  vec2 p = uv; p.x *= rozmer.x / rozmer.y;',
+    // otočenie súradníc, aby ťahy šli šikmo
+    '  float uhol = -0.42 + (mys.y - 0.5) * 0.16;',
+    '  vec2 o = vec2(p.x * cos(uhol) - p.y * sin(uhol), p.x * sin(uhol) + p.y * cos(uhol));',
+    '  float jas = 0.0;',
+    '  float jadro = 0.0;',
+    '  for (int i = 0; i < 7; i++) {',
+    '    float k = float(i);',
+    '    float h = sum(vec2(k * 3.7, 1.3));',
+    '    float h2 = sum(vec2(k * 8.1, 5.9));',
+    // každý ťah má vlastnú polohu, hrúbku a rýchlosť
+    '    float poloha = 0.16 + h * 0.72 + sin(cas * (0.05 + h2 * 0.05) + k) * 0.06;',
+    '    float d = abs(o.y - poloha);',
+    '    float hrubka = 0.006 + h2 * 0.016;',
+    '    float pas = hrubka / (d + hrubka * 0.9);',
+    // pozdĺžna modulácia, aby ťah nebol rovnomerný, ale mal svetlé miesta
+    '    float pozdlz = 0.35 + 0.65 * fbm(vec2(o.x * 2.6 - cas * (0.30 + h * 0.35), k * 4.0));',
+    '    jas   += pow(pas, 1.6) * pozdlz * (0.5 + 0.5 * h);',
+    '    jadro += pow(pas, 5.0) * pozdlz;',
+    '  }',
+    '  vec3 f = mix(UHLIK, ZERAZ, clamp(jas * 1.4, 0.0, 1.0));',
+    '  f = mix(f, OHEN,   clamp(jas * 1.1 - 0.25, 0.0, 1.0));',
+    '  f = mix(f, JANTAR, clamp(jadro * 1.2 - 0.10, 0.0, 1.0));',
+    '  f = mix(f, BIELA,  clamp(jadro * 0.9 - 0.45, 0.0, 1.0));',
+    '  gl_FragColor = zloz(f, clamp(jas * 0.9 + jadro * 0.7, 0.0, 1.3) * utlm(uv), 0.40);',
+    '}',
+  ].join('\n');
+
+  /* horizont: tmavá pláň a za ňou obrovské mäkké svetlo, ktoré vychádza.
+     Najtichšia a najprémiovejšia scéna zo sady. Znesie nad sebou najviac
+     textu, lebo celá horná polovica je takmer čierna a svetlo je dole.
+     Myš posúva zdroj svetla do strán, scroll ho dvíha a stmieva. */
+  V.horizont = [
+    'void main(){',
+    '  vec2 uv = gl_FragCoord.xy / rozmer.xy;',
+    '  float pomer = rozmer.x / rozmer.y;',
+    '  vec2 p = vec2((uv.x - 0.5) * pomer, uv.y);',
+    // hrana pláne je mierne vypuklá, ako okraj veľkého telesa
+    '  float ohyb = 0.030 + 0.010 * sin(cas * 0.06);',
+    '  float x2 = (uv.x - 0.5) * 2.0;',
+    '  float hy = 0.30 - ohyb * (x2 * x2);',
+    // zdroj svetla tesne za hranou; myš ho posúva, scroll dvíha
+    '  float posunX = (mys.x - 0.5) * 0.34 * pomer;',
+    '  vec2 zdroj = vec2(posunX, hy + 0.004 + posun * 0.06);',
+    '  float d = length((p - zdroj) * vec2(1.0, 1.55));',
+    '  float jadro = pow(0.050 / (d + 0.050), 2.7);',
+    '  float halo  = pow(0.30  / (d + 0.30),  1.9) * 0.62;',
+    '  float zar = jadro + halo;',
+    // pomalý dych, aby scéna nikdy nestála
+    '  zar *= 0.86 + 0.14 * sin(cas * 0.33);',
+    // jemné závoje pred svetlom, aby to nebol čistý matematický kruh
+    '  float zavoj = fbm(vec2(p.x * 2.2 + cas * 0.02, (uv.y - hy) * 3.4 - cas * 0.03));',
+    '  zar *= 0.80 + 0.40 * zavoj;',
+    // pláň pod hranou svetlo takmer pohltí
+    '  float plan = smoothstep(hy + 0.003, hy - 0.003, uv.y);',
+    '  zar *= mix(1.0, 0.10, plan);',
+    // úzky lem presne na hrane, to je to, čo dáva scéne tvar
+    '  float lem = exp(-abs(uv.y - hy) * 190.0) * smoothstep(1.1, 0.0, abs(p.x - zdroj.x) * 1.35);',
+    '  float sila = zar + lem * 0.85;',
+    '  vec3 f = mix(UHLIK, ZERAZ, clamp(sila * 1.5, 0.0, 1.0));',
+    '  f = mix(f, OHEN,   clamp(sila * 1.15 - 0.20, 0.0, 1.0));',
+    '  f = mix(f, JANTAR, clamp(sila * 0.95 - 0.55, 0.0, 1.0));',
+    '  f = mix(f, BIELA,  clamp(sila * 0.85 - 0.95, 0.0, 1.0));',
+    '  gl_FragColor = zloz(f, clamp(sila, 0.0, 1.4) * utlm(uv), 0.52);',
+    '}',
+  ].join('\n');
+
+  /* sopka: čierny digitálny masív, cez ktorý tečie energia.
+     Nie je to hora s lávou. Je to tmavá silueta, po ktorej steká jeden
+     hlavný svetelný tok a nad ňou stúpajú iskry. Jedno gesto, nie päťdesiat
+     efektov. Myš tok jemne vychýli, scroll ho zrýchli. */
+  V.sopka = [
+    'void main(){',
+    '  vec2 uv = gl_FragCoord.xy / rozmer.xy;',
+    '  float pomer = rozmer.x / rozmer.y;',
+    '  vec2 p = vec2((uv.x - 0.5) * pomer, uv.y);',
+    // silueta masívu: široký hrebeň zo šumu plus jeden vrchol
+    '  float sum1 = fbm(vec2(uv.x * 2.1 + 4.0, 1.7));',
+    '  float sum2 = fbm(vec2(uv.x * 5.4 + 9.0, 5.1));',
+    '  float vrchol = 0.30 * exp(-pow((uv.x - 0.62) * 3.1, 2.0));',
+    '  float hreben = 0.16 + 0.16 * sum1 + 0.06 * sum2 + vrchol;',
+    '  float masiv = smoothstep(hreben + 0.006, hreben - 0.006, uv.y);',
+    // hlavný tok: krivka, ktorá ide od vrcholu dolava dole
+    '  float vych = (mys.x - 0.5) * 0.22;',
+    '  float drahaX = 0.62 + vych - (hreben - uv.y) * 1.15;',
+    '  float sirka = 0.020 + 0.075 * clamp((hreben - uv.y) * 2.2, 0.0, 1.0);',
+    '  float odDrahy = abs(p.x - (drahaX - 0.5) * pomer);',
+    '  float tok = sirka / (odDrahy + sirka * 0.85);',
+    // tečie: pozdĺžna modulácia posúvaná časom a scrollom
+    '  float rychlost = 0.16 + posun * 0.25;',
+    '  float pozdlz = 0.35 + 0.65 * fbm(vec2(uv.x * 3.0, (uv.y * 4.0) + cas * rychlost));',
+    '  float prud = pow(tok, 1.7) * pozdlz * masiv;',
+    '  float jadroToku = pow(tok, 5.0) * pozdlz * masiv;',
+    // žiara nad vrcholom, akoby z neho vychádzalo teplo
+    '  float nadVrcholom = smoothstep(0.0, 0.34, uv.y - hreben) * smoothstep(0.9, 0.0, abs(uv.x - 0.62) * 2.6);',
+    '  float teplo = (1.0 - nadVrcholom) * smoothstep(-0.02, 0.16, uv.y - hreben) * 0.42;',
+    // iskry stúpajúce nad masívom
+    '  float iskra = 0.0;',
+    '  vec2 q = (p + vec2(0.0, -cas * 0.045)) * 9.0;',
+    '  vec2 b = floor(q);',
+    '  for (int dy = -1; dy <= 1; dy++) {',
+    '    for (int dx = -1; dx <= 1; dx++) {',
+    '      vec2 c = b + vec2(float(dx), float(dy));',
+    '      float h = sum(c), h2 = sum(c + 6.3);',
+    '      float ziva = step(0.72, h2) * (1.0 - masiv);',
+    '      float dd = length(q - (c + vec2(h, h2)));',
+    '      iskra += (0.0030 / (dd * dd + 0.0009)) * ziva * (0.4 + 0.6 * sin(cas * 0.8 + h * 25.0));',
+    '    }',
+    '  }',
+    '  float sila = prud + teplo + iskra;',
+    '  vec3 f = mix(UHLIK, ZERAZ, clamp(sila * 1.6, 0.0, 1.0));',
+    '  f = mix(f, OHEN,   clamp(prud * 1.3 + teplo * 0.8 - 0.18, 0.0, 1.0));',
+    '  f = mix(f, JANTAR, clamp(jadroToku * 1.2 + iskra * 0.8 - 0.20, 0.0, 1.0));',
+    '  f = mix(f, BIELA,  clamp(jadroToku * 0.9 - 0.60, 0.0, 1.0));',
+    // samotný kameň je takmer čierny, nie hnedý
+    '  f = mix(f, vec3(0.02, 0.018, 0.022), masiv * (1.0 - clamp(prud * 2.2, 0.0, 1.0)) * 0.55);',
+    '  gl_FragColor = zloz(f, clamp(sila + jadroToku * 0.6, 0.0, 1.4) * utlm(uv), 0.46);',
+    '}',
+  ].join('\n');
+
+  /* hora: obrovska rieka castic a za nou tmava silueta masivu.
+
+     Prve dva pokusy stavali horu ako hlavny objekt a tok ako tenku ciaru.
+     Na predlohe je to obratene: rieka zabera dve tretiny plochy, svieti
+     a hora je len tmavy tvar za nou. Preto sa scena kresli 2D. Raymarching
+     by rieku takto ovladat nedokazal a stal by desatnasobok.
+
+     Rieka ma tri vrstvy: siroky tlmeny opar, hustu masu castic a ostre
+     jadro. Kazda ma inu rychlost, z coho vznikne dojem hlbky.
+
+     Vlavo, kde je nadpis, sa cela scena plynulo vytrati. */
+  V.hora = [
+    'float osRieky(float x, float ohyb){',
+    '  return 0.26 + 0.30 * x + 0.150 * sin(x * 2.6 - 0.35) + ohyb;',
+    '}',
+    'float hreben(float x){',
+    '  float h = 0.24 + 0.13 * fbm(vec2(x * 2.4, 3.1));',
+    '  h += 0.44 * exp(-pow((x - 0.72) * 3.0, 2.0));',
+    '  h += 0.16 * exp(-pow((x - 0.44) * 5.0, 2.0));',
+    '  h += 0.12 * exp(-pow((x - 0.94) * 4.4, 2.0));',
+    '  return h;',
+    '}',
+    'void main(){',
+    '  vec2 uv = gl_FragCoord.xy / rozmer.xy;',
+    '  float pomer = rozmer.x / rozmer.y;',
+    '  float ohyb = (mys.y - 0.5) * 0.10;',
+    '  float rych = 0.30 + zrych * 0.85 + posun * 0.20;',
+    '  float hy = hreben(uv.x);',
+    '  float masiv = smoothstep(hy + 0.004, hy - 0.004, uv.y);',
+    '  float nadHrebenom = smoothstep(0.0, 0.30, uv.y - hy);',
+    '  vec3 farba = mix(vec3(0.075, 0.052, 0.048), vec3(0.014, 0.014, 0.019), nadHrebenom);',
+    '  farba = mix(farba, vec3(0.008, 0.007, 0.010), masiv);',
+    '  float os = osRieky(uv.x, ohyb);',
+    '  float d = (uv.y - os);',
+    '  float sirka = 0.032 + 0.085 * smoothstep(0.05, 0.95, uv.x);',
+    '  float pas = exp(-pow(d / sirka, 2.0));',
+    '  float opar = exp(-pow(d / (sirka * 2.0), 2.0));',
+    '  opar *= 0.55 + 0.45 * fbm(vec2(uv.x * 3.0 - cas * rych * 0.35, uv.y * 4.0 + cas * 0.05));',
+    '  float castice = 0.0;',
+    '  float ostre = 0.0;',
+    '  for (int L = 0; L < 3; L++) {',
+    '    float vr = float(L);',
+    '    float husto = 26.0 + vr * 20.0;',
+    '    float posunV = cas * rych * (0.55 + vr * 0.35);',
+    '    vec2 q = vec2((uv.x * pomer - posunV) * husto, (d / sirka) * 6.5 + vr * 11.0);',
+    '    vec2 b = floor(q);',
+    '    for (int dy = -1; dy <= 1; dy++) {',
+    '      for (int dx = -1; dx <= 1; dx++) {',
+    '        vec2 c = b + vec2(float(dx), float(dy));',
+    '        float h1 = sum(c + vr * 31.7);',
+    '        float h2 = sum(c + vr * 7.3 + 4.9);',
+    '        float dd = length(q - (c + vec2(h1, h2)));',
+    '        float s1 = 0.3 + 0.7 * h1;',
+    '        castice += (0.020 / (dd * dd + 0.030)) * s1;',
+    '        ostre   += (0.0026 / (dd * dd + 0.0016)) * s1;',
+    '      }',
+    '    }',
+    '  }',
+    '  castice *= pas;',
+    '  ostre *= pas * pas;',
+    '  float jadro = exp(-pow(d / (sirka * 0.34), 2.0));',
+    '  jadro *= 0.45 + 0.55 * fbm(vec2(uv.x * 5.5 - cas * rych * 0.9, 2.0));',
+    '  float sila = opar * 0.18 + castice * 0.46 + jadro * 0.80 + ostre * 0.34;',
+    '  vec3 svetlo = mix(UHLIK, ZERAZ, clamp(sila * 2.2, 0.0, 1.0));',
+    '  svetlo = mix(svetlo, OHEN, clamp(sila * 1.7 - 0.22, 0.0, 1.0));',
+    '  svetlo = mix(svetlo, JANTAR, clamp((jadro * 1.2 + ostre * 0.9) - 0.30, 0.0, 1.0));',
+    '  svetlo = mix(svetlo, BIELA, clamp((jadro * 1.1 + ostre * 0.8) - 0.78, 0.0, 1.0));',
+    '  farba += svetlo * sila * 1.35;',
+    '  farba += OHEN * masiv * pas * 0.22;',
+    '  float miesto = 0.02 + 0.98 * smoothstep(0.34, 0.76, uv.x);',
+    '  miesto *= 1.0 - 0.55 * smoothstep(0.62, 0.98, uv.y);',
+    '  float alfa = clamp(sila * 2.1 + masiv * 0.80 + (1.0 - nadHrebenom) * 0.28, 0.0, 1.0) * miesto;',
+    '  alfa += rozptyl(gl_FragCoord.xy) * 0.012;',
+    '  gl_FragColor = vec4(farba, clamp(alfa, 0.0, 0.97));',
+    '}',
+  ].join('\n');
+
+
 
   /* siet: jemná mriežka, ktorá sa vlní ako plachta a v uzloch svieti.
      Technická, ale nie chladná. Pre nástroje a dokumentáciu. */
@@ -197,62 +533,6 @@
     '  vec3 c = mix(UHLIK, ZERAZ, clamp(jas * 1.4, 0.0, 1.0));',
     '  c = mix(c, JANTAR, clamp(uzol * zivot * 1.2 - 0.25, 0.0, 1.0));',
     '  gl_FragColor = zloz(c, jas * 1.0 * utlm(uv), 0.46);',
-    '}',
-  ].join('\n');
-
-  /* kruhy: sústredné vlnky rozbiehajúce sa z jedného bodu. Hypnotická. */
-  V.kruhy = [
-    'void main(){',
-    '  vec2 uv = gl_FragCoord.xy / rozmer.xy;',
-    '  vec2 p = uv; p.x *= rozmer.x / rozmer.y;',
-    '  vec2 stred = vec2(0.5 * rozmer.x / rozmer.y, 0.72);',
-    '  float d = length(p - stred) + fbm(p * 2.0 + cas * 0.02) * 0.06;',
-    '  float vlnky = sin(d * 26.0 - cas * 0.85);',
-    '  float jas = pow(max(vlnky, 0.0), 3.0) * smoothstep(1.1, 0.05, d) * 0.9;',
-    '  jas += pow(0.12 / (d + 0.12), 2.2) * 0.35;',
-    '  vec3 f = mix(UHLIK, ZERAZ, clamp(jas * 1.35, 0.0, 1.0));',
-    '  f = mix(f, JANTAR, clamp(jas * 0.8 - 0.35, 0.0, 1.0));',
-    '  gl_FragColor = zloz(f, jas * 1.05 * utlm(uv), 0.42);',
-    '}',
-  ].join('\n');
-
-  /* dym: hustý pomalý dym, ktorý stúpa. Najtemnejšia z ôsmich. */
-  V.dym = [
-    'void main(){',
-    '  vec2 uv = gl_FragCoord.xy / rozmer.xy;',
-    '  vec2 p = uv; p.x *= rozmer.x / rozmer.y;',
-    '  vec2 s = p * 2.1 + vec2(0.0, -cas * 0.035);',
-    '  float a = fbm(s);',
-    '  float b = fbm(s + 1.9 * vec2(a, fbm(s + vec2(3.1, 1.7))));',
-    '  float jas = smoothstep(0.36, 0.92, b) * smoothstep(0.02, 0.55, p.y) * smoothstep(1.2, 0.6, p.y);',
-    '  vec3 f = mix(UHLIK, ZERAZ, clamp(jas * 1.1, 0.0, 1.0));',
-    '  f = mix(f, JANTAR, clamp(jas * 0.6 - 0.35, 0.0, 1.0));',
-    '  gl_FragColor = zloz(f, jas * 1.2 * utlm(uv), 0.40);',
-    '}',
-  ].join('\n');
-
-  /* iskry: drobné iskry stúpajúce nahor. Jediná živšia scéna, používať
-     striedmo a nikdy tam, kde sa niečo číta. */
-  V.iskry = [
-    'float iskra(vec2 p, float mriezka, float rychlost, float posun){',
-    '  vec2 g = vec2(p.x * mriezka, p.y * mriezka + cas * rychlost + posun);',
-    '  vec2 i = floor(g), f = fract(g);',
-    '  float s = sum(i + posun);',
-    '  if (s < 0.86) return 0.0;',
-    '  vec2 stred = vec2(0.5 + 0.3 * sin(s * 40.0 + cas * 0.9), 0.5);',
-    '  float d = length((f - stred) * vec2(1.0, 0.45));',
-    '  return pow(0.055 / (d + 0.055), 3.0) * (0.4 + 0.6 * sin(cas * 2.0 + s * 60.0));',
-    '}',
-    'void main(){',
-    '  vec2 uv = gl_FragCoord.xy / rozmer.xy;',
-    '  vec2 p = uv; p.x *= rozmer.x / rozmer.y;',
-    '  float i = iskra(p, 9.0, 0.20, 0.0) + iskra(p, 15.0, 0.31, 5.3) * 0.7;',
-    '  float pec = smoothstep(0.45, 1.05, 1.0 - p.y) * 0.30 * (0.6 + 0.5 * fbm(p * 2.0 + cas * 0.03));',
-    '  float jas = i * 0.9 + pec;',
-    '  vec3 f = mix(UHLIK, ZERAZ, clamp(jas * 1.5, 0.0, 1.0));',
-    '  f = mix(f, JANTAR, clamp(i * 1.1 - 0.20, 0.0, 1.0));',
-    '  f = mix(f, BIELA,  clamp(i * 0.9 - 0.60, 0.0, 1.0));',
-    '  gl_FragColor = zloz(f, jas * 1.0 * utlm(uv), 0.44);',
     '}',
   ].join('\n');
 
@@ -302,6 +582,9 @@
 
     var uRozmer = gl.getUniformLocation(program, 'rozmer');
     var uCas = gl.getUniformLocation(program, 'cas');
+    var uMys = gl.getUniformLocation(program, 'mys');
+    var uPosun = gl.getUniformLocation(program, 'posun');
+    var uZrych = gl.getUniformLocation(program, 'zrych');
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
@@ -333,6 +616,16 @@
         gl.bindBuffer(gl.ARRAY_BUFFER, buf);
         gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
         gl.uniform1f(uCas, (teraz - s.zaciatok) / 1000);
+        // Dotahovanie k cielu: 8 percent rozdielu za snimok. Pri 30 snimkoch
+        // za sekundu je to asi tretina sekundy na dobehnutie, co je akurat
+        // na to, aby to posobilo zivo a nie trhane.
+        MYS.x += (MYS.cx - MYS.x) * 0.08;
+        MYS.y += (MYS.cy - MYS.y) * 0.08;
+        MYS.p += (MYS.cp - MYS.p) * 0.08;
+        gl.uniform2f(uMys, MYS.x, MYS.y);
+        gl.uniform1f(uPosun, MYS.p);
+        MYS.z += (MYS.cz - MYS.z) * 0.10;
+        gl.uniform1f(uZrych, MYS.z);
         gl.drawArrays(gl.TRIANGLES, 0, 3);
       },
     };

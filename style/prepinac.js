@@ -59,11 +59,17 @@
       if (!verzie.some(function (v) { return v.kod === kod; })) verzie.push({ kod: kod, href: href, presna: true });
     });
 
-    // 2. doplniť jazyky, ktoré web má, ale táto stránka v nich nie je
-    DOMOVSKE.forEach(function (d) {
-      if (verzie.some(function (v) { return v.kod === d.kod; })) return;
-      verzie.push({ kod: d.kod, href: d.href, presna: false });
-    });
+    // Zámerne sa NEDOPĹŇAJÚ jazyky, v ktorých táto stránka nie je.
+    //
+    // Predtým sa dopĺňali a položka sa označila ako „domovská". Andrej to
+    // 6. 9. 2026 zhrnul presne: „prečo ma to hodí na domovskú, ono to má
+    // preložiť tú stránku, na ktorej som." Má pravdu. Prepínač jazyka má
+    // jednu úlohu, dať tú istú stránku v inom jazyku. Keď ju dať nevie, je
+    // čestnejšie ten jazyk neponúknuť, než človeka odviesť inam.
+    //
+    // Dôsledok je zámerný a nepríjemný: na stránke bez prekladu prepínač
+    // zmizne. To je správny tlak. Chýbajúci preklad sa má doplniť, nie
+    // zakryť odkazom na domovskú stránku.
 
     if (verzie.length < 2) return;
     verzie.sort(function (a, b) { return a.kod === tu ? -1 : b.kod === tu ? 1 : a.kod.localeCompare(b.kod); });
@@ -83,14 +89,6 @@
       a.setAttribute('data-umami-event', 'lang-' + v.kod);
       a.textContent = NAZVY[v.kod] || v.kod;
       if (v.kod === tu) a.setAttribute('aria-current', 'true');
-      if (!v.presna && v.kod !== tu) {
-        // Táto stránka v tom jazyku nie je. Povedzme to, nech klik neprekvapí.
-        a.className = 'len-domov';
-        var pozn = document.createElement('span');
-        pozn.textContent = 'domovská';
-        a.appendChild(pozn);
-        a.setAttribute('title', 'Táto stránka zatiaľ nie je v tomto jazyku, otvorí sa domovská stránka.');
-      }
       li.appendChild(a);
       ul.appendChild(li);
     });
