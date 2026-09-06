@@ -190,7 +190,7 @@ th{font:500 13px/1.3 var(--ui);letter-spacing:.04em;color:var(--muted);text-tran
 /* ── 13. Pohyb. Príchod sekcií, kresba linky, nadpis po slovách. ── */
 html.js .r{opacity:0;transform:translateY(8px);
   transition:opacity .4s var(--ease),transform .4s var(--ease)}
-.in .r,.r.in{opacity:1;transform:none}
+html.js .in .r,html.js .r.in,.in .r,.r.in{opacity:1;transform:none}
 /* Uvod stranky sa neskryva nikdy: je to prve, co clovek vidi. */
 .hero .r,.hero .w,h1 .w{opacity:1 !important;transform:none !important}
 @media (scripting: none){ .r,.w{opacity:1 !important;transform:none !important;filter:none !important} }
@@ -199,7 +199,7 @@ html.js .r{opacity:0;transform:translateY(8px);
 .w{display:inline-block}
 html.js .w{opacity:0;transform:translateY(22px);
   transition:opacity .8s var(--spring),transform .8s var(--spring)}
-.in .w{opacity:1;transform:none}
+html.js .in .w,.in .w{opacity:1;transform:none}
 
 /* ── 14. Kreslená scéna: monolinia, nakreslí sa raz, tri svetlá ── */
 .scene{position:relative;border:1px solid var(--line);border-radius:16px;background:var(--scene-bg,var(--card));
