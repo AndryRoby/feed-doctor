@@ -51,3 +51,42 @@ document.documentElement.classList.add('js');
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
   else start();
 })();
+
+/* Hlavička, ktorá je hore priehľadná a po odrolovaní dostane pozadie.
+ *
+ * Prečo trieda na <body> a nie na <header>: hlavičku niektoré stránky vykresľujú
+ * inak, ale <body> je vždy jedno. Trieda `posunute` sa pridá po 12 pixeloch,
+ * čo je dosť na to, aby to nepreblikávalo pri jemnom dotyku kolieska.
+ *
+ * Pozor na tri veci, ktoré sa tu ľahko pokazia:
+ *  1. `passive: true` na poslucháčovi, inak scrollovanie na mobile trhá;
+ *  2. čítanie scrollY v requestAnimationFrame, nie priamo v udalosti, aby sme
+ *     nenútili prehliadač prepočítavať rozloženie pri každom pixeli;
+ *  3. stav sa nastaví hneď pri načítaní, lebo stránka sa môže otvoriť
+ *     odrolovaná (návrat späť, odkaz s kotvou).
+ */
+(function () {
+  'use strict';
+  var caka = false;
+
+  function prepni() {
+    caka = false;
+    var telo = document.body;
+    if (!telo) return;
+    var y = window.pageYOffset || document.documentElement.scrollTop || 0;
+    telo.classList.toggle('posunute', y > 12);
+  }
+  function naScroll() {
+    if (caka) return;
+    caka = true;
+    window.requestAnimationFrame(prepni);
+  }
+
+  // Tento súbor sa načíta v <head> bez defer, takže tu <body> ešte neexistuje.
+  // Poslucháčov vieme pripojiť hneď (window existuje), ale prvé prepnutie musí
+  // počkať na telo dokumentu, inak by hlavička ostala navždy priehľadná.
+  window.addEventListener('scroll', naScroll, { passive: true });
+  window.addEventListener('resize', naScroll, { passive: true });
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', prepni);
+  else prepni();
+})();

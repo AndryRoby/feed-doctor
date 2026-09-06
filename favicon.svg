@@ -1,9 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-<rect width="512" height="512" rx="96" fill="#faf9f5"/>
+<rect width="512" height="512" rx="96" fill="#0a0908"/>
 <defs>
   <path id="m" fill-rule="evenodd" d="M256 72 L452 456 H60 Z M256 220 L352 408 H160 Z"/>
   <clipPath id="mr"><rect x="256" width="256" height="512"/></clipPath>
 </defs>
-<use href="#m" fill="#141413"/>
-<use href="#m" fill="#b23a1d" clip-path="url(#mr)"/>
+<use href="#m" fill="#fafafa"/>
+<use href="#m" fill="#f2643c" clip-path="url(#mr)"/>
 </svg>
