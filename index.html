@@ -131,238 +131,258 @@
 }
 </script>
 
+<link rel="preload" href="fonts/arling-sans.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/arling-serif.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="style/paper.css">
+
 <style>
-  :root {
-    --paper:#f6f2ea; --paper-2:#fbf9f4; --ink:#1b1a17; --ink-2:#4a4741; --muted:#66625a; --line:#d9d2c4;
-    --accent:#b23a1d; --accent-soft:#f3e2dc; --ok:#2f6f3e; --warn:#9a6b00;
-    --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
-    --sans:system-ui,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    --mono:ui-monospace,"Cascadia Code",Consolas,Menlo,monospace;
-    --radius:4px;
-    --maxw:1080px;
+  /* Only what is specific to this page. Every colour, font, heading, button,
+     header, footer, table and card comes from style/paper.css. */
+  :root{
+    --warn:#8a6320;          /* third severity, paper.css has error and ok only */
+    --soft:#f6e7e1;          /* accent wash behind a notice */
+    --ctl:8px;               /* tool controls are tighter than a paper card */
   }
-  @media (prefers-color-scheme: dark) {
-    :root { --paper:#151412; --paper-2:#1d1b18; --ink:#efe9de; --ink-2:#c9c2b5; --muted:#8f887b; --line:#2e2b26; --accent:#e0623f; --accent-soft:#3a1f17; --ok:#7fbf8e; --warn:#d9a54a; }
+  .mono{font-family:var(--mono)}
+  .anchor-offset{scroll-margin-top:86px}
+  /* The header is sticky and 66 px tall, so anything the browser scrolls into
+     view on its own (keyboard focus, find in page, a script) has to stop below
+     it. Without this the control lands under the header and the click lands on
+     the header instead of on the control. */
+  .play input,.play textarea,.play button,.play label,
+  .results a,.results button,.results summary,
+  .subscribe-form input,.subscribe-form button,details.faq summary{scroll-margin-top:86px}
+  .section-head{max-width:74ch}
+  .sub{color:var(--muted);max-width:66ch;margin:0}
+  .band .sub{color:#a8a294}
+
+  /* Hero proof row */
+  .facts{list-style:none;margin:22px 0 0;padding:0;display:flex;flex-wrap:wrap;
+    font-family:var(--ui);font-size:14px;color:var(--muted)}
+  .facts li+li::before{content:"\00b7";margin:0 10px;color:var(--line)}
+  .facts b{font-weight:600}
+
+  /* The six recurring issues: a numbered list, not a grid of cards */
+  .rules{display:grid;grid-template-columns:repeat(3,1fr);
+    gap:26px 32px;margin:30px 0 0;padding:0;list-style:none;counter-reset:r}
+  @media (max-width:900px){.rules{grid-template-columns:repeat(2,1fr)}}
+  @media (max-width:560px){.rules{grid-template-columns:1fr}}
+  .rules li{padding-top:14px;border-top:1px solid var(--line);min-width:0}
+  .rules li::before{counter-increment:r;content:counter(r,decimal-leading-zero);
+    font:500 12px/1 var(--ui);letter-spacing:.12em;color:var(--accent);display:block;margin-bottom:8px}
+  .rules b{display:block;font-family:var(--display);font-weight:600;font-size:16.5px;color:var(--ink);margin-bottom:4px}
+  .rules p{margin:0;font-size:15px;overflow-wrap:anywhere}
+
+  /* Rule table: mono ids, the rest is paper.css */
+  table.rule-table td.rid{font-family:var(--mono);font-size:12.5px;white-space:nowrap}
+  table.rule-table td.rfield{font-family:var(--mono);font-size:12.5px;color:var(--muted);white-space:nowrap}
+  table.rule-table td.rdesc{color:var(--body)}
+  @media (max-width:600px){
+    table.rule-table td.rid,table.rule-table td.rfield{white-space:normal}
   }
-  * { box-sizing:border-box; }
-  html { background:var(--paper); }
-  body { margin:0; color:var(--ink); background:var(--paper); font:16px/1.55 var(--sans); -webkit-font-smoothing:antialiased; }
-  img { max-width:100%; }
-  a { color:inherit; text-decoration-color:var(--line); text-underline-offset:3px; }
-  a:hover { text-decoration-color:var(--accent); }
-  :focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
-  [hidden] { display:none !important; }
-  .skip { position:absolute; left:-999px; top:8px; background:var(--ink); color:var(--paper); padding:8px 12px; z-index:100; }
-  .skip:focus { left:8px; }
-  .wrap { max-width:var(--maxw); margin:0 auto; padding:0 24px; }
-  .mono { font-family:var(--mono); }
+  .sev-pill{display:inline-flex;align-items:center;font-family:var(--mono);font-size:10.5px;font-weight:600;
+    padding:2px 8px;border-radius:999px;border:1px solid var(--line);text-transform:uppercase;
+    letter-spacing:.03em;white-space:nowrap;color:var(--muted)}
+  .sev-pill.error{color:var(--accent);border-color:var(--accent)}
+  .sev-pill.warning{color:var(--warn);border-color:var(--warn)}
 
-  /* Header */
-  header.top { border-bottom:1px solid var(--line); }
-  header.top .wrap { display:flex; align-items:baseline; justify-content:space-between; gap:20px 24px; padding:18px 24px; flex-wrap:wrap; }
-  .wordmark { font:600 21px/1 var(--serif); text-decoration:none; }
-  .wordmark small { font:12.5px/1 var(--sans); color:var(--muted); margin-left:10px; letter-spacing:.04em; }
-  nav.main { display:flex; flex-wrap:wrap; gap:6px 20px; }
-  nav.main a { font-size:14px; text-decoration:none; color:var(--ink-2); white-space:nowrap; }
-  nav.main a:hover { color:var(--accent); }
-  @media (max-width:480px) { .wordmark small { display:none; } }
+  /* ── The checker ─────────────────────────────────────────────────────── */
+  .play{border:1px solid var(--line);background:var(--card);border-radius:var(--radius);overflow:hidden;margin-top:30px}
+  .play-head{display:flex;align-items:center;gap:14px;padding:10px 14px;border-bottom:1px solid var(--line);
+    font-family:var(--mono);font-size:12px;color:var(--muted);flex-wrap:wrap;background:var(--paper-deep)}
+  .play-head .lights{display:flex;gap:6px}
+  .play-head .lights span{width:9px;height:9px;border-radius:50%;background:rgba(20,20,19,.16)}
+  .play-head .path{color:var(--body)}
+  .play-head .path .method{color:var(--accent)}
+  .play-head .spacer{flex:1}
 
-  /* Hero */
-  .hero { padding:60px 0 40px; border-bottom:1px solid var(--line); }
-  .hero h1 { font:400 clamp(28px,4.6vw,44px)/1.2 var(--serif); letter-spacing:-.01em; margin:0 0 18px; max-width:26ch; }
-  .hero p.lead { font-size:18px; color:var(--ink-2); max-width:62ch; margin:0 0 26px; }
-  .hero-cta { display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-bottom:24px; }
-  .steps { list-style:none; margin:0 0 26px; padding:0; display:flex; flex-wrap:wrap; gap:8px 28px; color:var(--ink-2); font-size:14.5px; counter-reset:step; }
-  .steps li { display:flex; align-items:baseline; gap:8px; }
-  .steps li::before { counter-increment:step; content:counter(step); font:400 13px/1 var(--serif); color:var(--accent); border:1px solid var(--line); border-radius:50%; width:20px; height:20px; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; }
-  .facts { list-style:none; margin:0; padding:0; display:flex; flex-wrap:wrap; gap:8px 0; color:var(--muted); font-size:14px; }
-  .facts li + li::before { content:"\00b7"; margin:0 10px; color:var(--line); }
-  .facts b { color:var(--ink); font-weight:600; }
+  .tool-inputs{padding:18px;display:flex;flex-direction:column;gap:12px;border-bottom:1px solid var(--line)}
+  .field-row{display:flex;gap:8px;flex-wrap:wrap}
+  .field-row input[type="text"]{flex:1 1 280px;min-width:0;background:var(--paper);color:var(--ink);
+    border:1px solid var(--line);border-radius:var(--ctl);padding:10px 12px;
+    font-family:var(--mono);font-size:13px;outline:none}
+  .field-row input[type="text"]:focus{border-color:var(--ink)}
+  .fetch-status{margin:0;padding:9px 12px;font-size:13.5px;line-height:1.6;border-left:2px solid var(--accent);
+    background:var(--soft);color:var(--body);border-radius:0 var(--ctl) var(--ctl) 0}
+  .or-divider{font-family:var(--ui);font-size:11px;text-transform:uppercase;letter-spacing:.08em;
+    color:var(--muted);text-align:center;margin:2px 0}
+  textarea.feed-text{width:100%;background:var(--paper);color:var(--ink);border:1px solid var(--line);
+    border-radius:var(--ctl);padding:10px 12px;font-family:var(--mono);font-size:12.5px;line-height:1.6;
+    resize:vertical;min-height:130px;outline:none}
+  textarea.feed-text:focus{border-color:var(--ink)}
+  .tool-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .file-btn{position:relative;overflow:hidden}
+  .format-hint{font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-left:auto}
 
-  /* Buttons */
-  .btn { display:inline-block; font:600 15px/1 var(--sans); padding:12px 18px; border-radius:var(--radius); text-decoration:none; cursor:pointer; border:2px solid transparent; }
-  .btn-solid { background:var(--accent); color:#fff; border-color:var(--accent); }
-  .btn-solid:hover { color:#fff; opacity:.92; }
-  .btn-line { border:2px solid var(--ink); color:var(--ink); background:transparent; }
-  .btn:disabled { opacity:.6; cursor:default; }
+  .icon-btn{background:transparent;color:var(--body);border:1px solid var(--line);border-radius:var(--ctl);
+    font-family:var(--ui);font-size:13.5px;padding:9px 14px;cursor:pointer;
+    transition:border-color .16s var(--ease),color .16s var(--ease)}
+  .icon-btn:hover{color:var(--ink);border-color:var(--ink)}
+  .icon-btn:disabled{opacity:.6;cursor:progress}
+  .icon-btn.btn-solid{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:500;height:auto}
+  .icon-btn.btn-solid:hover{background:var(--accent-dark);color:#fff;border-color:var(--accent-dark)}
 
-  /* Section frame */
-  section.block { padding:56px 0; border-bottom:1px solid var(--line); }
-  .section-head { max-width:74ch; margin-bottom:8px; }
-  .kicker { font:400 14px/1 var(--serif); color:var(--accent); letter-spacing:.04em; margin:0 0 8px; }
-  h2 { font:400 clamp(24px,3.4vw,30px)/1.2 var(--serif); margin:0 0 10px; letter-spacing:-.005em; max-width:28ch; }
-  .sub { color:var(--ink-2); max-width:64ch; margin:0; font-size:15.5px; }
+  /* ── Report ──────────────────────────────────────────────────────────── */
+  .results{padding:18px}
+  .results .placeholder{color:var(--muted);font-size:13px;font-family:var(--mono)}
+  .result-top{display:flex;flex-wrap:wrap;align-items:center;gap:18px 26px;margin-bottom:22px}
+  .score-badge{display:flex;align-items:baseline;gap:6px;font-family:var(--display)}
+  .score-badge .num{font-size:44px;font-weight:600;line-height:1;letter-spacing:-.02em;color:var(--ink)}
+  .score-badge .of100{font-size:14px;color:var(--muted);font-family:var(--ui)}
+  .score-badge.good .num{color:var(--ok)}
+  .score-badge.ok .num{color:var(--warn)}
+  .score-badge.bad .num{color:var(--accent)}
+  .result-meta{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
+  .counts-row{display:flex;gap:8px;flex-wrap:wrap}
+  .count-pill{font-family:var(--mono);font-size:12px;padding:4px 10px;border-radius:999px;
+    border:1px solid var(--line);color:var(--muted)}
+  .count-pill.error{color:var(--accent);border-color:var(--accent);background:var(--soft)}
+  .count-pill.warning{color:var(--warn);border-color:var(--warn)}
+  .export-row{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0}
+  .handoff{margin:0;padding-top:16px;border-top:1px solid var(--line);font-size:15px;color:var(--body);max-width:68ch}
 
-  /* Rules list (curated "how to fix" section) */
-  .rules { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:26px 32px; margin:30px 0 0; padding:0; list-style:none; counter-reset:r; }
-  .rules li { padding-top:14px; border-top:1px solid var(--line); min-width:0; }
-  .rules li::before { counter-increment:r; content:counter(r,decimal-leading-zero); font:400 14px/1 var(--serif); color:var(--accent); display:block; margin-bottom:8px; }
-  .rules b { display:block; font-weight:600; margin-bottom:4px; font-size:15.5px; }
-  .rules p { margin:0; color:var(--ink-2); font-size:14.5px; overflow-wrap:anywhere; }
+  .result-section-title{font:500 11px/1.3 var(--ui);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);
+    border-bottom:1px solid var(--line);padding-bottom:8px;margin:26px 0 12px}
+  .result-section-title:first-of-type{margin-top:0}
+  .found-rule{border:1px solid var(--line);border-left:3px solid var(--line);border-radius:0 var(--ctl) var(--ctl) 0;
+    margin-bottom:10px;background:var(--paper)}
+  .found-rule.error{border-left-color:var(--accent)}
+  .found-rule.warning{border-left-color:var(--warn)}
+  .found-rule.info{border-left-color:var(--muted)}
+  .found-rule summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    padding:10px 12px;font-size:14px;font-family:var(--ui)}
+  .found-rule summary::-webkit-details-marker{display:none}
+  .found-rule summary::after{content:"+";margin-left:auto;color:var(--muted)}
+  .found-rule[open] summary::after{content:"\2013"}
+  .found-rule summary .rtitle{font-weight:500;color:var(--ink)}
+  .found-rule summary .rid,.found-rule summary .rcount{font-family:var(--mono);font-size:11px;color:var(--muted)}
+  .issue-list{list-style:none;margin:0;padding:0 12px 12px;display:flex;flex-direction:column;gap:6px}
+  .issue-item{font-size:13px;color:var(--body);border-top:1px solid var(--line);padding-top:6px;overflow-wrap:anywhere}
+  .issue-item .iid{font-family:var(--mono);color:var(--muted)}
+  .issue-more{font-size:12px;color:var(--muted);padding:0 12px 12px;font-family:var(--ui)}
 
-  /* Rule table (what it checks) */
-  .rule-table-wrap { margin-top:28px; overflow-x:auto; }
-  table.rule-table { width:100%; border-collapse:collapse; font-size:13.5px; }
-  table.rule-table th { text-align:left; font:600 11px/1 var(--sans); text-transform:uppercase; letter-spacing:.04em; color:var(--muted); padding:0 10px 10px 0; border-bottom:1px solid var(--line); white-space:nowrap; }
-  table.rule-table td { padding:9px 10px 9px 0; border-bottom:1px solid var(--line); vertical-align:top; }
-  table.rule-table tr:last-child td { border-bottom:none; }
-  table.rule-table td.rid { font-family:var(--mono); font-size:12px; white-space:nowrap; }
-  table.rule-table td.rfield { font-family:var(--mono); font-size:12px; color:var(--muted); white-space:nowrap; }
-  table.rule-table td.rdesc { color:var(--ink-2); }
-  .sev-pill { display:inline-flex; align-items:center; font-family:var(--mono); font-size:10.5px; font-weight:600; padding:2px 7px; border-radius:4px; border:1px solid var(--line); text-transform:uppercase; letter-spacing:.03em; white-space:nowrap; }
-  .sev-pill.error { color:var(--accent); border-color:var(--accent); }
-  .sev-pill.warning { color:var(--warn); border-color:var(--warn); }
-  .sev-pill.info { color:var(--muted); }
+  /* ── Monitor this feed ───────────────────────────────────────────────── */
+  .monitor-box{margin-top:18px;padding-top:18px;border-top:1px solid var(--line)}
+  .monitor-box h3{font:500 11px/1.3 var(--ui);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 12px}
+  .monitor-form{display:flex;flex-direction:column;gap:10px;max-width:520px}
+  .monitor-row{display:flex;flex-wrap:wrap;gap:8px}
+  .monitor-row input{flex:1 1 220px;min-width:0;height:42px;padding:0 12px;border:1px solid var(--line);
+    border-radius:var(--ctl);background:var(--paper);color:var(--ink);font:14px/1 var(--ui);outline:none}
+  .monitor-row input:focus{border-color:var(--ink)}
+  .monitor-row input::placeholder{color:var(--muted)}
+  .monitor-row .icon-btn{flex:none}
+  .monitor-pro-line{margin:0;font-size:13.5px;color:var(--body)}
+  .monitor-note{margin:0;padding:8px 10px;font-size:12.5px;line-height:1.55;color:var(--body);
+    border-left:2px solid var(--accent);background:var(--soft);border-radius:0 var(--ctl) var(--ctl) 0}
+  .monitor-status{margin:0;font-size:13.5px;font-weight:600;font-family:var(--ui)}
+  .monitor-status.err{color:var(--accent)}
+  .monitor-status.ok{color:var(--ok)}
+  .monitor-success p{margin:0;font-size:14px;font-weight:600;color:var(--ok);font-family:var(--ui)}
+  @media (max-width:480px){.monitor-row input,.monitor-row .icon-btn{width:100%;flex:1 1 auto}}
 
-  /* Tool */
-  .play { border:1px solid var(--line); background:var(--paper-2); border-radius:6px; overflow:hidden; margin-top:30px; }
-  .play-head { display:flex; align-items:center; gap:14px; padding:10px 14px; border-bottom:1px solid var(--line); font-family:var(--mono); font-size:12px; color:var(--muted); flex-wrap:wrap; }
-  .play-head .lights { display:flex; gap:6px; }
-  .play-head .lights span { width:9px; height:9px; border-radius:50%; border:1px solid var(--line); }
-  .play-head .path { color:var(--ink-2); }
-  .play-head .path .method { color:var(--accent); }
-  .play-head .spacer { flex:1; }
-  .play-head .runtime { color:var(--muted); }
-
-  .tool-inputs { padding:18px; display:flex; flex-direction:column; gap:12px; border-bottom:1px solid var(--line); }
-  .field-row { display:flex; gap:8px; flex-wrap:wrap; }
-  .field-row input[type="text"] {
-    flex:1 1 280px; min-width:0; background:var(--paper); color:var(--ink); border:1px solid var(--line); border-radius:4px;
-    padding:10px 12px; font-family:var(--mono); font-size:13px; outline:none;
+  /* ── Source block ────────────────────────────────────────────────────── */
+  .endpoint{display:grid;grid-template-columns:1fr 1fr;gap:var(--gap);align-items:start;margin-top:30px}
+  @media (max-width:860px){.endpoint{grid-template-columns:1fr}}
+  .codeblock{border:1px solid var(--line);background:var(--card);border-radius:var(--radius);overflow:hidden}
+  .codeblock-head{padding:10px 14px;border-bottom:1px solid var(--line);background:var(--paper-deep);
+    font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);
+    display:flex;justify-content:space-between;align-items:center;gap:12px}
+  .codeblock pre{margin:0;border:none;border-radius:0;background:none;padding:16px 18px;
+    font-size:12px;line-height:1.7;color:var(--body);-webkit-overflow-scrolling:touch}
+  .codeblock pre .p{color:var(--muted)}
+  .codeblock pre .s{color:var(--ok)}
+  .codeblock pre .k{color:var(--accent)}
+  /* On a phone nothing may sit off-screen, so the sample wraps instead of scrolling */
+  @media (max-width:600px){
+    .codeblock pre{font-size:11.5px;padding:14px;white-space:pre-wrap;overflow-wrap:anywhere;overflow-x:visible}
   }
-  .field-row input[type="text"]:focus { border-color:var(--ink-2); }
-  .fetch-status { margin:0; padding:9px 12px; font-size:12.5px; line-height:1.6; border-left:2px solid var(--accent); background:var(--accent-soft); color:var(--ink-2); border-radius:0 4px 4px 0; }
-  .or-divider { font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); text-align:center; position:relative; margin:2px 0; }
-  textarea.feed-text {
-    width:100%; background:var(--paper); color:var(--ink); border:1px solid var(--line); border-radius:4px;
-    padding:10px 12px; font-family:var(--mono); font-size:12.5px; line-height:1.6; resize:vertical; min-height:130px; outline:none;
+  .endpoint-copy p{margin:0 0 14px}
+  .endpoint-copy strong{color:var(--ink)}
+  .endpoint-copy .note{font-family:var(--ui);font-size:13.5px;color:var(--muted);
+    border-left:2px solid var(--accent);padding:8px 0 8px 14px;margin-top:18px;line-height:1.6}
+
+  /* ── Assistant band ──────────────────────────────────────────────────── */
+  .cta-block{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px 24px;
+    border:1px solid var(--line);border-radius:var(--radius);padding:22px 24px;margin-top:26px;background:var(--card)}
+  .cta-block p{margin:0;max-width:56ch}
+  .cta-block .btn{flex-shrink:0}
+  .band .cta-block{background:rgba(255,253,248,.04);border-color:rgba(255,253,248,.18)}
+  .band .cta-block p{color:#d7d3c8}
+  .band .btn-solid{color:#fff}
+  .band .rule{background:rgba(255,253,248,.22)}
+
+  /* ── Subscribe ───────────────────────────────────────────────────────── */
+  .ask{display:flex;flex-wrap:wrap;align-items:center;gap:14px 24px}
+  .ask p{margin:0;max-width:56ch}
+  .subscribe-ask{margin-top:26px}
+  .subscribe-form{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .subscribe-form input[type="email"]{height:46px;min-width:0;flex:1 1 240px;padding:0 14px;
+    border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);font:15px/1 var(--ui)}
+  .subscribe-form input[type="email"]::placeholder{color:var(--muted)}
+  .subscribe-form input[type="email"]:focus{border-color:var(--ink);outline:none}
+  .subscribe-form .btn{flex:none}
+  .hp{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+  #subscribe-thanks{color:var(--ok);font-weight:600}
+  #subscribe-error{color:var(--accent);font-weight:600}
+  @media (max-width:480px){.subscribe-form input[type="email"],.subscribe-form button{width:100%}}
+
+  /* ── FAQ ─────────────────────────────────────────────────────────────── */
+  details.faq{border-top:1px solid var(--line);padding:16px 0}
+  details.faq:last-of-type{border-bottom:1px solid var(--line)}
+  details.faq summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:12px;
+    font:600 clamp(17px,1.5vw,20px)/1.35 var(--display);color:var(--ink);letter-spacing:-.01em}
+  details.faq summary::-webkit-details-marker{display:none}
+  details.faq summary::after{content:"+";color:var(--accent);flex:none;font-family:var(--ui);font-weight:400}
+  details.faq[open] summary::after{content:"\2013"}
+  details.faq p{margin:10px 0 0;max-width:70ch;overflow-wrap:anywhere}
+
+  .kbd{font-family:var(--mono);font-size:11px;padding:1px 6px;border-radius:4px;
+    border:1px solid var(--line);background:var(--card);color:var(--body)}
+
+  /* Hero: this headline is long, so the text column gets a little more room,
+     and the display size stays at the 64 px floor instead of the 72 px ceiling. */
+  .hero{grid-template-columns:6.8fr 5.2fr}
+  .hero h1{font-size:clamp(32px,5vw,64px)}
+  @media (max-width:860px){.hero{grid-template-columns:1fr}}
+  /* The five set lines only fit a full desktop column. Below that the forced
+     breaks collide with the browser's own wrapping, so let the headline flow. */
+  @media (max-width:1400px){
+    .hero h1 .l{display:inline}
+    .hero h1 .l:not(:last-child)::after{content:" "}
   }
-  textarea.feed-text:focus { border-color:var(--ink-2); }
-  .tool-actions { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
-  .file-btn { position:relative; overflow:hidden; }
-  .format-hint { font-family:var(--mono); font-size:11.5px; color:var(--muted); margin-left:auto; }
+  .index a{align-items:center}
+  footer .cols{gap:20px 32px}
 
-  /* Small utility buttons */
-  .icon-btn { background:transparent; color:var(--ink-2); border:1px solid var(--line); border-radius:4px; font-family:var(--sans); font-size:12.5px; padding:8px 12px; cursor:pointer; }
-  .icon-btn:hover { color:var(--ink); border-color:var(--ink-2); background:var(--paper); }
-  .icon-btn:disabled { opacity:.6; cursor:progress; }
-  .icon-btn.btn-solid { background:var(--accent); color:#fff; border-color:var(--accent); font-weight:600; }
-  .icon-btn.btn-solid:hover { opacity:.9; background:var(--accent); color:#fff; }
+  /* Hero artefact: a real screenshot of the report this page produces, framed
+     like a browser window by paper.css .shot. No drawing, no illustration. */
+  .shotwrap{margin:0}
+  .shotwrap figcaption{font-family:var(--ui);font-size:12.5px;color:var(--muted);margin:10px 2px 0}
+  @media (max-width:860px){.shotwrap{max-width:560px}}
 
-  /* Results */
-  .results { padding:18px; }
-  .results .placeholder { color:var(--muted); font-size:13px; font-family:var(--mono); }
-  .result-top { display:flex; flex-wrap:wrap; align-items:center; gap:18px 26px; margin-bottom:22px; }
-  .score-badge { display:flex; align-items:baseline; gap:6px; font-family:var(--serif); }
-  .score-badge .num { font-size:40px; line-height:1; }
-  .score-badge .of100 { font-size:14px; color:var(--muted); font-family:var(--sans); }
-  .score-badge.good .num { color:var(--ok); }
-  .score-badge.ok .num { color:var(--warn); }
-  .score-badge.bad .num { color:var(--accent); }
-  .result-meta { font-family:var(--mono); font-size:12.5px; color:var(--muted); }
-  .counts-row { display:flex; gap:8px; flex-wrap:wrap; }
-  .count-pill { font-family:var(--mono); font-size:12px; padding:4px 10px; border-radius:4px; border:1px solid var(--line); }
-  .count-pill.error { color:var(--accent); border-color:var(--accent); background:var(--accent-soft); }
-  .count-pill.warning { color:var(--warn); border-color:var(--warn); }
-  .count-pill.info { color:var(--muted); }
-  .export-row { display:flex; gap:8px; flex-wrap:wrap; margin:20px 0; }
-  .handoff { margin:0; padding-top:16px; border-top:1px solid var(--line); font-size:13.5px; line-height:1.55; color:var(--ink-2); }
-  .handoff a { color:var(--ink); }
+  /* One measure for the working parts, so a 1340 px window does not stretch a
+     form field or a FAQ row across the whole screen. */
+  .play,.tablewrap,.endpoint,.cta-block,.subscribe-ask,.rules,#faq .r{max-width:1080px}
 
-  /* Monitor this feed */
-  .monitor-box { margin-top:18px; padding-top:18px; border-top:1px solid var(--line); }
-  .monitor-box h3 { font:600 11px/1 var(--sans); letter-spacing:.04em; text-transform:uppercase; color:var(--muted); margin:0 0 12px; }
-  .monitor-form { display:flex; flex-direction:column; gap:10px; max-width:520px; }
-  .monitor-row { display:flex; flex-wrap:wrap; gap:8px; }
-  .monitor-row input { flex:1 1 220px; min-width:0; height:42px; padding:0 12px; border:1px solid var(--line); border-radius:4px; background:var(--paper); color:var(--ink); font:14px/1 var(--sans); outline:none; }
-  .monitor-row input:focus { border-color:var(--ink-2); }
-  .monitor-row input::placeholder { color:var(--muted); }
-  .monitor-row .icon-btn { flex:none; }
-  .monitor-pro-line { margin:0; font-size:12.5px; color:var(--ink-2); }
-  .monitor-note { margin:0; padding:8px 10px; font-size:12px; line-height:1.55; color:var(--ink-2); border-left:2px solid var(--accent); background:var(--accent-soft); border-radius:0 4px 4px 0; }
-  .monitor-status { margin:0; font-size:13px; font-weight:600; }
-  .monitor-status.err { color:var(--accent); }
-  .monitor-status.ok { color:var(--ok); }
-  .monitor-success p { margin:0; font-size:14px; font-weight:600; color:var(--ok); }
-  @media (max-width:480px) { .monitor-row input, .monitor-row .icon-btn { width:100%; flex:1 1 auto; } }
-
-  .result-section-title { font:600 11px/1 var(--sans); letter-spacing:.04em; text-transform:uppercase; color:var(--muted); border-bottom:1px solid var(--line); padding-bottom:8px; margin:26px 0 12px; }
-  .result-section-title:first-of-type { margin-top:0; }
-
-  .found-rule { border:1px solid var(--line); border-left:3px solid var(--line); border-radius:0 4px 4px 0; margin-bottom:10px; background:var(--paper); }
-  .found-rule.error { border-left-color:var(--accent); }
-  .found-rule.warning { border-left-color:var(--warn); }
-  .found-rule.info { border-left-color:var(--muted); }
-  .found-rule summary { list-style:none; cursor:pointer; display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:10px 12px; font-size:13.5px; }
-  .found-rule summary::-webkit-details-marker { display:none; }
-  .found-rule summary::after { content:"+"; margin-left:auto; color:var(--muted); font-family:var(--sans); }
-  .found-rule[open] summary::after { content:"\2013"; }
-  .found-rule summary .rtitle { font-weight:600; }
-  .found-rule summary .rid { font-family:var(--mono); font-size:11px; color:var(--muted); }
-  .found-rule summary .rcount { font-family:var(--mono); font-size:11px; color:var(--muted); }
-  .found-rule .rfix { margin:0; padding:0 12px 12px; color:var(--ink-2); font-size:12.5px; }
-  .issue-list { list-style:none; margin:0; padding:0 12px 12px; display:flex; flex-direction:column; gap:6px; }
-  .issue-item { font-size:12px; color:var(--ink-2); border-top:1px solid var(--line); padding-top:6px; overflow-wrap:anywhere; }
-  .issue-item .iid { font-family:var(--mono); color:var(--muted); }
-  .issue-more { font-size:11.5px; color:var(--muted); padding:0 12px 12px; }
-
-  /* Endpoint / how it works */
-  .endpoint { display:grid; grid-template-columns:1fr 1fr; gap:28px; align-items:start; margin-top:30px; }
-  @media (max-width:820px) { .endpoint { grid-template-columns:1fr; } }
-  .codeblock { border:1px solid var(--line); background:var(--paper-2); border-radius:6px; overflow:hidden; }
-  .codeblock-head { padding:10px 14px; border-bottom:1px solid var(--line); font-family:var(--mono); font-size:11px; letter-spacing:.04em; text-transform:uppercase; color:var(--muted); display:flex; justify-content:space-between; align-items:center; }
-  .codeblock pre { margin:0; padding:16px 18px; font-size:12.5px; line-height:1.7; overflow-x:auto; color:var(--ink-2); font-family:var(--mono); -webkit-overflow-scrolling:touch; }
-  .endpoint-copy p { margin:0 0 14px; color:var(--ink-2); font-size:15px; line-height:1.6; }
-  .endpoint-copy .note { font-family:var(--mono); font-size:12.5px; color:var(--muted); border-left:2px solid var(--accent); padding:8px 0 8px 14px; margin-top:18px; line-height:1.6; }
-
-  /* Quiet CTA */
-  .cta-block { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:16px 24px; border:1px solid var(--line); border-radius:6px; padding:22px 24px; margin-top:26px; background:var(--paper-2); }
-  .cta-block p { margin:0; max-width:56ch; color:var(--ink-2); font-size:15px; }
-  .cta-block .btn { flex-shrink:0; }
-
-  /* Subscribe */
-  .ask { display:flex; flex-wrap:wrap; align-items:center; gap:14px 24px; }
-  .ask p { margin:0; color:var(--ink-2); max-width:56ch; }
-  .subscribe-ask { border-top:1px solid var(--line); margin-top:24px; padding-top:24px; }
-  .subscribe-form { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
-  .subscribe-form input[type="email"] { height:44px; min-width:0; flex:1 1 240px; padding:0 14px; border:1px solid var(--line); border-radius:4px; background:var(--paper-2); color:var(--ink); font:15px/1 var(--sans); }
-  .subscribe-form input[type="email"]::placeholder { color:var(--muted); }
-  .subscribe-form .btn { flex:none; }
-  .hp { position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
-  #subscribe-thanks { color:var(--ok); font-weight:600; }
-  #subscribe-error { color:var(--accent); font-weight:600; }
-  @media (max-width: 480px) { .subscribe-form input[type="email"], .subscribe-form button { width:100%; } }
-
-  /* FAQ (details/summary) */
-  details.faq { border-top:1px solid var(--line); padding:14px 0; }
-  details.faq:last-of-type { border-bottom:1px solid var(--line); }
-  details.faq summary { cursor:pointer; font:400 18px/1.3 var(--serif); list-style:none; display:flex; justify-content:space-between; gap:12px; }
-  details.faq summary::-webkit-details-marker { display:none; }
-  details.faq summary::after { content:"+"; color:var(--accent); flex:none; font-family:var(--sans); }
-  details.faq[open] summary::after { content:"\2013"; }
-  details.faq p { color:var(--ink-2); margin:10px 0 0; max-width:70ch; font-size:14.5px; overflow-wrap:anywhere; }
-
-  /* Footer */
-  footer { padding:32px 0 48px; color:var(--muted); font-size:13.5px; }
-  footer .cols { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:20px 32px; }
-  footer b { color:var(--ink); font-weight:600; }
-  footer a { color:var(--ink-2); }
-  footer p { margin:10px 0 0; }
-
-  .kbd { font-family:var(--mono); font-size:11px; padding:1px 6px; border-radius:3px; border:1px solid var(--line); background:var(--paper); color:var(--ink-2); }
-  .anchor-offset { scroll-margin-top:24px; }
-  pre { max-width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  /* The side register is left to paper.css. Setting `left` here as well as the
+     `right` paper.css already sets squeezed the whole register into a 14 px
+     column: the labels were ellipsed away and only nameless dashes were left,
+     which paper-v2 forbids. paper.css anchors its right edge 40 px left of the
+     text column and hides it under 1720 px, where the labels stop fitting. */
 </style>
 </head>
 <body>
+<div class="wash" aria-hidden="true"><i></i><i></i></div>
 
 <a class="skip" href="#tool">Skip to the feed checker</a>
 
 <!-- Header -->
-<header id="top" class="top">
-  <div class="wrap">
-    <a class="wordmark" href="https://arling.sk/">Product Feed Doctor<small>an ARLing tool</small></a>
-    <nav class="main" aria-label="Page">
+<header id="top">
+  <div class="wrap bar">
+    <a class="brand" href="https://arling.sk/">
+      <svg viewBox="0 0 32 32" width="30" height="30" aria-hidden="true"><defs><path id="m" fill-rule="evenodd" d="M16 2.5 L29 29.5 H3 Z M16 12.4 L22.4 25.6 H9.6 Z"/><clipPath id="mr"><rect x="16" width="16" height="32"/></clipPath></defs><use href="#m" fill="#141413"/><use href="#m" fill="#b23a1d" clip-path="url(#mr)"/></svg>
+      <b>ARLing</b><span>Product Feed Doctor</span>
+    </a>
+    <nav aria-label="Page">
       <a href="#tool">Check your feed</a>
       <a href="#checks">What it checks</a>
       <a href="#fixes">Fixes</a>
@@ -371,40 +391,51 @@
   </div>
 </header>
 
+<main>
+
 <!-- Hero -->
-<div class="hero">
-  <div class="wrap">
-    <h1>Product Feed Doctor: find what is wrong with your shopping feed before Google, Meta or your AI assistant do</h1>
-    <p class="lead">Paste a feed URL, paste the feed content, or upload the file: Google Shopping/Merchant Center RSS, a Facebook/Meta catalog CSV, Shopify's <span class="mono">/products.json</span>, WooCommerce's Store API JSON, a generic XML feed, or plain CSV. Get a score out of 100, a rule-by-rule report, and the exact rows to fix, all in your browser.</p>
-    <ol class="steps">
-      <li>Paste, upload, or fetch a feed</li>
-      <li>Get a score and a rule-by-rule report</li>
-      <li>Fix what is flagged, export the list</li>
-    </ol>
-    <div class="hero-cta">
-      <a href="#tool" class="btn btn-solid">Check your feed</a>
-      <a href="https://github.com/AndryRoby/feed-doctor" class="btn btn-line" target="_blank" rel="noopener">View source on GitHub</a>
+<div class="wrap hero" id="hero">
+  <div>
+    <h1 id="h1"><span class="l">Product Feed Doctor:</span><span class="l">find what is wrong with</span><span class="l">your shopping feed</span><span class="l">before Google, Meta</span><span class="l">or your AI assistant do</span></h1>
+    <p class="lead r d3">Paste a feed URL, paste the feed content, or upload the file: Google Shopping/Merchant Center RSS, a Facebook/Meta catalog CSV, Shopify's <span class="mono">/products.json</span>, WooCommerce's Store API JSON, a generic XML feed, or plain CSV. Get a score out of 100, a rule-by-rule report, and the exact rows to fix, all in your browser.</p>
+    <div class="cta r d4">
+      <a href="#tool" class="btn btn-solid" data-umami-event="hero_check_feed">Check your feed</a>
+      <a href="https://github.com/AndryRoby/feed-doctor" class="btn btn-line" target="_blank" rel="noopener" data-umami-event="github_click">View source on GitHub</a>
     </div>
-    <ul class="facts">
+    <nav class="index r d5" aria-label="How it works">
+      <a href="#tool" data-umami-event="index-paste"><span class="n">[1]</span><span class="t">Paste, upload, or fetch a feed</span><span class="dots"></span></a>
+      <a href="#tool" data-umami-event="index-report"><span class="n">[2]</span><span class="t">Get a score and a rule-by-rule report</span><span class="dots"></span></a>
+      <a href="#tool" data-umami-event="index-fix"><span class="n">[3]</span><span class="t">Fix what is flagged, export the list</span><span class="dots"></span></a>
+    </nav>
+    <ul class="facts proof r d6">
       <li><b>31</b> rules checked</li>
       <li><b>6</b> feed formats</li>
       <li><b>0 &euro;</b>, no account</li>
       <li>nothing is uploaded</li>
     </ul>
   </div>
+
+  <figure class="r d2 shotwrap">
+    <div class="shot">
+      <div class="chrome" aria-hidden="true"><i></i><i></i><i></i></div>
+      <img src="shot/report.webp" width="1598" height="1210" decoding="async" loading="lazy"
+           alt="The report the checker produces for the sample feed: a score of 81 out of 100, six errors, one warning, and one row per rule that fired, with buttons to export the issues as CSV or JSON.">
+    </div>
+    <figcaption>The sample feed, checked in this page. Nothing left the browser.</figcaption>
+  </figure>
 </div>
 
-<main>
-
 <!-- The tool -->
-<section id="tool" class="block anchor-offset">
+<section id="tool" class="deep anchor-offset">
   <div class="wrap">
     <div class="section-head">
-      <h2>Check your feed</h2>
-      <p class="sub">Everything below runs in your browser. Paste a feed URL and click Fetch, paste the feed content directly, upload the downloaded file, or load the built-in sample to see how a report looks.</p>
+      <p class="kicker r"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 5a15 15 0 0 1 15 15"/></svg>01</p>
+      <h2 class="r">Check your feed</h2>
+      <div class="rule"></div>
+      <p class="sub r d1">Everything below runs in your browser. Paste a feed URL and click Fetch, paste the feed content directly, upload the downloaded file, or load the built-in sample to see how a report looks.</p>
     </div>
 
-    <div class="play">
+    <div class="play r d2">
       <div class="play-head">
         <div class="lights"><span></span><span></span><span></span></div>
         <div class="path"><span class="method">fn</span>&nbsp;FeedDoctor.analyze(text)</div>
@@ -419,7 +450,7 @@
         </div>
         <p id="fetch-status" class="fetch-status" hidden></p>
         <div class="or-divider">or paste / upload the feed content</div>
-        <textarea id="feed-text" class="feed-text" rows="8" placeholder="Paste XML, CSV or JSON feed content here..." spellcheck="false" wrap="off"></textarea>
+        <textarea id="feed-text" class="feed-text" rows="8" placeholder="Paste XML, CSV or JSON feed content here..." spellcheck="false" wrap="soft"></textarea>
         <div class="tool-actions">
           <label class="icon-btn file-btn">Upload file<input type="file" id="feed-file" accept=".xml,.csv,.json,.txt,text/xml,text/csv,application/json" hidden></label>
           <button class="icon-btn" id="sample-btn" type="button">Load sample feed</button>
@@ -436,14 +467,15 @@
 </section>
 
 <!-- 01 What it checks -->
-<section id="checks" class="block anchor-offset">
+<section id="checks" class="anchor-offset">
   <div class="wrap">
     <div class="section-head">
-      <p class="kicker">01</p>
-      <h2>31 rules, each with a severity and a one-line fix.</h2>
-      <p class="sub">Every rule below has a stable id, a severity (error, warning or info), and, where it applies, the Merchant Center product data specification field it checks. This table is generated straight from feed-doctor.js, so it never drifts from what the tool actually runs.</p>
+      <p class="kicker r"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M9 10v9M15 10v9"/></svg>02</p>
+      <h2 class="r">31 rules, each with a severity and a one-line fix.</h2>
+      <div class="rule"></div>
+      <p class="sub r d1">Every rule below has a stable id, a severity (error, warning or info), and, where it applies, the Merchant Center product data specification field it checks. This table is generated straight from feed-doctor.js, so it never drifts from what the tool actually runs.</p>
     </div>
-    <div class="rule-table-wrap">
+    <div class="tablewrap r d2" style="margin-top:28px">
       <table class="rule-table" id="rule-table">
         <thead>
           <tr><th>Severity</th><th>Rule id</th><th>Field</th><th>What it checks</th></tr>
@@ -455,35 +487,36 @@
 </section>
 
 <!-- 02 How to fix common issues -->
-<section id="fixes" class="block anchor-offset">
+<section id="fixes" class="deep anchor-offset">
   <div class="wrap">
     <div class="section-head">
-      <p class="kicker">02</p>
-      <h2>The six issues that show up in almost every feed.</h2>
-      <p class="sub">Most feeds fail on a small, repeating set of mistakes. Here is what causes each one and the fastest way to fix it.</p>
+      <p class="kicker r"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M8.5 12.3l2.4 2.4 4.6-4.9"/></svg>03</p>
+      <h2 class="r">The six issues that show up in almost every feed.</h2>
+      <div class="rule"></div>
+      <p class="sub r d1">Most feeds fail on a small, repeating set of mistakes. Here is what causes each one and the fastest way to fix it.</p>
     </div>
     <ol class="rules">
-      <li>
+      <li class="r d1">
         <b>HTML left inside description.</b>
         <p>Shopify's <span class="mono">body_html</span> and WooCommerce's <span class="mono">description</span> both carry raw markup. Strip tags before export, or run the field through a plain-text converter; <span class="mono">description</span> should read as prose, not markup.</p>
       </li>
-      <li>
+      <li class="r d2">
         <b>Availability written as free text.</b>
         <p>"Available", "In Stock!", "2 left" and similar are not recognized. Map your stock status to exactly one of <span class="mono">in stock</span>, <span class="mono">out of stock</span>, <span class="mono">preorder</span> or <span class="mono">backorder</span> before export.</p>
       </li>
-      <li>
+      <li class="r d3">
         <b>Price with no currency.</b>
         <p>"19.99" alone is ambiguous. Always export <span class="mono">price</span> as an amount and an ISO currency code together, e.g. <span class="mono">19.99 USD</span>, and make sure <span class="mono">sale_price</span> uses the same currency and is lower than <span class="mono">price</span>.</p>
       </li>
-      <li>
+      <li class="r d4">
         <b>A mistyped or copy-pasted GTIN.</b>
         <p>A single transposed digit still looks right at a glance but fails the check digit. Re-scan or re-copy the barcode from the product packaging or your supplier's data sheet rather than retyping it by hand.</p>
       </li>
-      <li>
+      <li class="r d5">
         <b>Variants with no size or color.</b>
         <p>If <span class="mono">item_group_id</span> ties variants together, each row still needs its own <span class="mono">size</span> and/or <span class="mono">color</span> (or another differentiator), or Google and Meta cannot tell the variants apart in the report or the ad.</p>
       </li>
-      <li>
+      <li class="r d6">
         <b>Duplicate ids after a re-export.</b>
         <p>A migration or a re-platforming often reuses ids, or resets them to a row number that collides across categories. <span class="mono">id</span> must be unique for the life of the item; if you must reuse a SKU, prefix it per source.</p>
       </li>
@@ -492,14 +525,15 @@
 </section>
 
 <!-- 03 Quiet CTA -->
-<section id="assistant" class="block anchor-offset">
+<section id="assistant" class="band anchor-offset">
   <div class="wrap">
     <div class="section-head">
-      <p class="kicker">03</p>
-      <h2>Turn your feed into a shopping assistant</h2>
-      <p class="sub">Once your feed is clean, the same product data can power a chat assistant on your store that answers "does this come in blue" or "what's in stock under 30 euro" from your real catalog.</p>
+      <p class="kicker r"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h16l-1 12H5z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>04</p>
+      <h2 class="r">Turn your feed into a shopping assistant</h2>
+      <div class="rule"></div>
+      <p class="sub r d1">Once your feed is clean, the same product data can power a chat assistant on your store that answers "does this come in blue" or "what's in stock under 30 euro" from your real catalog.</p>
     </div>
-    <div class="cta-block">
+    <div class="cta-block r d2">
       <p>ARLing Asistent reads your product feed and answers customer questions on your store, in your language, without a rewrite of your catalog.</p>
       <a class="btn btn-solid" href="https://arling.sk/asistent/" data-umami-event="asistent_click">See ARLing Asistent</a>
     </div>
@@ -507,14 +541,16 @@
 </section>
 
 <!-- How it works -->
-<section id="how" class="block anchor-offset">
+<section id="how" class="anchor-offset">
   <div class="wrap">
     <div class="section-head">
-      <h2>One function. Feed text in, report out.</h2>
-      <p class="sub">No server, no API key, no signup. <span class="mono">feed-doctor.js</span> is plain JavaScript: read it, fork it, or run it in your own scripts or CI.</p>
+      <p class="kicker r"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M9 8V5.5M15 8V5.5M4 13h2M18 13h2"/></svg>05</p>
+      <h2 class="r">One function. Feed text in, report out.</h2>
+      <div class="rule"></div>
+      <p class="sub r d1">No server, no API key, no signup. <span class="mono">feed-doctor.js</span> is plain JavaScript: read it, fork it, or run it in your own scripts or CI.</p>
     </div>
     <div class="endpoint">
-      <div class="codeblock">
+      <div class="codeblock r d2">
         <div class="codeblock-head">
           <span>feed-doctor.js</span>
           <span>0 dependencies</span>
@@ -537,8 +573,8 @@
   <span class="k">"truncated"</span>:    <span class="p">true | false</span>
 }</pre>
       </div>
-      <div class="endpoint-copy">
-        <p><strong style="color:var(--ink)">Everything runs client-side.</strong> The tool above calls this exact function in your browser. There is no backend, no API key, and no request that carries your feed anywhere (fetching a URL you paste is the one exception: your browser calls that URL directly).</p>
+      <div class="endpoint-copy r d3">
+        <p><strong>Everything runs client-side.</strong> The tool above calls this exact function in your browser. There is no backend, no API key, and no request that carries your feed anywhere (fetching a URL you paste is the one exception: your browser calls that URL directly).</p>
         <p>It detects the format from the content itself, normalizes every row to one product shape (id, title, description, link, image_link, price, currency, availability, brand, gtin, mpn, condition, google_product_category, item_group_id, sale_price, shipping), and runs all 31 rules against every row.</p>
         <div class="note">Free and open source (MIT). Found a case it gets wrong? Open a GitHub issue on the repo. No ads, and no tracking beyond anonymous usage counts.</div>
       </div>
@@ -547,18 +583,20 @@
 </section>
 
 <!-- Free -->
-<section id="pricing" class="block anchor-offset">
+<section id="pricing" class="deep anchor-offset">
   <div class="wrap">
     <div class="section-head">
-      <h2>Free.</h2>
-      <p class="sub">No account, no payment, no usage limit: it runs as a static page in your browser, so there is no server to bill for.</p>
+      <p class="kicker r"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="9" width="17" height="11" rx="1.5"/><path d="M2.5 9h19M12 9v11"/><path d="M12 9c-1.5-3.5-2.8-4.7-4.2-4.2C6.4 5.3 6.6 7.6 8 8.4c1 .5 2.4.6 4 .6zM12 9c1.5-3.5 2.8-4.7 4.2-4.2 1.4.5 1.2 2.8-.2 3.6-1 .5-2.4.6-4 .6z"/></svg>06</p>
+      <h2 class="r">Free.</h2>
+      <div class="rule"></div>
+      <p class="sub r d1">No account, no payment, no usage limit: it runs as a static page in your browser, so there is no server to bill for.</p>
     </div>
-    <div class="ask subscribe-ask" id="subscribe">
+    <div class="ask subscribe-ask r d2" id="subscribe">
       <p><b>Tell me when a new tool lands.</b> New tools only. No newsletter, no sharing. Reply to any mail to be removed.</p>
       <form id="subscribe-form" class="subscribe-form" data-subscribe data-source="feed-doctor" data-lang="en" data-thanks="subscribe-thanks" data-error="subscribe-error" novalidate>
         <div class="hp" aria-hidden="true"><input type="text" name="website" id="subscribe-website" tabindex="-1" autocomplete="off"></div>
         <input type="email" id="subscribe-email" name="email" required autocomplete="email" inputmode="email" placeholder="you@example.com" aria-label="Email address">
-        <button class="btn btn-solid" type="submit">Notify me</button>
+        <button class="btn btn-solid" type="submit" data-umami-event="subscribe_submit">Notify me</button>
       </form>
       <p id="subscribe-thanks" hidden>Thanks. You will hear from us only when something new is live.</p>
       <p id="subscribe-error" hidden>Could not save. Write to <a href="mailto:andrej@arling.sk">andrej@arling.sk</a>.</p>
@@ -567,13 +605,16 @@
 </section>
 
 <!-- Questions -->
-<section id="faq" class="block anchor-offset">
+<section id="faq" class="anchor-offset">
   <div class="wrap">
     <div class="section-head">
-      <h2>Questions people actually search for.</h2>
-      <p class="sub">Straight answers to the same product feed questions this tool checks, for when you just need the answer, not the checker.</p>
+      <p class="kicker r"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>07</p>
+      <h2 class="r">Questions people actually search for.</h2>
+      <div class="rule"></div>
+      <p class="sub r d1">Straight answers to the same product feed questions this tool checks, for when you just need the answer, not the checker.</p>
     </div>
 
+    <div class="r d2" style="margin-top:28px">
     <details class="faq">
       <summary>Which feed formats does Product Feed Doctor support?</summary>
       <p>Google Shopping / Merchant Center RSS 2.0 (the <span class="mono">g:</span> namespace format, with or without an <span class="mono">atom:link</span> tag), a Facebook/Meta catalog CSV, a Shopify <span class="mono">/products.json</span> export, a WooCommerce Store API JSON response, a generic XML feed built from repeating <span class="mono">&lt;item&gt;</span> elements with different tag names, and a plain CSV with a header row. The format is auto-detected from the content you paste, upload, or fetch; you never have to tell it which one you're using.</p>
@@ -610,10 +651,22 @@
       <summary>What does Feed Doctor Monitor store about my feed?</summary>
       <p>Your e-mail, the feed URL, and the result of each check: the score, the counts of errors/warnings/infos, and which rule ids triggered. It never stores the feed content itself, so your product titles, prices and descriptions never sit on our server.</p>
     </details>
+    </div>
   </div>
 </section>
 
 </main>
+
+<nav class="rail" aria-label="Where you are">
+  <a href="#hero"><i></i><span>Start</span></a>
+  <a href="#tool"><i></i><span>Checker</span></a>
+  <a href="#checks"><i></i><span>Rules</span></a>
+  <a href="#fixes"><i></i><span>Fixes</span></a>
+  <a href="#assistant"><i></i><span>Assistant</span></a>
+  <a href="#how"><i></i><span>Source</span></a>
+  <a href="#pricing"><i></i><span>Free</span></a>
+  <a href="#faq"><i></i><span>FAQ</span></a>
+</nav>
 
 <footer>
   <div class="wrap cols">
@@ -649,10 +702,10 @@
   const ruleTableBody = $('rule-table-body');
   ruleTableBody.innerHTML = RULES.map((r) => `
     <tr>
-      <td><span class="sev-pill ${esc(r.severity)}">${esc(r.severity)}</span></td>
-      <td class="rid">${esc(r.id)}</td>
-      <td class="rfield">${r.spec ? esc(r.spec) : '-'}</td>
-      <td class="rdesc">${esc(r.title)}</td>
+      <td data-th="Severity"><span class="sev-pill ${esc(r.severity)}">${esc(r.severity)}</span></td>
+      <td class="rid" data-th="Rule id">${esc(r.id)}</td>
+      <td class="rfield" data-th="Field">${r.spec ? esc(r.spec) : '-'}</td>
+      <td class="rdesc" data-th="What it checks">${esc(r.title)}</td>
     </tr>`).join('');
 
   // ── tool wiring ──────────────────────────────────────────────────────
@@ -948,9 +1001,63 @@
       const el = document.getElementById(id);
       if (!el) return;
       e.preventDefault();
-      window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 24, behavior: 'smooth' });
+      window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 78, behavior: 'smooth' });
     });
   });
+</script>
+
+<!-- Motion: no library, no requestAnimationFrame loop, one IntersectionObserver.
+     Same code as the approved reference page at arling.sk/nahlad/. -->
+<script>
+(function () {
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var hero = document.getElementById('hero');
+  if (reduce) {
+    document.querySelectorAll('.r, section').forEach(function (e) { e.classList.add('in'); });
+  }
+  if (!reduce && hero) {
+    requestAnimationFrame(function () {
+      hero.querySelectorAll('.r').forEach(function (e) { e.classList.add('in'); });
+    });
+  }
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (en) {
+      if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); }
+    });
+    // threshold 0, not 0.1: the rule table is taller than ten viewports on a
+    // phone, so a tenth of it is never on screen at once and it would stay hidden
+  }, { rootMargin: '0px 0px -12% 0px', threshold: 0 });
+  document.querySelectorAll('section').forEach(function (s) { io.observe(s); });
+
+  // the headline arrives word by word, like a well set title
+  var h1 = document.getElementById('h1');
+  if (h1 && !reduce) {
+    var i = 0;
+    Array.prototype.forEach.call(h1.querySelectorAll('.l'), function (line) {
+      line.innerHTML = line.textContent.split(' ').map(function (w) {
+        var d = (i++ * 0.06).toFixed(2);
+        return '<span class="w" style="transition-delay:' + d + 's">' + w + '</span>';
+      }).join(' ');
+    });
+    requestAnimationFrame(function () { h1.classList.add('in'); });
+  }
+
+  // the side register follows whichever section sits in the middle of the screen
+  var rail = document.querySelector('.rail');
+  if (rail) {
+    var links = Array.prototype.slice.call(rail.querySelectorAll('a'));
+    var targets = links.map(function (a) { return document.querySelector(a.getAttribute('href')); });
+    var railIo = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        var i = targets.indexOf(en.target);
+        if (i < 0 || !en.isIntersecting) return;
+        links.forEach(function (a, j) { a.setAttribute('aria-current', j === i ? 'true' : 'false'); });
+      });
+      rail.classList.add('on');
+    }, { rootMargin: '-45% 0px -45% 0px' });
+    targets.forEach(function (t) { if (t) railIo.observe(t); });
+  }
+})();
 </script>
 
 <script src="subscribe.js" defer></script>

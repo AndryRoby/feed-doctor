@@ -10,137 +10,136 @@
 <meta name="theme-color" content="#f6f2ea">
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
 <link rel="alternate icon" href="../favicon.ico">
+<link rel="preload" href="../fonts/arling-sans.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../fonts/arling-serif.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="../style/paper.css">
 <style>
-  :root {
-    --paper:#f6f2ea; --paper-2:#fbf9f4; --ink:#1b1a17; --ink-2:#4a4741; --muted:#66625a; --line:#d9d2c4;
-    --accent:#b23a1d; --accent-soft:#f3e2dc; --ok:#2f6f3e; --warn:#9a6b00;
-    --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
-    --sans:system-ui,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    --mono:ui-monospace,"Cascadia Code",Consolas,Menlo,monospace;
-    --radius:4px;
+  /* Only what is specific to this page. Every colour, font, heading, button,
+     card, table, header and footer comes from ../style/paper.css. */
+  :root{
+    --warn:#8a6320;   /* third severity, paper.css has error and ok only */
+    --soft:#f6e7e1;   /* accent wash behind a notice */
+    --ctl:8px;
   }
-  @media (prefers-color-scheme: dark) {
-    :root { --paper:#151412; --paper-2:#1d1b18; --ink:#efe9de; --ink-2:#c9c2b5; --muted:#8f887b; --line:#2e2b26; --accent:#e0623f; --accent-soft:#3a1f17; --ok:#7fbf8e; --warn:#d9a54a; }
-  }
-  * { box-sizing:border-box; }
-  html { background:var(--paper); }
-  body { margin:0; color:var(--ink); background:var(--paper); font:16px/1.55 var(--sans); -webkit-font-smoothing:antialiased; }
-  a { color:inherit; text-decoration-color:var(--line); text-underline-offset:3px; }
-  a:hover { text-decoration-color:var(--accent); }
-  :focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
-  [hidden] { display:none !important; }
-  .wrap { max-width:640px; margin:0 auto; padding:0 24px; }
-  .mono { font-family:var(--mono); }
+  .mono{font-family:var(--mono)}
+  /* The header is sticky and 66 px tall, so anything the browser scrolls into
+     view on its own has to stop below it, or the click lands on the header. */
+  .card a,.card button,.actions-row .btn,.confirm-row .btn{scroll-margin-top:86px}
+  /* An emailed dashboard reads better in one narrow column than across a full page. */
+  .col{width:min(680px,89vw)}
+  .intro{padding:clamp(36px,5vw,72px) 0 clamp(28px,3.5vw,48px)}
+  /* Three surfaces, the same rhythm as the checker: paper under the heading,
+     the muted second surface under the dashboard itself, ink under the footer. */
+  footer.band{background:var(--ink);color:#a8a294;border-top:none}
+  footer.band a{color:#e9e4d8}
+  footer.band a:hover{color:var(--accent-light)}
+  .sub{color:var(--muted);margin:0 0 26px;overflow-wrap:anywhere;max-width:62ch}
 
-  header.top { border-bottom:1px solid var(--line); }
-  header.top .wrap { display:flex; align-items:baseline; justify-content:space-between; gap:16px; padding:18px 24px; flex-wrap:wrap; }
-  .wordmark { font:600 20px/1 var(--serif); text-decoration:none; }
-  .wordmark small { font:12px/1 var(--sans); color:var(--muted); margin-left:8px; letter-spacing:.04em; }
-  nav.main a { font-size:14px; text-decoration:none; color:var(--ink-2); margin-left:18px; }
-  nav.main a:hover { color:var(--accent); }
-  @media (max-width:420px) { .wordmark small { display:none; } }
+  .notice{border-left:2px solid var(--ok);background:var(--soft);padding:10px 14px;
+    border-radius:0 var(--ctl) var(--ctl) 0;font-size:14px;color:var(--body);margin-bottom:22px}
+  .notice.demo{border-left-color:var(--warn)}
 
-  main { padding:40px 0 64px; }
-  .kicker { font:400 14px/1 var(--serif); color:var(--accent); letter-spacing:.04em; margin:0 0 8px; }
-  h1 { font:400 clamp(24px,4vw,32px)/1.2 var(--serif); margin:0 0 6px; letter-spacing:-.005em; }
-  .sub { color:var(--ink-2); margin:0 0 26px; font-size:15px; overflow-wrap:anywhere; }
+  .loading,.placeholder{color:var(--muted);font-size:14px;font-family:var(--mono)}
+  .error-box{border:1px solid var(--line);background:var(--card);border-radius:var(--radius);padding:20px 22px}
+  .error-box p{margin:0 0 12px}
+  .error-box p:last-child{margin-bottom:0}
 
-  .banner { border-left:2px solid var(--ok); background:var(--accent-soft); padding:10px 14px; border-radius:0 4px 4px 0; font-size:13.5px; color:var(--ink-2); margin-bottom:22px; }
-  .banner.paid { border-left-color:var(--ok); }
-  .banner.demo { border-left-color:var(--warn); }
+  .status-row{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;font-family:var(--ui);
+    font-size:13px;color:var(--muted);margin-bottom:6px;overflow-wrap:anywhere}
+  .plan-pill{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.03em;
+    padding:2px 8px;border-radius:999px;border:1px solid var(--line)}
+  .plan-pill.pro{color:var(--ok);border-color:var(--ok)}
+  .plan-pill.free{color:var(--muted)}
 
-  .loading, .placeholder { color:var(--muted); font-size:14px; font-family:var(--mono); }
-  .error-box { border:1px solid var(--line); background:var(--paper-2); border-radius:6px; padding:20px 22px; }
-  .error-box p { margin:0 0 12px; color:var(--ink-2); font-size:15px; }
-  .error-box p:last-child { margin-bottom:0; }
+  .card{margin-top:18px}
+  .card h2{font:500 11px/1.3 var(--ui);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 16px}
 
-  .status-row { display:flex; flex-wrap:wrap; gap:8px 14px; align-items:center; font-size:13px; color:var(--muted); margin-bottom:4px; }
-  .plan-pill { font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.03em; padding:2px 8px; border-radius:4px; border:1px solid var(--line); }
-  .plan-pill.pro { color:var(--ok); border-color:var(--ok); }
-  .plan-pill.free { color:var(--muted); }
+  .score-badge{display:flex;align-items:baseline;gap:6px;font-family:var(--display);margin-bottom:14px}
+  .score-badge .num{font-size:44px;font-weight:600;line-height:1;letter-spacing:-.02em;color:var(--ink)}
+  .score-badge .of100{font-size:14px;color:var(--muted);font-family:var(--ui)}
+  .score-badge.good .num{color:var(--ok)}
+  .score-badge.ok .num{color:var(--warn)}
+  .score-badge.bad .num{color:var(--accent)}
+  .counts-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+  .count-pill{font-family:var(--mono);font-size:12px;padding:4px 10px;border-radius:999px;
+    border:1px solid var(--line);color:var(--muted)}
+  .count-pill.error{color:var(--accent);border-color:var(--accent);background:var(--soft)}
+  .count-pill.warning{color:var(--warn);border-color:var(--warn)}
+  .meta-line{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:10px;overflow-wrap:anywhere}
 
-  .card { border:1px solid var(--line); background:var(--paper-2); border-radius:6px; padding:22px; margin-top:22px; }
-  .card + .card { margin-top:16px; }
-  .card h2 { font:600 11px/1 var(--sans); letter-spacing:.04em; text-transform:uppercase; color:var(--muted); margin:0 0 16px; }
+  .issue-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+  .issue-list li{display:flex;align-items:center;gap:10px;font-family:var(--ui);font-size:13.5px;
+    border-top:1px solid var(--line);padding-top:8px;flex-wrap:wrap}
+  .issue-list li:first-child{border-top:none;padding-top:0}
+  .sev-pill{display:inline-flex;align-items:center;font-family:var(--mono);font-size:10.5px;font-weight:600;
+    padding:2px 8px;border-radius:999px;border:1px solid var(--line);text-transform:uppercase;
+    letter-spacing:.03em;white-space:nowrap;color:var(--muted)}
+  .sev-pill.error{color:var(--accent);border-color:var(--accent)}
+  .sev-pill.warning{color:var(--warn);border-color:var(--warn)}
+  .issue-list .rid{font-family:var(--mono);font-size:12.5px;color:var(--body)}
+  .issue-list .rcount{margin-left:auto;font-family:var(--mono);font-size:11.5px;color:var(--muted)}
 
-  .score-badge { display:flex; align-items:baseline; gap:6px; font-family:var(--serif); margin-bottom:14px; }
-  .score-badge .num { font-size:40px; line-height:1; }
-  .score-badge .of100 { font-size:14px; color:var(--muted); font-family:var(--sans); }
-  .score-badge.good .num { color:var(--ok); }
-  .score-badge.ok .num { color:var(--warn); }
-  .score-badge.bad .num { color:var(--accent); }
-  .counts-row { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:6px; }
-  .count-pill { font-family:var(--mono); font-size:12px; padding:4px 10px; border-radius:4px; border:1px solid var(--line); }
-  .count-pill.error { color:var(--accent); border-color:var(--accent); background:var(--accent-soft); }
-  .count-pill.warning { color:var(--warn); border-color:var(--warn); }
-  .count-pill.info { color:var(--muted); }
-  .meta-line { font-family:var(--mono); font-size:12px; color:var(--muted); margin-top:10px; }
+  .spark-wrap{color:var(--accent);margin-bottom:14px}
+  .spark-wrap svg{display:block;max-width:100%;height:auto}
+  table.history-table td{font-family:var(--mono);font-size:12.5px}
+  .history-note{font-family:var(--ui);font-size:12px;color:var(--muted);margin:10px 0 0}
 
-  .issue-list { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px; }
-  .issue-list li { display:flex; align-items:center; gap:10px; font-size:13.5px; border-top:1px solid var(--line); padding-top:8px; flex-wrap:wrap; }
-  .issue-list li:first-child { border-top:none; padding-top:0; }
-  .sev-pill { display:inline-flex; align-items:center; font-family:var(--mono); font-size:10.5px; font-weight:600; padding:2px 7px; border-radius:4px; border:1px solid var(--line); text-transform:uppercase; letter-spacing:.03em; white-space:nowrap; }
-  .sev-pill.error { color:var(--accent); border-color:var(--accent); }
-  .sev-pill.warning { color:var(--warn); border-color:var(--warn); }
-  .sev-pill.info { color:var(--muted); }
-  .issue-list .rid { font-family:var(--mono); font-size:12.5px; }
-  .issue-list .rcount { margin-left:auto; font-family:var(--mono); font-size:11.5px; color:var(--muted); }
+  .actions-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:24px}
+  .action-note{font-family:var(--ui);font-size:12.5px;color:var(--muted);margin:0}
+  .actions-row + .action-note{margin-top:10px}
+  /* the table already sits inside a card, so it does not need a second frame */
+  .card .tablewrap{border:none;background:none}
+  .action-status{font-family:var(--ui);font-size:13px;font-weight:600;margin:10px 0 0}
+  .action-status.err{color:var(--accent)}
+  .action-status.ok{color:var(--ok)}
+  .btn:disabled{opacity:.55;cursor:not-allowed}
+  .btn-danger{border:1px solid var(--accent);color:var(--accent);background:transparent}
+  .btn-danger:hover{background:var(--accent);color:#fff}
 
-  .spark-wrap { color:var(--accent); margin-bottom:14px; }
-  .spark-wrap svg { display:block; max-width:100%; height:auto; }
-
-  .history-table-wrap { overflow-x:auto; }
-  table.history-table { width:100%; border-collapse:collapse; font-size:13px; }
-  table.history-table th { text-align:left; font:600 10.5px/1 var(--sans); text-transform:uppercase; letter-spacing:.04em; color:var(--muted); padding:0 10px 8px 0; border-bottom:1px solid var(--line); white-space:nowrap; }
-  table.history-table td { padding:7px 10px 7px 0; border-bottom:1px solid var(--line); font-family:var(--mono); font-size:12.5px; white-space:nowrap; }
-  table.history-table tr:last-child td { border-bottom:none; }
-  .history-note { font-size:12px; color:var(--muted); margin:10px 0 0; }
-
-  .btn { display:inline-block; font:600 14px/1 var(--sans); padding:11px 16px; border-radius:var(--radius); text-decoration:none; cursor:pointer; border:2px solid transparent; }
-  .btn-solid { background:var(--accent); color:#fff; border-color:var(--accent); }
-  .btn-solid:hover { color:#fff; opacity:.92; }
-  .btn-solid:disabled { opacity:.5; cursor:not-allowed; }
-  .btn-line { border:2px solid var(--ink); color:var(--ink); background:transparent; }
-  .btn-danger { border:2px solid var(--accent); color:var(--accent); background:transparent; }
-  .actions-row { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:22px; }
-  .action-note { font-size:12.5px; color:var(--muted); margin:0; }
-  .action-status { font-size:13px; font-weight:600; margin:10px 0 0; }
-  .action-status.err { color:var(--accent); }
-  .action-status.ok { color:var(--ok); }
-
-  .delete-row { border-top:1px solid var(--line); margin-top:26px; padding-top:18px; }
-  .delete-row p { margin:0 0 10px; font-size:13px; color:var(--muted); }
-  .confirm-row { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
-
-  footer { padding:32px 0 48px; color:var(--muted); font-size:13px; border-top:1px solid var(--line); margin-top:24px; }
-  footer a { color:var(--ink-2); }
+  .delete-row{border-top:1px solid var(--line);margin-top:28px;padding-top:18px}
+  .delete-row p{margin:0 0 10px;font-family:var(--ui);font-size:13px;color:var(--muted)}
+  .confirm-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
 </style>
 </head>
 <body>
+<div class="wash" aria-hidden="true"><i></i><i></i></div>
 
-<header class="top">
-  <div class="wrap">
-    <a class="wordmark" href="https://arling.sk/">Product Feed Doctor<small>an ARLing tool</small></a>
-    <nav class="main" aria-label="Page">
-      <a href="../">Feed checker</a>
-      <a href="https://arling.sk/privacy/">Privacy</a>
+<header>
+  <div class="wrap bar">
+    <a class="brand" href="https://arling.sk/">
+      <svg viewBox="0 0 32 32" width="30" height="30" aria-hidden="true"><defs><path id="m" fill-rule="evenodd" d="M16 2.5 L29 29.5 H3 Z M16 12.4 L22.4 25.6 H9.6 Z"/><clipPath id="mr"><rect x="16" width="16" height="32"/></clipPath></defs><use href="#m" fill="#141413"/><use href="#m" fill="#b23a1d" clip-path="url(#mr)"/></svg>
+      <b>ARLing</b><span>Feed Doctor Monitor</span>
+    </a>
+    <nav aria-label="Page">
+      <a href="../" data-umami-event="monitor_to_checker">Feed checker</a>
+      <a href="https://arling.sk/privacy/" data-umami-event="monitor_to_privacy">Privacy</a>
     </nav>
   </div>
 </header>
 
 <main>
-  <div class="wrap">
-    <p class="kicker">Monitor</p>
-    <h1>Your feed monitor</h1>
-    <p class="sub">Weekly or daily checks of your product feed, by e-mail. Feed content is never stored, only the score and issue counts of each check.</p>
-    <div id="app"><p class="loading">Loading...</p></div>
+  <div class="wrap intro">
+    <div class="col" id="hero">
+      <p class="kicker r"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V4"/><path d="M4 20h16"/><path d="M8 16.5v-4M12.5 16.5V8M17 16.5v-6.5"/></svg>Monitor</p>
+      <h1 id="h1"><span class="l">Your feed monitor</span></h1>
+      <div class="rule"></div>
+      <p class="lead sub r d1">Weekly or daily checks of your product feed, by e-mail. Feed content is never stored, only the score and issue counts of each check.</p>
+    </div>
   </div>
+
+  <section class="deep">
+    <div class="wrap">
+      <div class="col">
+        <div id="app" class="r"><p class="loading">Loading...</p></div>
+      </div>
+    </div>
+  </section>
 </main>
 
-<footer>
-  <div class="wrap">
-    ARLing s. r. o., Bratislava, Slovakia &middot; <a href="mailto:andrej@arling.sk">andrej@arling.sk</a><br>
-    <a href="../">Feed Doctor</a> &middot; <a href="https://arling.sk/">ARLing</a> &middot; <a href="https://arling.sk/privacy/">Privacy</a>
+<footer class="band">
+  <div class="wrap foot">
+    <div>ARLing s. r. o., Bratislava, Slovakia &middot; <a href="mailto:andrej@arling.sk">andrej@arling.sk</a></div>
+    <div><a href="../">Feed Doctor</a> &middot; <a href="https://arling.sk/">ARLing</a> &middot; <a href="https://arling.sk/privacy/">Privacy</a></div>
   </div>
 </footer>
 
@@ -202,11 +201,11 @@
       : '';
     return `
       ${sparklineSvg(history)}
-      <div class="history-table-wrap">
+      <div class="tablewrap">
         <table class="history-table">
           <thead><tr><th>Date</th><th>Score</th><th>Errors</th><th>Warnings</th></tr></thead>
           <tbody>
-            ${shown.map((r) => `<tr><td>${esc(r.date || fmtDate(r.at))}</td><td>${esc(r.score)}</td><td>${esc(r.error)}</td><td>${esc(r.warning)}</td></tr>`).join('')}
+            ${shown.map((r) => `<tr><td data-th="Date">${esc(r.date || fmtDate(r.at))}</td><td data-th="Score">${esc(r.score)}</td><td data-th="Errors">${esc(r.error)}</td><td data-th="Warnings">${esc(r.warning)}</td></tr>`).join('')}
           </tbody>
         </table>
       </div>
@@ -248,8 +247,8 @@
     const score = typeof data.last_score === 'number' ? data.last_score : null;
 
     const banners = [];
-    if (isDemo) banners.push('<div class="banner demo">This is sample data for preview only. No monitor is running and no data was fetched.</div>');
-    if (opts.paid) banners.push('<div class="banner paid">Thanks. Pro is now active on this monitor.</div>');
+    if (isDemo) banners.push('<div class="notice demo">This is sample data for preview only. No monitor is running and no data was fetched.</div>');
+    if (opts.paid) banners.push('<div class="notice paid">Thanks. Pro is now active on this monitor.</div>');
 
     app.innerHTML = `
       ${banners.join('')}
@@ -288,7 +287,7 @@
 
       <div class="actions-row">
         ${isPro
-          ? `<button class="btn btn-line" id="check-now-btn" type="button">Check now</button>`
+          ? `<button class="btn btn-line" id="check-now-btn" type="button" data-umami-event="monitor_check_now">Check now</button>`
           : `<a class="btn btn-solid" id="upgrade-btn" href="${esc(data.upgrade_url || '#')}" data-umami-event="monitor_upgrade_click">Upgrade to Pro, 9 EUR / month</a>`
         }
       </div>
@@ -298,7 +297,7 @@
       <div class="delete-row">
         <p>Deleting removes the monitor, the e-mail address and all check history. This cannot be undone.</p>
         <div class="confirm-row" id="delete-row">
-          <button class="btn btn-danger" id="delete-btn" type="button">Delete monitor</button>
+          <button class="btn btn-danger" id="delete-btn" type="button" data-umami-event="monitor_delete_click">Delete monitor</button>
         </div>
       </div>
     `;
@@ -459,6 +458,43 @@
   }
 
   init();
+</script>
+
+<!-- Motion: no library, no requestAnimationFrame loop, one IntersectionObserver.
+     Same code as the approved reference page at arling.sk/nahlad/. -->
+<script>
+(function () {
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var hero = document.getElementById('hero');
+  if (reduce) {
+    document.querySelectorAll('.r, section, #hero').forEach(function (e) { e.classList.add('in'); });
+  }
+  if (!reduce && hero) {
+    requestAnimationFrame(function () {
+      hero.classList.add('in');
+      hero.querySelectorAll('.r').forEach(function (e) { e.classList.add('in'); });
+    });
+  }
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (en) {
+      if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); }
+    });
+  }, { rootMargin: '0px 0px -12% 0px', threshold: 0 });
+  document.querySelectorAll('section').forEach(function (s) { io.observe(s); });
+
+  // the headline arrives word by word, like a well set title
+  var h1 = document.getElementById('h1');
+  if (h1 && !reduce) {
+    var i = 0;
+    Array.prototype.forEach.call(h1.querySelectorAll('.l'), function (line) {
+      line.innerHTML = line.textContent.split(' ').map(function (w) {
+        var d = (i++ * 0.06).toFixed(2);
+        return '<span class="w" style="transition-delay:' + d + 's">' + w + '</span>';
+      }).join(' ');
+    });
+    requestAnimationFrame(function () { h1.classList.add('in'); });
+  }
+})();
 </script>
 
 <script defer src="https://homelab.tailbf8f27.ts.net/script.js" data-website-id="77002c4b-a825-4462-af8c-4c7859af24b2"></script>

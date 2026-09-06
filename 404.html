@@ -5,51 +5,106 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Page not found: Product Feed Doctor</title>
 <meta name="robots" content="noindex">
-<link rel="icon" href="./favicon.svg" type="image/svg+xml">
-<link rel="alternate icon" href="./favicon.ico">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="alternate icon" href="favicon.ico">
+<link rel="preload" href="fonts/arling-sans.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/arling-serif.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="style/paper.css">
+
 <style>
-  :root {
-    --paper:#f6f2ea; --paper-2:#fbf9f4; --ink:#1b1a17; --ink-2:#4a4741; --muted:#7a766e; --line:#d9d2c4;
-    --accent:#b23a1d; --accent-soft:#f3e2dc;
-    --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
-    --sans:system-ui,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    --mono:ui-monospace,"Cascadia Code",Consolas,Menlo,monospace;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root { --paper:#151412; --paper-2:#1d1b18; --ink:#efe9de; --ink-2:#c9c2b5; --muted:#8f887b; --line:#2e2b26; --accent:#e0623f; --accent-soft:#3a1f17; }
-  }
-  * { box-sizing:border-box; }
-  html, body { margin:0; padding:0; }
-  html { background:var(--paper); }
-  body {
-    color:var(--ink); background:var(--paper); font:16px/1.55 var(--sans);
-    -webkit-font-smoothing:antialiased;
-    min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px;
-  }
-  a { color:inherit; text-decoration-color:var(--line); text-underline-offset:3px; }
-  a:hover { text-decoration-color:var(--accent); }
-  :focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
-  .mono { font-family:var(--mono); }
-  .card {
-    max-width:480px; width:100%;
-    border:1px solid var(--line); background:var(--paper-2); border-radius:6px;
-    padding:36px 32px; text-align:center;
-  }
-  .wordmark { display:inline-block; font:600 18px/1 var(--serif); text-decoration:none; margin-bottom:22px; }
-  .kicker { font:400 13px/1 var(--serif); color:var(--accent); letter-spacing:.04em; margin:0 0 10px; }
-  h1 { font:400 clamp(22px,4vw,28px)/1.25 var(--serif); letter-spacing:-.01em; margin:0 0 12px; }
-  p.sub { color:var(--ink-2); font-size:15px; margin:0 0 26px; }
-  .btn { display:inline-block; font:600 15px/1 var(--sans); padding:12px 20px; border-radius:4px; text-decoration:none; background:var(--accent); color:#fff; border:2px solid var(--accent); }
-  .btn:hover { color:#fff; opacity:.92; }
+  /* Only what is specific to this page. Everything else is style/paper.css. */
+  /* No screenshot belongs on a page that does not exist, so the hero stays one
+     column and the text is allowed to run wide instead of leaving half of it empty. */
+  .lost{padding:clamp(48px,7vw,104px) 0 clamp(40px,5vw,80px)}
+  .lost h1{font-size:clamp(34px,5vw,64px);max-width:16ch}
+  .lost .lead{max-width:52ch}
+  .index{max-width:560px}
+  /* Three surfaces, the same rhythm as the checker: paper, the muted second
+     surface under the index, and ink under the footer. */
+  footer.band{background:var(--ink);color:#a8a294;border-top:none}
+  footer.band a{color:#e9e4d8}
+  footer.band a:hover{color:var(--accent-light)}
 </style>
 </head>
 <body>
-  <div class="card">
-    <a class="wordmark" href="./">Product Feed Doctor</a>
-    <p class="kicker">404</p>
-    <h1>This page does not exist.</h1>
-    <p class="sub">The link you followed does not match a page here. Head back and paste, upload, or fetch your feed instead.</p>
-    <a class="btn" href="./">Back to the feed checker</a>
+<div class="wash" aria-hidden="true"><i></i><i></i></div>
+
+<header>
+  <div class="wrap bar">
+    <a class="brand" href="./">
+      <svg viewBox="0 0 32 32" width="30" height="30" aria-hidden="true"><defs><path id="m" fill-rule="evenodd" d="M16 2.5 L29 29.5 H3 Z M16 12.4 L22.4 25.6 H9.6 Z"/><clipPath id="mr"><rect x="16" width="16" height="32"/></clipPath></defs><use href="#m" fill="#141413"/><use href="#m" fill="#b23a1d" clip-path="url(#mr)"/></svg>
+      <b>ARLing</b><span>Product Feed Doctor</span>
+    </a>
   </div>
+</header>
+
+<main>
+  <div class="wrap lost" id="hero">
+    <div>
+      <p class="kicker r">404</p>
+      <h1 id="h1"><span class="l">This page</span><span class="l">does not exist.</span></h1>
+      <p class="lead r d3">The link you followed does not match a page here. Head back and paste, upload, or fetch your feed instead.</p>
+      <div class="cta r d4">
+        <a class="btn btn-solid" href="./" data-umami-event="404_back">Back to the feed checker</a>
+      </div>
+    </div>
+  </div>
+
+  <section class="deep">
+    <div class="wrap">
+      <p class="kicker r"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>01</p>
+      <h2 class="r" id="instead">Where to go instead</h2>
+      <div class="rule"></div>
+      <nav class="index r d1" aria-labelledby="instead">
+        <a href="./#tool" data-umami-event="404-index-tool"><span class="n">[1]</span><span class="t">Check a feed</span><span class="dots"></span></a>
+        <a href="./#checks" data-umami-event="404-index-checks"><span class="n">[2]</span><span class="t">The 31 rules</span><span class="dots"></span></a>
+        <a href="./#faq" data-umami-event="404-index-faq"><span class="n">[3]</span><span class="t">Questions and answers</span><span class="dots"></span></a>
+      </nav>
+    </div>
+  </section>
+</main>
+
+<footer class="band">
+  <div class="wrap foot">
+    <div>ARLing s. r. o., Bratislava</div>
+    <div><a href="./" data-umami-event="404-foot-checker">Product Feed Doctor</a></div>
+  </div>
+</footer>
+
+<!-- Motion: no library, no requestAnimationFrame loop, one IntersectionObserver.
+     Same code as the approved reference page at arling.sk/nahlad/. -->
+<script>
+(function () {
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var hero = document.getElementById('hero');
+  if (reduce) {
+    document.querySelectorAll('.r, section').forEach(function (e) { e.classList.add('in'); });
+  }
+  if (!reduce && hero) {
+    requestAnimationFrame(function () {
+      hero.querySelectorAll('.r').forEach(function (e) { e.classList.add('in'); });
+    });
+  }
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (en) {
+      if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); }
+    });
+  }, { rootMargin: '0px 0px -12% 0px', threshold: 0 });
+  document.querySelectorAll('section').forEach(function (s) { io.observe(s); });
+
+  // the headline arrives word by word, like a well set title
+  var h1 = document.getElementById('h1');
+  if (h1 && !reduce) {
+    var i = 0;
+    Array.prototype.forEach.call(h1.querySelectorAll('.l'), function (line) {
+      line.innerHTML = line.textContent.split(' ').map(function (w) {
+        var d = (i++ * 0.06).toFixed(2);
+        return '<span class="w" style="transition-delay:' + d + 's">' + w + '</span>';
+      }).join(' ');
+    });
+    requestAnimationFrame(function () { h1.classList.add('in'); });
+  }
+})();
+</script>
 </body>
 </html>
