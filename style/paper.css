@@ -74,6 +74,23 @@ header{border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5;
 .lang{font-family:var(--ui);font-size:14px;color:var(--body);background:var(--card);
   border:1px solid var(--line);border-radius:10px;padding:7px 10px}
 
+/* Prepínač jazykov. Otvára sa bez JavaScriptu (details/summary). */
+.langsel{position:relative;font-family:var(--ui);font-size:14px}
+.langsel>summary{list-style:none;cursor:pointer;border:1px solid var(--line);background:var(--card);
+  border-radius:10px;padding:7px 12px;color:var(--body);user-select:none}
+.langsel>summary::-webkit-details-marker{display:none}
+.langsel>summary::after{content:"";display:inline-block;margin-left:8px;width:.5em;height:.5em;
+  border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg) translateY(-2px)}
+.langsel[open]>summary{border-color:var(--ink);color:var(--ink)}
+.langsel ul{position:absolute;right:0;top:calc(100% + 6px);z-index:20;margin:0;padding:6px;list-style:none;
+  min-width:150px;background:var(--card);border:1px solid var(--line);border-radius:12px;
+  box-shadow:0 12px 34px rgba(20,20,19,.12)}
+.langsel li{margin:0}
+.langsel a{display:block;padding:7px 10px;border-radius:8px;text-decoration:none;color:var(--body);white-space:nowrap}
+.langsel a:hover{background:var(--paper-deep);color:var(--ink)}
+.langsel a[aria-current="true"]{color:var(--accent);font-weight:500}
+@media (max-width:720px){ .langsel{order:2} }
+
 /* ── 6. Typografia ── */
 h1{font:700 clamp(34px,4.6vw,64px)/1.1 var(--display);color:var(--ink);letter-spacing:-.02em;margin:0 0 clamp(14px,1.6vw,22px)}
 h1 .l{display:block}
@@ -171,16 +188,14 @@ th{font:500 13px/1.3 var(--ui);letter-spacing:.04em;color:var(--muted);text-tran
 }
 
 /* ── 13. Pohyb. Príchod sekcií, kresba linky, nadpis po slovách. ── */
-.r{opacity:0;transform:translateY(10px);filter:blur(4px);animation:poistka-zobraz 0s linear 3s forwards;
-  transition:opacity .55s var(--ease),transform .55s var(--ease),filter .55s var(--ease)}
-.in .r,.r.in{opacity:1;transform:none;filter:none}
-/* Poistka: keby JavaScript zlyhal alebo bol vypnuty, obsah sa aj tak ukaze po 3 sekundach.
-   Bez tohto bola stranka bez skriptov uplne prazdna, co je horsie nez ziadna animacia. */
-@keyframes poistka-zobraz{to{opacity:1;transform:none;filter:none}}
+html.js .r{opacity:0;transform:translateY(8px);
+  transition:opacity .4s var(--ease),transform .4s var(--ease)}
+.in .r,.r.in{opacity:1;transform:none}
 @media (scripting: none){ .r,.w{opacity:1 !important;transform:none !important;filter:none !important} }
 .d1{transition-delay:.06s}.d2{transition-delay:.12s}.d3{transition-delay:.18s}
 .d4{transition-delay:.26s}.d5{transition-delay:.32s}.d6{transition-delay:.38s}
-.w{display:inline-block;opacity:0;transform:translateY(22px);
+.w{display:inline-block}
+html.js .w{opacity:0;transform:translateY(22px);
   transition:opacity .8s var(--spring),transform .8s var(--spring)}
 .in .w{opacity:1;transform:none}
 
