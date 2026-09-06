@@ -782,3 +782,9 @@ body.noc th{color:var(--ink);border-bottom:1px solid var(--line);font-weight:600
 body.noc td{border-bottom:1px solid rgba(255,255,255,.055)}
 body.noc tbody tr:nth-child(even){background:rgba(255,255,255,.022)}
 body.noc tbody tr:hover{background:rgba(242,100,60,.06)}
+
+
+/* Rozmazané škvrny (.wash) na nočnej ploche vypnuté. Boli z čias, keď pozadie
+   robilo CSS. Odkedy kreslí shader, len sa s ním sčítavali a hore vznikol
+   oranžový záves cez hlavičku. Na svetlej ploche ostávajú. */
+body.noc .wash i,body.noc .wash::after{display:none}
