@@ -89,7 +89,7 @@ header{border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5;
 .langsel a{display:block;padding:7px 10px;border-radius:8px;text-decoration:none;color:var(--body);white-space:nowrap}
 .langsel a:hover{background:var(--paper-deep);color:var(--ink)}
 .langsel a[aria-current="true"]{color:var(--accent);font-weight:500}
-@media (max-width:720px){ .langsel{order:2} }
+@media (max-width:960px){ .langsel{order:2} }
 
 /* ── 6. Typografia ── */
 h1{font:700 clamp(34px,4.6vw,64px)/1.1 var(--display);color:var(--ink);letter-spacing:-.02em;margin:0 0 clamp(14px,1.6vw,22px)}
@@ -544,6 +544,37 @@ body.noc .band{background:linear-gradient(180deg,#141110 0%,#0d0b0a 100%);
 body.noc .band h2,body.noc .band h3{color:var(--ink)}
 body.noc .band a{color:var(--accent-light)}
 
+/* Tmavý panel v článkoch Notes. Články ho definujú ako background:var(--ink),
+   čo bola vo svetlej palete tmavá farba. V noci je --ink takmer biela, takže
+   z panela bol biely obdĺžnik so svetlosivým textom. Farby sú tie isté ako
+   pri nočnom .band vyššie, aby to vyzeralo ako zvyšok webu. */
+body.noc .doc .tool-box,
+body.noc .doc .toolbox,
+body.noc .doc .check,
+body.noc .doc .try,
+body.noc .doc .cta{background:linear-gradient(180deg,#141110 0%,#0d0b0a 100%);
+  color:var(--body);border:1px solid var(--line)}
+body.noc .doc .tool-box p,
+body.noc .doc .toolbox p,
+body.noc .doc .check p,
+body.noc .doc .try p,
+body.noc .doc .cta p{color:var(--body)}
+body.noc .doc .tool-box h2,body.noc .doc .tool-box h3,
+body.noc .doc .toolbox h2,body.noc .doc .toolbox h3,
+body.noc .doc .check h2,body.noc .doc .check h3,
+body.noc .doc .try h2,body.noc .doc .try h3,
+body.noc .doc .cta h2,body.noc .doc .cta h3{color:var(--ink)}
+body.noc .doc .tool-box a,
+body.noc .doc .toolbox a,
+body.noc .doc .check a,
+body.noc .doc .try a,
+body.noc .doc .cta a{color:var(--accent-light)}
+body.noc .doc .tool-box code,
+body.noc .doc .toolbox code,
+body.noc .doc .check code,
+body.noc .doc .try code,
+body.noc .doc .cta code{background:var(--card);border-color:var(--line);color:var(--ink)}
+
 /* Tlačidlá: odmerané 12 px polomer, výplň 12/24, 14 px váha 600. */
 body.noc .btn{height:48px;border-radius:12px;font-weight:600;font-size:15px}
 body.noc .btn-solid{background:var(--accent);color:#1a0d07;
@@ -687,7 +718,10 @@ body.noc .zar-plocha{opacity:1}
 .bar{gap:clamp(16px,3vw,40px)}
 .bar nav{margin-left:auto;display:flex;align-items:center;gap:clamp(14px,1.6vw,26px)}
 .bar .langsel{margin-left:clamp(10px,1.4vw,20px)}
-@media (max-width:720px){
+/* Hranica je 960, nie 720: pri 768 px hlavicka pretekala von z obrazovky,
+   "Kontakt" bol odsekly a prepinac jazykov sa nedal dosiahnut. Realny prah,
+   kde sa vsetko este zmesti do riadku, je okolo 930 px. */
+@media (max-width:960px){
   .bar{flex-wrap:wrap;row-gap:8px}
   /* Navigacia je na uzkej obrazovke jeden posuvatelny riadok.
      Bez white-space:nowrap sa dlhe polozky ("Ako to funguje") zalomili

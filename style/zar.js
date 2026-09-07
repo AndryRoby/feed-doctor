@@ -57,6 +57,8 @@
 
 
   var tichy = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // Perióda času v shaderi v sekundách. Pozri kresli().
+  var PERIODA = 600;
   var VRCHOL = 'attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}';
 
   /* Spoločný základ: šum, fBm, rozptyl, paleta a stlmenie k okrajom.
@@ -615,7 +617,9 @@
         gl.useProgram(program);
         gl.bindBuffer(gl.ARRAY_BUFFER, buf);
         gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-        gl.uniform1f(uCas, (teraz - s.zaciatok) / 1000);
+        // Čas sa opakuje po PERIODA sekundách. Bez toho po hodine rástol do
+        // tisícov a šum aj sin() v shaderi strácali presnosť: obraz sekal.
+        gl.uniform1f(uCas, ((teraz - s.zaciatok) / 1000) % PERIODA);
         // Dotahovanie k cielu: 8 percent rozdielu za snimok. Pri 30 snimkoch
         // za sekundu je to asi tretina sekundy na dobehnutie, co je akurat
         // na to, aby to posobilo zivo a nie trhane.
@@ -675,9 +679,15 @@
   var bezi = false;
   var posledna = 0;
   var SNIMOK = 1000 / 30;
+  // Po NECINNOST ms bez pohybu myši, scrollu či klávesy sa kreslenie zastaví
+  // a ostane posledný snímok. Pozadie je ozdoba: nemá hriať GPU pol hodiny,
+  // kým človek číta alebo odišiel od počítača. Prvý pohyb ho spustí znova.
+  var NECINNOST = 90000;
+  var poslednaCinnost = performance.now();
 
   function jeCoKreslit() {
     if (tichy || document.hidden) return false;
+    if (performance.now() - poslednaCinnost > NECINNOST) return false;
     for (var i = 0; i < sceny.length; i++) if (sceny[i].vidno) return true;
     return false;
   }
@@ -710,7 +720,11 @@
     } else {
       sceny.forEach(function (s) { s.vidno = true; });
     }
-    document.addEventListener('visibilitychange', function () { if (!document.hidden) spusti(); });
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) { poslednaCinnost = performance.now(); spusti(); } });
+    // Čokoľvek, čo robí človek, počíta ako činnosť a prebudí slučku.
+    ['pointermove', 'pointerdown', 'scroll', 'keydown', 'touchstart', 'wheel'].forEach(function (u) {
+      window.addEventListener(u, function () { poslednaCinnost = performance.now(); spusti(); }, { passive: true });
+    });
     spusti();
   }
 
