@@ -8,6 +8,9 @@
  *
  * Zodpovednosť voči návštevníkovi je dôležitejšia než efekt, preto:
  *   - `prefers-reduced-motion: reduce` vykreslí JEDEN snímok a slučka sa nespustí;
+ *   - po načítaní stránky sa vykreslí tiež len JEDEN snímok a slučka čaká na
+ *     prvú činnosť človeka, teda pohyb myšou, dotyk, scroll alebo klávesu
+ *     (prečo presne, to je nižšie pri NECINNOST);
  *   - kreslí sa len to plátno, ktoré je práve v obraze (IntersectionObserver);
  *   - keď je karta prehliadača skrytá, nekreslí sa nič (visibilitychange);
  *   - najviac 30 snímok za sekundu, nie 60: rozdiel nie je vidieť a spotreba
@@ -685,8 +688,23 @@
   var NECINNOST = 90000;
   var poslednaCinnost = performance.now();
 
+  /* Slučka sa po načítaní stránky NESPUSTÍ. Rozbehne sa až prvou skutočnou
+     činnosťou človeka, teda pohybom myši, dotykom, scrollom alebo klávesou.
+     Do tej chvíle ostane na plátne jediný snímok z postavScenu().
+
+     Prečo: PageSpeed 9. 9. 2026 na https://arling.sk/ nameral Performance 68,
+     Total Blocking Time 19 530 ms, 34,8 s práce hlavného vlákna a 20 dlhých
+     úloh. Lighthouse do stránky nikdy nič nezadá, takže mu poslednaCinnost
+     ostala na čase načítania a odmeral celých 90 s animácie ako blokovanie.
+     Toto pozadie je na každej našej stránke vrátane tých, kam vedú platené
+     reklamy, takže to ťahá dole Quality Score aj SEO. Návštevník nestratí nič:
+     statický snímok je presne ten, z ktorého slučka pokračuje, a kým sa
+     človek nepohne, nemá čo vidieť. */
+  var bolVstup = false;
+
   function jeCoKreslit() {
     if (tichy || document.hidden) return false;
+    if (!bolVstup) return false;
     if (performance.now() - poslednaCinnost > NECINNOST) return false;
     for (var i = 0; i < sceny.length; i++) if (sceny[i].vidno) return true;
     return false;
@@ -721,11 +739,22 @@
       sceny.forEach(function (s) { s.vidno = true; });
     }
     document.addEventListener('visibilitychange', function () { if (!document.hidden) { poslednaCinnost = performance.now(); spusti(); } });
-    // Čokoľvek, čo robí človek, počíta ako činnosť a prebudí slučku.
+    // Čokoľvek, čo robí človek, počíta ako činnosť: prvý raz slučku spustí,
+    // potom ju drží bežať a po NECINNOST sa opäť zastaví.
     ['pointermove', 'pointerdown', 'scroll', 'keydown', 'touchstart', 'wheel'].forEach(function (u) {
-      window.addEventListener(u, function () { poslednaCinnost = performance.now(); spusti(); }, { passive: true });
+      window.addEventListener(u, function () {
+        poslednaCinnost = performance.now();
+        if (!bolVstup) {
+          bolVstup = true;
+          // Čas scény sa počíta odznova, aby animácia plynulo pokračovala
+          // z toho snímku, ktorý mal človek doteraz pred sebou. Bez toho by
+          // scéna preskočila o tie sekundy, čo stránka len tak stála.
+          sceny.forEach(function (s) { s.zaciatok = null; });
+        }
+        spusti();
+      }, { passive: true });
     });
-    spusti();
+    // Tu sa slučka zámerne nespúšťa, pozri komentár pri bolVstup vyššie.
   }
 
   var caka = false;
