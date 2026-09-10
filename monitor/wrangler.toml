@@ -61,6 +61,19 @@ crons = ["0 5 * * *"]
 #   MAIL_TOKEN - X-Mail-Token header sent with every call to MAIL_URL
 #     (products/subscribe-service/app.py POST /api/mail). Set with:
 #     wrangler secret put MAIL_TOKEN
-# Both values live in C:/Users/User/.secrets/feed-monitor.txt (ADMIN_TOKEN=...,
-# MAIL_TOKEN=...), which the subscribe-service .env also reads MAIL_TOKEN
-# from, so the two sides agree without the value ever appearing in a repo.
+#   STRIPE_SECRET_KEY - used only by DELETE /v1/monitors/:id (and the GET
+#     .../delete e-mail link) on a Pro monitor whose billing_ref is a
+#     Stripe subscription id (sub_...): the worker calls
+#     DELETE https://api.stripe.com/v1/subscriptions/{billing_ref} so the
+#     customer stops being charged the moment the monitor goes
+#     (src/index.js cancelStripeSubscription). Use a RESTRICTED key from the
+#     Stripe Dashboard (Developers > API keys > Create restricted key) with
+#     only "Subscriptions: Write"; nothing else is needed. Without this
+#     secret the monitor is still deleted, but the reply tells the customer
+#     to cancel in the Stripe customer portal themselves. Set with:
+#     wrangler secret put STRIPE_SECRET_KEY
+# ADMIN_TOKEN and MAIL_TOKEN live in C:/Users/User/.secrets/feed-monitor.txt
+# (ADMIN_TOKEN=..., MAIL_TOKEN=...), which the subscribe-service .env also
+# reads MAIL_TOKEN from, so the two sides agree without the value ever
+# appearing in a repo. STRIPE_SECRET_KEY belongs in
+# C:/Users/User/.secrets/stripe.txt next to the other Stripe ids.
