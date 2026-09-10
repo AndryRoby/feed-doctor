@@ -643,11 +643,22 @@
     return s;
   }
 
-  Array.prototype.forEach.call(platna, function (p) {
-    var s = postavScenu(p);
-    if (s) sceny.push(s);
-  });
-  if (!sceny.length) return;
+  // Stavba scén (WebGL kontext, kompilácia shaderov, prvý snímok) sa NErobí
+  // pri načítaní. Lighthouse 10. 9. 2026: bez grafickej karty to bolo 1,7 s
+  // práce hlavného vlákna pred vykreslením nadpisu (LCP 3,2 s, skóre 82).
+  // Scény vzniknú pri prvej činnosti človeka, najneskôr 4 s po načítaní. Kým nevzniknú, plátno je priehľadné na tmavom pozadí.
+  var postavene = false;
+  function postavVsetky(e) {
+    if (postavene) return;
+    postavene = true;
+    Array.prototype.forEach.call(platna, function (p) {
+      var s = postavScenu(p);
+      if (s) sceny.push(s);
+    });
+    if (!sceny.length) return;
+    poStavbe(e);
+  }
+  function poStavbe(e) {
 
   /* Každá scéna si stráži vlastnú veľkosť.
    *
@@ -756,6 +767,10 @@
     });
     // Tu sa slučka zámerne nespúšťa, pozri komentár pri bolVstup vyššie.
   }
+  // Keď stavbu spustila činnosť človeka, tá istá udalosť rovno naštartuje
+  // slučku; inak by sa čakalo na ďalší pohyb.
+  if (e && e.type && !tichy) { poslednaCinnost = performance.now(); bolVstup = true; spusti(); }
+  }
 
   var caka = false;
   window.addEventListener('resize', function () {
@@ -769,4 +784,17 @@
       });
     });
   }, { passive: true });
+
+  // Spúšťač stavby: prvá činnosť človeka, alebo nečinný čas po načítaní.
+  ['pointermove', 'pointerdown', 'scroll', 'keydown', 'touchstart', 'wheel'].forEach(function (u) {
+    window.addEventListener(u, postavVsetky, { passive: true, once: true });
+  });
+  function poNacitani() {
+    // Zámerne obyčajný časovač, nie requestIdleCallback: ten by sa spustil
+    // hneď po načítaní (stránka je vtedy nečinná) a meranie by to zase
+    // započítalo do práce pred prvým vykreslením.
+    setTimeout(postavVsetky, 4000);
+  }
+  if (document.readyState === 'complete') poNacitani();
+  else window.addEventListener('load', poNacitani, { once: true });
 })();
