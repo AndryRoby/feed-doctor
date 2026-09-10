@@ -770,8 +770,10 @@
   // Keď stavbu spustila činnosť človeka, tá istá udalosť rovno naštartuje
   // slučku; inak by sa čakalo na ďalší pohyb.
   if (e && e.type && !tichy) { poslednaCinnost = performance.now(); bolVstup = true; spusti(); }
-  }
 
+  // Zmena okna: až po stavbe, lebo `bezi` a scény žijú tu. Do 10. 9. 2026
+  // bol tento poslucháč mimo funkcie a pri každom resize hádzal
+  // ReferenceError (audit cesty zákazníka).
   var caka = false;
   window.addEventListener('resize', function () {
     if (caka) return;
@@ -784,6 +786,7 @@
       });
     });
   }, { passive: true });
+  }
 
   // Spúšťač stavby: prvá činnosť človeka, alebo nečinný čas po načítaní.
   ['pointermove', 'pointerdown', 'scroll', 'keydown', 'touchstart', 'wheel'].forEach(function (u) {
