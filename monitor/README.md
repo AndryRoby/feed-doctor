@@ -33,10 +33,34 @@ Live at `https://feed-monitor.arling.workers.dev`.
 | GET | `/v1/monitors/confirm?id=&token=` | Confirms, kicks off the first check in the background (`ctx.waitUntil`), `302` to `https://arling.sk/feed-doctor/monitor/?id=<id>&key=<manage_key>` |
 | GET | `/v1/monitors/:id?key=` | Full status: `feed_url, email_masked, plan, status, last_score, last_counts, last_top_issues (up to 10), history (last 90 checks), next_check_at, upgrade_url`. Wrong key -> `404` |
 | POST | `/v1/monitors/:id/check?key=` | Manual check now. `402` on the free plan (calm upgrade message), rate-limited 1/hour on Pro |
-| DELETE | `/v1/monitors/:id?key=` | Deletes the monitor and its checks |
+| DELETE | `/v1/monitors/:id?key=` | Deletes the monitor and its checks. On a Pro monitor whose `billing_ref` is a Stripe subscription id (`sub_...`) it first cancels that subscription, see "Delete and the Pro subscription" below |
 | GET | `/v1/monitors/:id/delete?key=` | Same as DELETE, reachable from a plain e-mail link |
 | PATCH (or POST) | `/v1/monitors/:id/plan` | Header `X-Admin-Token`. Body `{plan, billing_ref?, valid_until?}`. Called by `licence-service`'s Stripe webhook on activation/cancellation, never by anything else |
 | GET | `/health` | `{"ok": true}` |
+
+## Delete and the Pro subscription
+
+Deleting a monitor must not leave a paid subscription running (audit
+`ops/audit/2026-09-10/pravo-a-platby.md`, section 3). `handleDelete` in
+`src/index.js` therefore does, in this order:
+
+1. Free monitor: deleted as before, reply
+   `{ok: true, message: "Monitor deleted. You will not get any more e-mails about this feed."}`.
+2. Pro monitor, `billing_ref` starts with `sub_`, `STRIPE_SECRET_KEY` set:
+   `DELETE https://api.stripe.com/v1/subscriptions/{billing_ref}` with
+   `Authorization: Bearer <STRIPE_SECRET_KEY>` (no body). On a 2xx, or on a
+   404 / `resource_missing` (already cancelled), the monitor is deleted and
+   the reply is `{ok: true, subscription_cancelled: true, message: "Monitor deleted and your Pro subscription was cancelled. No further charges."}`.
+   On anything else (401 bad key, 5xx, network error) the monitor is NOT
+   deleted and the reply is `502 {error: "subscription_cancel_failed", message: "We could not cancel your Pro subscription automatically. Cancel it at https://billing.stripe.com/p/login/3cIaER9M63hNeFcg8B4ko00 (log in with the e-mail you paid with), then delete the monitor again."}`.
+3. Pro monitor, but `STRIPE_SECRET_KEY` is not set (or `billing_ref` is a
+   checkout session id `cs_...` rather than a subscription): the monitor is
+   deleted and the reply is `{ok: true, subscription_cancelled: false, message: ...}`
+   telling the customer to cancel the subscription in the Stripe customer
+   portal at the URL above.
+
+The secret is never logged or echoed. The customer portal URL is exported as
+`STRIPE_PORTAL_URL` from `src/index.js`.
 
 ## Tables (`migrations/0001.sql`)
 
@@ -75,6 +99,7 @@ Not committed. Values live in `C:/Users/User/.secrets/feed-monitor.txt`.
 | --- | --- | --- |
 | `ADMIN_TOKEN` | secret (`wrangler secret put`) | `X-Admin-Token` required on `PATCH /v1/monitors/:id/plan`. Same value as `FEEDMONITOR_ADMIN_TOKEN` in `products/licence-service`'s `.env` |
 | `MAIL_TOKEN` | secret (`wrangler secret put`) | `X-Mail-Token` sent with every call to the homelab mailer (`MAIL_URL`). Same value as `MAIL_TOKEN` in `products/subscribe-service`'s `.env` |
+| `STRIPE_SECRET_KEY` | secret (`wrangler secret put`) | Only used by DELETE `/v1/monitors/:id` to cancel a Pro monitor's Stripe subscription (see "Delete and the Pro subscription"). A **restricted** key from the Stripe Dashboard (Developers > API keys > Create restricted key) with only "Subscriptions: Write" is enough; keep it in `C:/Users/User/.secrets/stripe.txt`. Without it a Pro delete still works but the reply tells the customer to cancel in the portal themselves |
 | `MAIL_URL` | var (`wrangler.toml`) | `https://homelab.tailbf8f27.ts.net/subscribe/api/mail` |
 | `STRIPE_LINK` | var (`wrangler.toml`), also `monitor/STRIPE_LINK.txt` | Payment Link for the Pro upgrade, `client_reference_id=<monitor id>` appended per request in `src/links.js` |
 | `ALLOWED_ORIGINS` | var | `arling.sk` (CORS allowlist for the signup box and manage page) |
@@ -97,8 +122,11 @@ node --test test/*.test.mjs
 ```
 
 Mocked D1 (`test/helpers/mock-d1.mjs`) and KV (`test/helpers/mock-kv.mjs`),
-mocked `fetch`. Covers validation, rate limits, every route, the fetch
-cap/timeout, and the alert decision logic. Run `node tests.mjs` in the
+mocked `fetch` (the same `env.fetchImpl` hook stubs the feed, the mailer and
+Stripe). Covers validation, rate limits, every route, the fetch cap/timeout,
+the alert decision logic, and every branch of the delete-cancels-subscription
+flow (2xx, 404 `resource_missing`, 401/500, network error, no secret, `cs_`
+fallback ref). Run `node tests.mjs` in the
 parent `products/feed-doctor` directory for the shared rule engine's own
 tests (`feed-doctor.js` is imported here unchanged).
 

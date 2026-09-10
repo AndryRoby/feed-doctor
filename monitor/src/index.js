@@ -12,7 +12,7 @@
  *   GET    /v1/monitors/confirm          -> confirm + first check (ctx.waitUntil) + 302 to the manage page
  *   GET    /v1/monitors/:id              -> status (?key=manage_key required)
  *   POST   /v1/monitors/:id/check        -> manual check, Pro only (?key=)
- *   DELETE /v1/monitors/:id              -> delete (?key=)
+ *   DELETE /v1/monitors/:id              -> delete (?key=); a Pro monitor first cancels its Stripe subscription (STRIPE_SECRET_KEY)
  *   GET    /v1/monitors/:id/delete       -> same as DELETE, so an e-mail link works
  *   PATCH/POST /v1/monitors/:id/plan     -> admin only (X-Admin-Token), billing hook
  *   GET    /health                       -> static ok
@@ -304,6 +304,57 @@ async function handleManualCheck(request, env, id) {
   return jsonResponse({ ok: true, status: result.status, score: result.score }, 200, headers);
 }
 
+// ---------------------------------------------------------------------------
+// Stripe subscription cancellation on delete (ops/audit/2026-09-10/pravo-a-platby.md
+// section 3: deleting a Pro monitor used to leave its paid subscription
+// running). billing_ref is the Stripe subscription id (sub_...) that
+// licence-service's webhook wrote via PATCH /v1/monitors/:id/plan
+// (products/licence-service/app.py call_feedmonitor_set_plan); the checkout
+// session id (cs_...) is its fallback when Stripe reported no subscription,
+// and that cannot be cancelled here.
+// ---------------------------------------------------------------------------
+
+export const STRIPE_PORTAL_URL = 'https://billing.stripe.com/p/login/3cIaER9M63hNeFcg8B4ko00';
+const STRIPE_API_BASE = 'https://api.stripe.com/v1';
+const PORTAL_HINT = `${STRIPE_PORTAL_URL} (log in with the e-mail you paid with)`;
+
+/** True when this monitor's billing_ref names a Stripe subscription this worker could cancel. */
+export function hasStripeSubscription(monitor) {
+  return Boolean(monitor) && typeof monitor.billing_ref === 'string' && monitor.billing_ref.startsWith('sub_');
+}
+
+/**
+ * DELETE https://api.stripe.com/v1/subscriptions/:id (cancel immediately, no
+ * body needed). Never throws. Returns {ok: true} on a 2xx, and also on a 404
+ * or an error code of resource_missing, which is what Stripe answers for a
+ * subscription that was already cancelled or never existed: in both cases
+ * there is nothing left to charge, so the delete may proceed. Anything else
+ * (401 bad key, 5xx, network error) is {ok: false, error} and the caller
+ * must keep the monitor so the customer is never left paying for nothing.
+ * The secret key is never logged or echoed.
+ */
+export async function cancelStripeSubscription(env, subscriptionId) {
+  const fetchImpl = env.fetchImpl || fetch;
+  try {
+    const res = await fetchImpl(`${STRIPE_API_BASE}/subscriptions/${encodeURIComponent(subscriptionId)}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${env.STRIPE_SECRET_KEY}` },
+    });
+    if (res.ok) return { ok: true, alreadyCancelled: false };
+    let code = '';
+    try {
+      const body = await res.json();
+      code = String((body && body.error && body.error.code) || '');
+    } catch (e) {
+      code = '';
+    }
+    if (res.status === 404 || code === 'resource_missing') return { ok: true, alreadyCancelled: true };
+    return { ok: false, error: `stripe_${res.status}${code ? `_${code}` : ''}` };
+  } catch (err) {
+    return { ok: false, error: String((err && err.message) || err) };
+  }
+}
+
 async function handleDelete(request, env, id) {
   const headers = corsFor(request, env);
   const key = new URL(request.url).searchParams.get('key') || '';
@@ -311,6 +362,36 @@ async function handleDelete(request, env, id) {
   if (!monitor || !key || monitor.manage_key !== key) {
     return jsonResponse({ error: 'not_found' }, 404, headers);
   }
+
+  if (monitor.plan === PLANS.PRO) {
+    if (hasStripeSubscription(monitor) && env.STRIPE_SECRET_KEY) {
+      const cancel = await cancelStripeSubscription(env, monitor.billing_ref);
+      if (!cancel.ok) {
+        console.warn('[feed-monitor] Stripe cancel failed for', id, monitor.billing_ref, cancel.error);
+        return jsonResponse(
+          {
+            error: 'subscription_cancel_failed',
+            message: `We could not cancel your Pro subscription automatically. Cancel it at ${PORTAL_HINT}, then delete the monitor again.`,
+          },
+          502,
+          headers,
+        );
+      }
+      await deleteMonitor(env.DB, id);
+      return jsonResponse({ ok: true, subscription_cancelled: true, message: 'Monitor deleted and your Pro subscription was cancelled. No further charges.' }, 200, headers);
+    }
+
+    // Pro, but this worker cannot reach the subscription: either no
+    // STRIPE_SECRET_KEY is configured, or billing_ref is not a sub_ id. The
+    // monitor still goes (the customer asked for that), and the reply says
+    // plainly that the subscription itself has to be cancelled in the portal.
+    await deleteMonitor(env.DB, id);
+    const message = hasStripeSubscription(monitor)
+      ? `Monitor deleted. Your Pro subscription was not cancelled automatically: cancel it at ${PORTAL_HINT} so you are not charged again.`
+      : `Monitor deleted. If you pay for Pro, the subscription was not cancelled automatically: cancel it at ${PORTAL_HINT} so you are not charged again.`;
+    return jsonResponse({ ok: true, subscription_cancelled: false, message }, 200, headers);
+  }
+
   await deleteMonitor(env.DB, id);
   return jsonResponse({ ok: true, message: 'Monitor deleted. You will not get any more e-mails about this feed.' }, 200, headers);
 }

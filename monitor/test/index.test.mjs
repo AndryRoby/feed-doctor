@@ -20,7 +20,12 @@ const GOOD_FEED = `<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmln
 <item><g:id>sku-1</g:id><title>Water Bottle</title><description>A steel water bottle that keeps drinks cold.</description><link>https://shop.example.com/p/1</link><g:image_link>https://shop.example.com/i/1.jpg</g:image_link><g:price>19.99 USD</g:price><g:availability>in stock</g:availability><g:condition>new</g:condition></item>
 </channel></rss>`;
 
-function makeEnv({ feedUrl = 'https://shop.sk/feed.xml', feedText = GOOD_FEED, mailOk = true } = {}) {
+// `stripe` stubs DELETE https://api.stripe.com/v1/subscriptions/:id for the
+// delete-cancels-subscription tests: {status, body} for a canned reply, or
+// {throws: true} for a network error. STRIPE_SECRET_KEY is deliberately NOT
+// set here; the tests that need it set env.STRIPE_SECRET_KEY themselves so
+// every other test runs exactly as production does without the secret.
+function makeEnv({ feedUrl = 'https://shop.sk/feed.xml', feedText = GOOD_FEED, mailOk = true, stripe = null } = {}) {
   const outbound = [];
   return {
     DB: createMockD1(),
@@ -35,10 +40,27 @@ function makeEnv({ feedUrl = 'https://shop.sk/feed.xml', feedText = GOOD_FEED, m
       outbound.push({ url: String(url), opts });
       if (String(url) === feedUrl) return new Response(feedText, { status: 200 });
       if (String(url) === 'https://homelab.tailbf8f27.ts.net/subscribe/api/mail') return new Response(JSON.stringify({ ok: mailOk }), { status: mailOk ? 200 : 500 });
+      if (stripe && String(url).startsWith('https://api.stripe.com/v1/subscriptions/')) {
+        if (stripe.throws) throw new Error('stripe unreachable');
+        return new Response(JSON.stringify(stripe.body || {}), { status: stripe.status || 200 });
+      }
       throw new Error(`unexpected fetch in test: ${url}`);
     },
     _outbound: outbound,
   };
+}
+
+const STRIPE_PORTAL = 'https://billing.stripe.com/p/login/3cIaER9M63hNeFcg8B4ko00';
+
+async function createConfirmAndSetPlan(env, { email = 'a@shop.sk', plan = 'pro', billingRef = 'sub_1' } = {}) {
+  const made = await createAndConfirm(env, { email });
+  const res = await worker.fetch(req(`/v1/monitors/${made.id}/plan`, { method: 'PATCH', headers: { 'X-Admin-Token': env.ADMIN_TOKEN }, body: { plan, billing_ref: billingRef } }), env, {});
+  assert.equal(res.status, 200);
+  return made;
+}
+
+function stripeCalls(env) {
+  return env._outbound.filter((c) => c.url.startsWith('https://api.stripe.com/'));
 }
 
 function req(path, { method = 'GET', body, headers = {} } = {}) {
@@ -273,6 +295,126 @@ test('DELETE with the wrong key returns 404 and leaves the monitor untouched', a
   const res = await worker.fetch(req(`/v1/monitors/${id}?key=wrong`, { method: 'DELETE' }), env, {});
   assert.equal(res.status, 404);
   assert.equal(env.DB._monitors.has(id), true);
+});
+
+// --- delete cancels the Pro subscription (audit 2026-09-10, pravo-a-platby section 3) ---
+
+test('DELETE of a free monitor never talks to Stripe and keeps the original reply (unchanged behaviour)', async () => {
+  const env = makeEnv({ stripe: { status: 200 } });
+  env.STRIPE_SECRET_KEY = 'sk_test_x';
+  const { id, manageKey } = await createAndConfirm(env);
+  const res = await worker.fetch(req(`/v1/monitors/${id}?key=${manageKey}`, { method: 'DELETE' }), env, {});
+  assert.equal(res.status, 200);
+  const body = await res.json();
+  assert.deepEqual(body, { ok: true, message: 'Monitor deleted. You will not get any more e-mails about this feed.' });
+  assert.equal(env.DB._monitors.has(id), false);
+  assert.equal(stripeCalls(env).length, 0);
+});
+
+test('DELETE of a Pro monitor cancels its sub_ subscription at Stripe, then deletes', async () => {
+  const env = makeEnv({ stripe: { status: 200, body: { id: 'sub_1', status: 'canceled' } } });
+  env.STRIPE_SECRET_KEY = 'sk_test_x';
+  const { id, manageKey } = await createConfirmAndSetPlan(env, { billingRef: 'sub_1' });
+
+  const res = await worker.fetch(req(`/v1/monitors/${id}?key=${manageKey}`, { method: 'DELETE' }), env, {});
+  assert.equal(res.status, 200);
+  const body = await res.json();
+  assert.equal(body.ok, true);
+  assert.equal(body.subscription_cancelled, true);
+  assert.equal(body.message, 'Monitor deleted and your Pro subscription was cancelled. No further charges.');
+  assert.equal(env.DB._monitors.has(id), false);
+
+  const calls = stripeCalls(env);
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].url, 'https://api.stripe.com/v1/subscriptions/sub_1');
+  assert.equal(calls[0].opts.method, 'DELETE');
+  assert.equal(calls[0].opts.headers.Authorization, 'Bearer sk_test_x');
+  assert.equal(calls[0].opts.body, undefined, 'no body is sent');
+  assert.ok(!JSON.stringify(body).includes('sk_test_x'), 'the secret never reaches the customer');
+});
+
+test('GET /v1/monitors/:id/delete (e-mail link) goes through the same Stripe cancellation', async () => {
+  const env = makeEnv({ stripe: { status: 200, body: { id: 'sub_2', status: 'canceled' } } });
+  env.STRIPE_SECRET_KEY = 'sk_test_x';
+  const { id, manageKey } = await createConfirmAndSetPlan(env, { billingRef: 'sub_2' });
+  const res = await worker.fetch(req(`/v1/monitors/${id}/delete?key=${manageKey}`), env, {});
+  assert.equal(res.status, 200);
+  assert.equal((await res.json()).subscription_cancelled, true);
+  assert.equal(env.DB._monitors.has(id), false);
+  assert.equal(stripeCalls(env)[0].url, 'https://api.stripe.com/v1/subscriptions/sub_2');
+});
+
+test('a Stripe 404 resource_missing (already cancelled) still deletes the monitor', async () => {
+  const env = makeEnv({ stripe: { status: 404, body: { error: { type: 'invalid_request_error', code: 'resource_missing', message: 'No such subscription' } } } });
+  env.STRIPE_SECRET_KEY = 'sk_test_x';
+  const { id, manageKey } = await createConfirmAndSetPlan(env, { billingRef: 'sub_gone' });
+  const res = await worker.fetch(req(`/v1/monitors/${id}?key=${manageKey}`, { method: 'DELETE' }), env, {});
+  assert.equal(res.status, 200);
+  const body = await res.json();
+  assert.equal(body.subscription_cancelled, true);
+  assert.equal(env.DB._monitors.has(id), false);
+});
+
+test('a resource_missing error code on a non-404 status also counts as already cancelled', async () => {
+  const env = makeEnv({ stripe: { status: 400, body: { error: { code: 'resource_missing' } } } });
+  env.STRIPE_SECRET_KEY = 'sk_test_x';
+  const { id, manageKey } = await createConfirmAndSetPlan(env, { billingRef: 'sub_gone2' });
+  const res = await worker.fetch(req(`/v1/monitors/${id}?key=${manageKey}`, { method: 'DELETE' }), env, {});
+  assert.equal(res.status, 200);
+  assert.equal(env.DB._monitors.has(id), false);
+});
+
+for (const status of [401, 500]) {
+  test(`a Stripe ${status} keeps the monitor and answers 502 subscription_cancel_failed with the portal link`, async () => {
+    const env = makeEnv({ stripe: { status, body: { error: { type: 'api_error', message: 'nope' } } } });
+    env.STRIPE_SECRET_KEY = 'sk_test_x';
+    const { id, manageKey } = await createConfirmAndSetPlan(env, { billingRef: 'sub_3' });
+    const res = await worker.fetch(req(`/v1/monitors/${id}?key=${manageKey}`, { method: 'DELETE' }), env, {});
+    assert.equal(res.status, 502);
+    const body = await res.json();
+    assert.equal(body.error, 'subscription_cancel_failed');
+    assert.equal(body.message, `We could not cancel your Pro subscription automatically. Cancel it at ${STRIPE_PORTAL} (log in with the e-mail you paid with), then delete the monitor again.`);
+    assert.equal(env.DB._monitors.has(id), true, 'monitor must survive so the customer is not left paying for nothing');
+    assert.equal(env.DB._monitors.get(id).plan, 'pro');
+  });
+}
+
+test('a network error reaching Stripe keeps the monitor and answers 502', async () => {
+  const env = makeEnv({ stripe: { throws: true } });
+  env.STRIPE_SECRET_KEY = 'sk_test_x';
+  const { id, manageKey } = await createConfirmAndSetPlan(env, { billingRef: 'sub_4' });
+  const res = await worker.fetch(req(`/v1/monitors/${id}?key=${manageKey}`, { method: 'DELETE' }), env, {});
+  assert.equal(res.status, 502);
+  assert.equal((await res.json()).error, 'subscription_cancel_failed');
+  assert.equal(env.DB._monitors.has(id), true);
+});
+
+test('without STRIPE_SECRET_KEY a Pro monitor is still deleted, but the reply sends the customer to the Stripe portal', async () => {
+  const env = makeEnv({ stripe: { status: 200 } });
+  assert.equal(env.STRIPE_SECRET_KEY, undefined);
+  const { id, manageKey } = await createConfirmAndSetPlan(env, { billingRef: 'sub_5' });
+  const res = await worker.fetch(req(`/v1/monitors/${id}?key=${manageKey}`, { method: 'DELETE' }), env, {});
+  assert.equal(res.status, 200);
+  const body = await res.json();
+  assert.equal(body.ok, true);
+  assert.equal(body.subscription_cancelled, false);
+  assert.equal(body.message, `Monitor deleted. Your Pro subscription was not cancelled automatically: cancel it at ${STRIPE_PORTAL} (log in with the e-mail you paid with) so you are not charged again.`);
+  assert.equal(env.DB._monitors.has(id), false);
+  assert.equal(stripeCalls(env).length, 0, 'no key, no call');
+});
+
+test('a Pro monitor whose billing_ref is not a sub_ id (checkout session fallback) is deleted without a Stripe call and told about the portal', async () => {
+  const env = makeEnv({ stripe: { status: 200 } });
+  env.STRIPE_SECRET_KEY = 'sk_test_x';
+  const { id, manageKey } = await createConfirmAndSetPlan(env, { billingRef: 'cs_test_abc' });
+  const res = await worker.fetch(req(`/v1/monitors/${id}?key=${manageKey}`, { method: 'DELETE' }), env, {});
+  assert.equal(res.status, 200);
+  const body = await res.json();
+  assert.equal(body.subscription_cancelled, false);
+  assert.match(body.message, /If you pay for Pro/);
+  assert.ok(body.message.includes(STRIPE_PORTAL));
+  assert.equal(env.DB._monitors.has(id), false);
+  assert.equal(stripeCalls(env).length, 0);
 });
 
 test('unknown routes return 404', async () => {
