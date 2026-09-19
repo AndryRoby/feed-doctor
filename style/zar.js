@@ -13,9 +13,12 @@
  *     (prečo presne, to je nižšie pri NECINNOST);
  *   - kreslí sa len to plátno, ktoré je práve v obraze (IntersectionObserver);
  *   - keď je karta prehliadača skrytá, nekreslí sa nič (visibilitychange);
- *   - najviac 30 snímok za sekundu, nie 60: rozdiel nie je vidieť a spotreba
- *     je polovičná;
- *   - na úzkych obrazovkách nižšie rozlíšenie, lebo telefón má hustý displej;
+ *   - 30 snímok za sekundu, kým sa človek nehýbe, a 60 len tých pár desatín
+ *     sekundy, čo naozaj hýbe myšou: rozdiel vidieť presne vtedy, keď svetlo
+ *     dobieha kurzor, a inokedy je to len spálená polovica výkonu;
+ *   - po 20 s bez pohybu, scrollu a klávesy sa kreslenie zastaví úplne;
+ *   - rozlíšenie najviac 1,5-násobok bodu, na úzkych obrazovkách 1,25:
+ *     telefón má hustý displej a plná hustota hreje batériu bez zisku;
  *   - keď WebGL nie je, plátno sa odstráni a ostane CSS prechod pod ním.
  * Plátno je `aria-hidden` a `pointer-events:none`, do obsluhy nezasahuje.
  *
@@ -38,9 +41,18 @@
      tú istú udalosť. Hodnoty sa iba zapisujú, dotahujú sa až v kresli().
      Pri dotykovom zariadení myš nie je, tam ostane 0.5 a scéna sa hýbe sama. */
   var MYS = { x: 0.5, y: 0.5, p: 0, z: 0, cx: 0.5, cy: 0.5, cp: 0, cz: 0 };
+  /* Kedy naposledy človek naozaj pohol myšou. Podľa toho sa prepína 60 a 30
+     snímok za sekundu: plynulosť má zmysel len vtedy, keď svetlo dobieha
+     kurzor. Kým myš stojí, scéna sa hýbe tak pomaly, že 30 aj 24 vyzerá
+     rovnako, a polovica snímok je ušetrená práca. */
+  var poslednyPohyb = -1e9;
   /* Hover na prvku s data-zar-zrychli zrychli tok. Jediny bod, kde UI
-     hovori scene, co sa deje, a je zamerne maly. */
-  document.querySelectorAll('[data-zar-zrychli]').forEach(function (el) {
+     hovori scene, co sa deje, a je zamerne maly.
+     forEach sa volá cez Array.prototype: NodeList.prototype.forEach nemá
+     Safari 9 ani IE, a tam by to zhodilo celý súbor ešte pred detekciou
+     WebGL, takže by sa neukázal ani CSS prechod. */
+  var zrychlovace = document.querySelectorAll('[data-zar-zrychli]');
+  Array.prototype.forEach.call(zrychlovace, function (el) {
     el.addEventListener('pointerenter', function () { MYS.cz = 1; });
     el.addEventListener('pointerleave', function () { MYS.cz = 0; });
     el.addEventListener('focus', function () { MYS.cz = 1; });
@@ -51,12 +63,27 @@
     window.addEventListener('pointermove', function (e) {
       MYS.cx = e.clientX / Math.max(1, window.innerWidth);
       MYS.cy = 1 - e.clientY / Math.max(1, window.innerHeight);
+      poslednyPohyb = performance.now();
     }, { passive: true });
   }
   window.addEventListener('scroll', function () {
     var v = document.documentElement.scrollHeight - window.innerHeight;
     MYS.cp = v > 0 ? Math.min(1, window.scrollY / v) : 0;
   }, { passive: true });
+
+  /* Dotahovanie k cielu: 8 percent rozdielu za snimok. Pri 30 snimkoch za
+     sekundu je to asi tretina sekundy na dobehnutie, co je akurat na to, aby
+     to posobilo zivo a nie trhane.
+     Do 11. 9. 2026 to bolo vnutri kresli(), teda raz za KAZDE platno. Na
+     prehliadke /pozadia/ s desiatimi platnami sa hodnota dotiahla desatkrat
+     za snimok, cize svetlo tam dobiehalo myS desatkrat rychlejsie nez na
+     hube. Teraz sa to pocita raz za snimok, v slucke. */
+  function dotiahni() {
+    MYS.x += (MYS.cx - MYS.x) * 0.08;
+    MYS.y += (MYS.cy - MYS.y) * 0.08;
+    MYS.p += (MYS.cp - MYS.p) * 0.08;
+    MYS.z += (MYS.cz - MYS.z) * 0.10;
+  }
 
 
   var tichy = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -93,6 +120,31 @@
     '  return h;',
     '}',
     'float rozptyl(vec2 s){ return fract(sin(dot(s, vec2(12.9898, 78.233))) * 43758.5453) - 0.5; }',
+    // Lacný šum bez sínusu. sum() vyššie volá sin() na každý bod mriežky,
+    // čo je na starších integrovaných kartách najdrahšia inštrukcia v celom
+    // shaderi. Táto verzia robí to isté tromi násobeniami a dvoma fract:
+    // odmerané 11. 9. 2026 na scéne "papier" je s ňou snímok 2,6-krát
+    // rýchlejší než s sum(). Staré scény ju zámerne nepoužívajú, aby sa
+    // nezmenilo, ako vyzerajú; je tu pre novú sadu.
+    'float sumP(vec2 v){',
+    '  vec3 q = fract(vec3(v.xyx) * 0.1031);',
+    '  q += dot(q, q.yzx + 33.33);',
+    '  return fract((q.x + q.y) * q.z);',
+    '}',
+    'float hladkyP(vec2 v){',
+    '  vec2 i = floor(v), f = fract(v);',
+    '  vec2 u = f * f * (3.0 - 2.0 * f);',
+    '  return mix(mix(sumP(i), sumP(i + vec2(1,0)), u.x),',
+    '             mix(sumP(i + vec2(0,1)), sumP(i + vec2(1,1)), u.x), u.y);',
+    '}',
+    // Tri oktávy, nie päť. Štvrtá a piata oktáva sú na plátne, ktoré je
+    // pod textom a rozmazané maskou, pod hranicou viditeľnosti, a stoja
+    // 40 percent času snímku. Výsledok sa násobí, aby držal rozsah 0 až 1.
+    'float fbmP(vec2 v){',
+    '  float h = 0.0, a = 0.5;',
+    '  for (int i = 0; i < 3; i++) { h += a * hladkyP(v); v = v * 2.07 + 11.7; a *= 0.5; }',
+    '  return h * 1.143;',
+    '}',
     // Paleta. Andrej ju zadal 6. 9. 2026 v hodnotách pre CSS, tu sú tie isté
     // prevedene do rozsahu 0 az 1: #FF6A00, #FF3B1F, #FF9F3D.
     // UHLIK je tlmene jadro, z ktoreho sa mieša smerom k svetlu.
@@ -175,11 +227,99 @@
      Sú písané tak, aby boli výrazne svetlejšie než pôvodná sada, a pritom aby text
      nad nimi držal kontrast. Overuje sa to meraním, nie okom. */
 
-  /* tok: particle flow. Pole svetelných bodov, ktoré tečie po smere zo šumu.
+  /* papier: tmavý list papiera a jedno teplé svetlo, ktoré ide cezeň.
+   *
+   * Andrej 11. 9. 2026: „krajšie a efektnejšie a efektívnejšie WebGL".
+   * Predchodca na úvode hubu (particle flow, nižšie ako `castice`) sypal
+   * po celej ploche oranžové bodky vrátane miesta pod nadpisom. Namerané
+   * 11. 9. 2026: v najhoršom bode pod nadpisom kontrast 4,76 a pod riadkom
+   * „Vyberte si svoj problém" 2,20. Vyzeralo to ako konfety, nie ako značka.
+   *
+   * Táto scéna je postavená opačne: NIČ sa nehýbe rýchlo, nič nebliká a celá
+   * kresba je jedno gesto. Dve vrstvy pomalého šumu (druhá je prehnutá prvou,
+   * z čoho vznikne vlákno papiera), jeden zdroj svetla, ktorý dobieha myš,
+   * a jemné zrno, ktoré stojí v obraze, lebo papier sa nehýbe.
+   *
+   * Svetlo má pokojové miesto vysoko vpravo, nad nadpisom, a myš ním smie
+   * hýbať len v páse, ktorý sa nadpisu nedotkne. Preto drží kontrast aj
+   * v najhoršom bode, nielen v priemere.
+   *
+   * Farby: základ ostáva tmavý (#0b0a09 pod plátnom), oranžová #f2643c len
+   * ako svetlo, krémová #f6f4ef len v stopách v jadre. Žiadna dúha.
+   */
+  V.papier = [
+    'const vec3 KREM = vec3(0.965, 0.957, 0.937);',  // #f6f4ef
+    // Kde svetlo vôbec smie byť. Hore plno, dole potichu (dole CSS maska
+    // plátno aj tak vytráca), vľavo menej, lebo odtiaľ sa začína čítať.
+    'float papierTvar(vec2 uv){',
+    // Dole potichu: tam CSS maska plátno aj tak vytráca.
+    '  float zdola = smoothstep(-0.06, 0.52, uv.y);',
+    // Hore tiež potichu, inak svetlo presvitá cez priehľadnú hlavičku
+    // a odkazy v nej stoja na svetlom podklade.
+    '  float zhora = smoothstep(1.02, 0.78, uv.y);',
+    // Vľavo menej, lebo odtiaľ sa začína čítať.
+    '  float vodorovne = mix(0.30, 1.0, smoothstep(0.04, 0.76, uv.x));',
+    // Pravý horný roh patrí hlavičke: navigácia a výber jazyka. Rozbalená
+    // ponuka jazykov má polopriehľadné pozadie (var(--card) je rgba .55),
+    // takže svetlo spod nej sa číta ako podklad textu. Odmerané 11. 9. 2026
+    // cez ops/design/kontrast.mjs: bez tejto clony mal riadok „English"
+    // kontrast 3,19, čo je pod normou 4,5; s ňou je nad cieľom 7.
+    '  float clona = 1.0 - 0.62 * smoothstep(0.58, 0.84, uv.y) * smoothstep(0.66, 0.88, uv.x);',
+    '  return mix(0.20, 1.0, zdola) * zhora * vodorovne * clona;',
+    '}',
+    'void main(){',
+    '  vec2 uv = gl_FragCoord.xy / rozmer.xy;',
+    '  float pomer = rozmer.x / rozmer.y;',
+    '  vec2 p = vec2((uv.x - 0.5) * pomer, uv.y - 0.5);',
+    // Pomaly. Jeden obeh šumu trvá vyše minúty, takže pri letmom pohľade
+    // scéna stojí a pri dlhšom sa nenápadne mení. To je celý zámer.
+    '  float t = cas * 0.013;',
+    // Šum roztiahnutý do šírky: papier má smer vlákien, nie náhodné škvrny.
+    '  float n1 = fbmP(p * vec2(0.85, 1.90) + vec2(t, -t * 0.50));',
+    '  float zavoj = fbmP(p * vec2(1.35, 3.10) + vec2(n1 * 1.25 - t * 0.30, n1 * 0.90 + 3.7));',
+    // Jeden zdroj svetla. mys je už vyhladená v dotiahni(), takže svetlo
+    // kurzor dobieha asi tretinu sekundy a nikdy neskáče.
+    '  vec2 stred = vec2(0.66 + (mys.x - 0.5) * 0.30, 0.78 + (mys.y - 0.5) * 0.16);',
+    '  vec2 zdroj = vec2((stred.x - 0.5) * pomer, stred.y - 0.5);',
+    // Široké a nízke, aby to bolo svetlo rezajúce cez papier, nie gulička.
+    // Na úzkom plátne (telefón) je zvislá zložka stiahnutá viac: text je
+    // tam od svetla rovnako ďaleko v pomere k výške, ale zaberá skoro celú
+    // šírku, takže sa mu svetlo nemá ako vyhnúť do strany. Bez toho vyšiel
+    // 11. 9. 2026 na 390 px kontrast nadpisu v najhoršom bode 6,77.
+    '  float uzke = max(0.0, 1.20 - pomer) * 0.90;',
+    '  vec2 r = (p - zdroj) * vec2(0.58, 1.85 + uzke);',
+    '  float d = length(r) + (zavoj - 0.5) * 0.20;',
+    '  float halo = exp(-max(d, 0.0) * 2.05);',
+    '  float jadro = exp(-d * d * 20.0);',
+    '  float svit = halo * 0.70 + jadro * 0.48;',
+    // Pomalý dych, aby scéna nikdy nestála ani vtedy, keď myš nie je.
+    '  svit *= 0.90 + 0.10 * sin(cas * 0.085);',
+    // Vlákna papiera svetlo lámu: kde je papier hustejší, prejde menej.
+    '  svit *= 0.45 + 0.85 * zavoj;',
+    '  float tvar = papierTvar(uv);',
+    '  svit *= tvar;',
+    // Zrno papiera. Stojí v obraze, nie v scéne, lebo papier sa nehýbe.
+    // Násobí sa, takže v tme nie je vidieť a nevznikne z neho šumiaca plocha.
+    '  svit *= 1.0 + (sumP(floor(gl_FragCoord.xy * 0.8) + 11.3) - 0.5) * 0.20;',
+    '  svit = clamp(svit, 0.0, 1.0);',
+    // Krivka krycej sily. Prvý pokus 11. 9. 2026 kryl lineárne a aj najslabší
+    // chvost svetla mal dosť sily na to, aby z neho bola hnedá škvrna cez pol
+    // úvodu. Mocnina chvost stlmí a jadro nechá.
+    '  float alfa = pow(svit, 1.70);',
+    '  float stopa = clamp(jadro * (0.30 + 0.70 * zavoj) * tvar, 0.0, 1.0);',
+    '  vec3 f = mix(UHLIK, OHEN, clamp(svit * 1.70, 0.0, 1.0));',
+    '  f = mix(f, JANTAR, clamp(svit * 1.15 - 0.38, 0.0, 1.0));',
+    '  f = mix(f, KREM, clamp(stopa * 0.85 - 0.36, 0.0, 1.0));',
+    '  gl_FragColor = zloz(f, alfa, 0.64);',
+    '}',
+  ].join('\n');
+
+  /* castice: particle flow. Pole svetelných bodov, ktoré tečie po smere zo šumu.
      Body sa nekreslia z bufferu, ale počítajú sa priamo v pixeli: pre každý pixel
      sa pozrieme na deväť okolitých buniek mriežky a v každej je jedna častica.
-     Je to lacnejšie než skutočný časticový systém a nepotrebuje to knižnicu. */
-  V.tok = [
+     Je to lacnejšie než skutočný časticový systém a nepotrebuje to knižnicu.
+     Do 11. 9. 2026 sa volala `tok` a bola na úvode hubu; pozri V.papier. */
+  V.castice = [
     'void main(){',
     '  vec2 uv = gl_FragCoord.xy / rozmer.xy;',
     '  vec2 p = uv; p.x *= rozmer.x / rozmer.y;',
@@ -217,6 +357,13 @@
     '  gl_FragColor = zloz(f, clamp(jas + ostry * 0.8, 0.0, 1.4) * utlm(uv), 0.38);',
     '}',
   ].join('\n');
+
+  /* `tok` ukazuje na `papier`.
+     Úvod hubu nesie data-zar="tok" priamo v index.html a ten súbor sa v tomto
+     kroku nesmel otvoriť (visia na ňom hashe v CSP). Preto sa meno presmeruje
+     tu. Keď sa index.html a /pozadia/ prepíšu na data-zar="papier", tento
+     riadok môže zmiznúť a `tok` sa môže vrátiť na `castice` alebo odísť. */
+  V.tok = V.papier;
 
   /* mriezka: wireframe mesh. Mriežka v perspektíve, ktorá sa vlní ako krajina
      a uteká k horizontu. Čiary sa smerom do diaľky zahusťujú, preto sa hrúbka
@@ -617,21 +764,18 @@
         // hned po nacitani to nebolo vidiet, na zivej stranke ano.
         gl.clearColor(0, 0, 0, 0);
         gl.clear(gl.COLOR_BUFFER_BIT);
+        // useProgram tu je, lebo rozmer() a niektoré scény si program menia;
+        // bindBuffer a vertexAttribPointer tu do 11. 9. 2026 boli tiež, a boli
+        // zbytočné: každé plátno má vlastný kontext, do ktorého nikto iný
+        // nesiaha, takže väzba z postavScenu() platí až do konca života
+        // stránky. Sú to tri volania cez most do ovládača na každý snímok
+        // a na prehliadke s desiatimi plátnami tridsať za sekundu.
         gl.useProgram(program);
-        gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-        gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
         // Čas sa opakuje po PERIODA sekundách. Bez toho po hodine rástol do
         // tisícov a šum aj sin() v shaderi strácali presnosť: obraz sekal.
         gl.uniform1f(uCas, ((teraz - s.zaciatok) / 1000) % PERIODA);
-        // Dotahovanie k cielu: 8 percent rozdielu za snimok. Pri 30 snimkoch
-        // za sekundu je to asi tretina sekundy na dobehnutie, co je akurat
-        // na to, aby to posobilo zivo a nie trhane.
-        MYS.x += (MYS.cx - MYS.x) * 0.08;
-        MYS.y += (MYS.cy - MYS.y) * 0.08;
-        MYS.p += (MYS.cp - MYS.p) * 0.08;
         gl.uniform2f(uMys, MYS.x, MYS.y);
         gl.uniform1f(uPosun, MYS.p);
-        MYS.z += (MYS.cz - MYS.z) * 0.10;
         gl.uniform1f(uZrych, MYS.z);
         gl.drawArrays(gl.TRIANGLES, 0, 3);
       },
@@ -692,11 +836,22 @@
   // ── jedna spoločná slučka pre všetky scény ────────────────────────────────
   var bezi = false;
   var posledna = 0;
-  var SNIMOK = 1000 / 30;
+  /* Dva stropy snímok za sekundu.
+     30 je základ: scéna sa hýbe tak pomaly, že medzi 30 a 60 nie je rozdiel.
+     60 platí len tých POHYB ms po poslednom pohybe myšou, lebo práve vtedy
+     svetlo dobieha kurzor a 30 by bolo vidieť ako sek.
+     TOLERANCIA existuje preto, že snímky obrazovky chodia po 16,67 ms:
+     bez nej vyšlo 33,34 ms tesne pod hranicou, každý druhý snímok sa zahodil
+     a namiesto 30 sa kreslilo 25 (odmerané 11. 9. 2026 na hube). */
+  var SNIMOK_POKOJ = 1000 / 30;
+  var SNIMOK_POHYB = 1000 / 60;
+  var TOLERANCIA = 4;
+  var POHYB = 320;
   // Po NECINNOST ms bez pohybu myši, scrollu či klávesy sa kreslenie zastaví
   // a ostane posledný snímok. Pozadie je ozdoba: nemá hriať GPU pol hodiny,
   // kým človek číta alebo odišiel od počítača. Prvý pohyb ho spustí znova.
-  var NECINNOST = 90000;
+  // Bolo 90 s, čo je pri čítaní úvodnej stránky skoro celá návšteva.
+  var NECINNOST = 20000;
   var poslednaCinnost = performance.now();
 
   /* Slučka sa po načítaní stránky NESPUSTÍ. Rozbehne sa až prvou skutočnou
@@ -716,14 +871,30 @@
   function jeCoKreslit() {
     if (tichy || document.hidden) return false;
     if (!bolVstup) return false;
+    // Bez requestAnimationFrame sa slučka nespustí vôbec. Náhrada cez
+    // setInterval by kreslila aj v skrytej karte, čo je presne to, čomu sa
+    // celý tento súbor vyhýba. Ostane statický snímok z postavScenu().
+    if (!window.requestAnimationFrame) return false;
     if (performance.now() - poslednaCinnost > NECINNOST) return false;
     for (var i = 0; i < sceny.length; i++) if (sceny[i].vidno) return true;
     return false;
   }
+  // Žiadne nové objekty vnútri slučky: `i` a `strop` sú čísla na zásobníku,
+  // kresli() nevytvára nič a uniformy sa posielajú po hodnotách. Po slučke
+  // teda nezostáva odpad, ktorý by zberač pamäte musel upratať uprostred
+  // scrollovania. Bola to podmienka zadania a drží.
   function slucka(teraz) {
     if (!bezi) return;
-    if (teraz - posledna >= SNIMOK) {
-      posledna = teraz;
+    var strop = (teraz - poslednyPohyb < POHYB) ? SNIMOK_POHYB : SNIMOK_POKOJ;
+    if (teraz - posledna >= strop - TOLERANCIA) {
+      // Posúva sa o CELÝ krok, nie na `teraz`. Keby sa posunul na `teraz`,
+      // zvyšok nad krok sa zahodí a na obrazovke so 75 Hz vyjde z cieľových
+      // 30 reálnych 25 (odmerané 11. 9. 2026 v headless Chrome).
+      posledna += strop;
+      // Po pauze (skrytá karta, zastavená slučka) sa nedobieha: inak by
+      // sa po návrate vykreslilo naraz toľko snímok, koľko sa zameškalo.
+      if (teraz - posledna > strop * 2) posledna = teraz;
+      dotiahni();
       for (var i = 0; i < sceny.length; i++) if (sceny[i].vidno) sceny[i].kresli(teraz);
     }
     if (jeCoKreslit()) window.requestAnimationFrame(slucka);
@@ -753,8 +924,12 @@
     // Čokoľvek, čo robí človek, počíta ako činnosť: prvý raz slučku spustí,
     // potom ju drží bežať a po NECINNOST sa opäť zastaví.
     ['pointermove', 'pointerdown', 'scroll', 'keydown', 'touchstart', 'wheel'].forEach(function (u) {
-      window.addEventListener(u, function () {
+      window.addEventListener(u, function (e) {
         poslednaCinnost = performance.now();
+        // Klávesa scénou nehýbe, všetko ostatné áno: pri tom sa na chvíľu
+        // prepne na 60 snímok. Dotykové zariadenie sem patrí tiež, lebo
+        // pointermove na ňom beží, len sa z neho nečíta poloha myši.
+        if (e && e.type !== 'keydown') poslednyPohyb = poslednaCinnost;
         if (!bolVstup) {
           bolVstup = true;
           // Čas scény sa počíta odznova, aby animácia plynulo pokračovala

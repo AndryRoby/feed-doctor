@@ -77,7 +77,8 @@
     var d = document.createElement('details');
     d.className = 'langsel';
     var s = document.createElement('summary');
-    s.setAttribute('aria-label', 'Jazyk stránky');
+    var POPIS_JAZYKA = { sk:'Jazyk stránky', cs:'Jazyk stránky', en:'Page language', de:'Seitensprache', hu:'Az oldal nyelve', pl:'Język strony' };
+    s.setAttribute('aria-label', (SKRATKY[tu] || tu.toUpperCase()) + ': ' + (POPIS_JAZYKA[tu] || POPIS_JAZYKA.en));
     s.textContent = SKRATKY[tu] || tu.toUpperCase();
     d.appendChild(s);
     var ul = document.createElement('ul');

@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-<script src="/style/vzhlad.js?v=93c2659f"></script>
+<script src="/style/vzhlad.js?v=16f0484e"></script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="dark">
@@ -15,7 +15,7 @@
 <link rel="alternate icon" href="favicon.ico">
 <link rel="preload" href="fonts/arling-sans.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/arling-serif.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="style/paper.css?v=89016e6c">
+<link rel="stylesheet" href="style/paper.css?v=2ebf5aa4">
 
 <style>
   /* Only what is specific to this page. Everything else is style/paper.css. */
@@ -35,17 +35,21 @@
 <body class="noc">
 <div class="wash" aria-hidden="true"><i></i><i></i></div>
 
-<header>
+<a class="skip site-skip" href="#arling-obsah" data-site-label="skip">Skip to content</a>
+<header class="site-header">
   <div class="wrap bar">
-    <a class="brand" href="https://arling.sk/">
+    <a class="brand" href="https://arling.sk/en/" aria-label="ARLing home" data-site-home>
       <svg viewBox="0 0 488 215" width="38" height="15" aria-hidden="true" focusable="false"><path fill="#f4f4f7" fill-rule="evenodd" d="M0.00,213.00L74.00,214.00L181.00,85.00L285.00,214.00L360.00,214.00L206.00,21.00L185.00,4.00L164.00,10.00Z M221.00,0.00L263.00,50.00L395.00,50.00L409.00,55.00L419.00,76.00L401.00,96.00L313.00,98.00L411.00,214.00L487.00,214.00L422.00,139.00L457.00,123.00L482.00,88.00L482.00,48.00L463.00,19.00L417.00,0.00Z"/><path fill="#f2643c" d="M269.00,66.00L269.00,67.00L268.00,68.00L268.00,70.00L267.00,71.00L267.00,76.00L268.00,77.00L268.00,79.00L270.00,81.00L270.00,82.00L271.00,82.00L273.00,84.00L274.00,84.00L277.00,86.00L279.00,86.00L280.00,87.00L287.00,87.00L288.00,86.00L290.00,86.00L291.00,85.00L294.00,84.00L298.00,80.00L298.00,79.00L299.00,78.00L299.00,75.00L300.00,74.00L300.00,72.00L299.00,71.00L299.00,69.00L298.00,68.00L297.00,65.00L295.00,63.00L294.00,63.00L289.00,60.00L278.00,60.00L277.00,61.00L276.00,61.00L275.00,62.00L272.00,63.00Z"/></svg>
       <b>ARLing</b><span>Product Feed Doctor</span>
     </a>
-    <nav aria-label="Site"><a href="https://arling.sk/en/#tools">Tools</a><a href="https://arling.sk/games/">Games</a><a href="https://arling.sk/notes/">Notes</a><a href="https://arling.sk/how-we-work/">How we work</a><a href="mailto:andrej@arling.sk">Contact</a></nav>
+    <details class="site-menu" open>
+      <summary class="site-menu-toggle"><svg viewBox="0 0 18 12" fill="none" aria-hidden="true"><path d="M1 1h16M1 6h16M1 11h16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span data-site-label="menu">Menu</span></summary>
+      <div class="site-menu-panel"><nav id="hlavne-menu" class="site-main-nav" aria-label="Main navigation" data-site-aria="nav"><a href="https://arling.sk/shop/" data-site-nav="0">Shop</a><a href="https://arling.sk/en/#tools" data-site-nav="1">Tools</a><a href="https://arling.sk/games/" data-site-nav="2">Free puzzles</a><a href="https://arling.sk/notes/en/" data-site-nav="3">Notes</a><a href="https://arling.sk/ucet/en/" data-site-nav="4">Account</a></nav></div>
+    </details>
   </div>
 </header>
 
-<main>
+<main id="arling-obsah" tabindex="-1">
   <div class="wrap lost" id="hero">
     <div>
       <p class="kicker r">404</p>
@@ -75,7 +79,7 @@
   <div class="wrap foot">
     <div><b>ARLing s. r. o.</b><br>Ivanská cesta 32E<br>821 04 Bratislava, Slovakia</div>
     <div>Company ID 56583486<br>VAT ID SK2122352100<br><a href="mailto:andrej@arling.sk">andrej@arling.sk</a></div>
-    <div><a href="https://arling.sk/privacy/">privacy</a> · <a href="https://arling.sk/podmienky/">terms</a> · <a href="https://arling.sk/gdpr/">GDPR</a> · <a href="https://arling.sk/impressum/">Impressum</a> · <a href="https://arling.sk/llms.txt">llms.txt</a> · <a href="https://arling.sk/sitemap-index.xml">sitemap</a><br>Tools are provided as is, without warranty. Anonymous visit counts via self-hosted Umami.</div>
+    <div><a href="https://arling.sk/shop/">shop</a> · <a href="https://arling.sk/privacy/en/">privacy</a> · <a href="https://arling.sk/podmienky/en/">terms</a> · <a href="https://arling.sk/gdpr/en/">GDPR</a> · <a href="https://arling.sk/impressum/en/">Impressum</a> · <a href="https://arling.sk/llms.txt">llms.txt</a> · <a href="https://arling.sk/sitemap-index.xml">sitemap</a><br>Tools are provided as is, without warranty. Anonymous visit counts via self-hosted Umami.</div>
   </div>
 </footer>
 
@@ -114,6 +118,6 @@
   }
 })();
 </script>
-<script src="/style/prepinac.js?v=2988c181" defer></script>
+<script src="/style/prepinac.js?v=668e98c9" defer></script>
 </body>
 </html>
