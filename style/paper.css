@@ -706,7 +706,7 @@ body.noc .hero-noc{padding-top:clamp(48px,9vh,120px);padding-bottom:clamp(48px,9
 /* Plátno siaha aj POD hlavičku, inak je hore pás holého pozadia a hlavička
    vyzerá ako neprehľadná lišta namiesto priehľadnej. */
 .zar-plocha{position:absolute;top:calc(-1 * var(--hlavicka));bottom:0;left:50%;transform:translateX(-50%);
-  width:100vw;max-width:none;height:100%;display:block;
+  width:var(--sirka-okna,100%);max-width:none;height:100%;display:block;
   pointer-events:none;z-index:0;opacity:0;transition:opacity 1.1s var(--ease);
   -webkit-mask-image:linear-gradient(180deg,#000 0%,#000 58%,transparent 100%);
   mask-image:linear-gradient(180deg,#000 0%,#000 58%,transparent 100%)}
@@ -848,3 +848,58 @@ body.noc .wash i,body.noc .wash::after{display:none}
 /* Prvá sekcia pod priehľadnou hlavičkou nesmie mať hornú linku. Vyzeralo to
    ako spodná hrana hlavičky, hoci hlavička je hore zámerne bez nej. */
 body.noc .hero-noc,body.noc main>section:first-of-type,body.noc main>.wrap:first-child{border-top:0}
+
+/* A-090: spoločná navigácia. Natívne details, nezávislé od hub.css a starých
+   inline menu skriptov. Produktové kotvy majú vlastný riadok v tom istom menu. */
+body.noc header.site-header { background:#0a0908; border-bottom:1px solid var(--line); backdrop-filter:none; }
+header.site-header .bar { position:relative; display:flex; align-items:center; flex-wrap:nowrap; gap:24px; height:auto; min-height:72px; padding:12px 0; }
+header.site-header .brand { flex:none; min-width:0; min-height:44px; gap:12px; }
+header.site-header .brand svg { width:40px; height:auto; }
+header.site-header .brand span { max-width:19ch; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#aaa39d; }
+header.site-header .site-menu { flex:1; min-width:0; padding:0; margin:0; border:0; border-radius:0; background:none; box-shadow:none; }
+header.site-header .site-menu-toggle { display:none; }
+header.site-header .site-menu-panel { padding:0; }
+header.site-header .bar .site-menu nav { position:static; display:flex; flex-flow:row wrap; align-items:center; justify-content:flex-end; gap:4px 24px; margin:0; padding:0; width:auto; box-shadow:none; border:0; background:none; }
+header.site-header .bar .site-menu nav a { display:inline-flex; align-items:center; min-height:44px; padding:8px 0; border:0; font:500 15px/1.35 var(--ui); color:#c5beb8; white-space:normal; overflow-wrap:anywhere; text-decoration:none; }
+header.site-header .bar .site-menu nav a:hover { color:var(--accent-light); }
+header.site-header .bar .site-menu nav a::after { display:none; }
+header.site-header .site-page-links { border-top:1px solid var(--line); margin-top:4px; padding-top:4px; }
+header.site-header .site-page-links > p { display:none; }
+header.site-header .bar .site-page-links nav { gap:0 18px; }
+header.site-header .bar .site-page-links nav a { font-size:13px; color:#aaa39d; }
+header.site-header .site-locales { margin:6px 0 0; display:flex; justify-content:flex-end; }
+@media (min-width:961px) {
+  header.site-header .site-menu-panel:has(>.site-locales) { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:0 20px; align-items:center; }
+  header.site-header .site-menu-panel:has(>.site-locales) > .site-main-nav { grid-column:1; grid-row:1; }
+  header.site-header .site-menu-panel > .site-page-links { grid-column:1/-1; grid-row:2; }
+  header.site-header .site-menu-panel > .site-locales { grid-column:2; grid-row:1; margin:0; }
+}
+header.site-header .site-locales :is(a,button,select) { min-height:44px; }
+header.site-header .bar > .langsel { flex:none; order:3; margin:0; }
+header.site-header .bar > .langsel > summary { min-height:44px; color:#c5beb8; }
+header.site-header :focus-visible { outline:2px solid var(--accent-light); outline-offset:4px; }
+.site-skip:focus { position:fixed; left:12px; top:12px; min-height:44px; padding:10px 16px; z-index:100; background:#0a0908; color:#fafafa; }
+@media (max-width:1100px) {
+  header.site-header .bar { gap:16px; }
+  header.site-header .brand span { display:none; }
+}
+@media (max-width:960px) {
+  header.site-header .bar { min-height:64px; height:64px; padding:0; gap:10px; }
+  header.site-header .brand { margin-right:auto; gap:9px; }
+  header.site-header .brand b { font-size:18px; }
+  header.site-header .brand svg { width:36px; }
+  header.site-header .site-menu { flex:none; order:4; }
+  header.site-header .site-menu-toggle { display:flex; align-items:center; justify-content:center; gap:8px; min-height:44px; padding:0 12px; margin:0; border:1px solid var(--line); border-radius:8px; list-style:none; color:#fafafa; font:500 14px/1.3 var(--ui); cursor:pointer; }
+  header.site-header .site-menu-toggle::-webkit-details-marker { display:none; }
+  header.site-header .site-menu-toggle::before,header.site-header .site-menu-toggle::after { content:none; }
+  header.site-header .site-menu-toggle svg { width:18px; height:12px; }
+  header.site-header .site-menu-panel { position:absolute; left:0; right:0; top:64px; z-index:60; max-height:calc(100dvh - 80px); overflow-y:auto; overscroll-behavior:contain; padding:12px 16px 16px; border:1px solid var(--line); background:#0a0908; box-shadow:0 18px 32px rgba(0,0,0,.4); }
+  header.site-header .bar .site-menu nav { display:flex; flex-direction:column; align-items:stretch; gap:0; }
+  header.site-header .bar .site-menu nav a { min-height:48px; padding:12px 0; font-size:16px; border-bottom:1px solid var(--line); }
+  header.site-header .site-page-links { margin-top:16px; border:0; padding:0; }
+  header.site-header .site-page-links > p { display:block; margin:0 0 4px; font:500 12px/1.4 var(--ui); color:#aaa39d; }
+  header.site-header .bar .site-page-links nav a { font-size:15px; }
+  header.site-header .site-locales { justify-content:flex-start; margin-top:16px; }
+  header.site-header .bar > .langsel { order:3; }
+  header.site-header .bar > .langsel > summary { padding:0 10px; }
+}

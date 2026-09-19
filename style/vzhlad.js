@@ -11,6 +11,69 @@
  */
 document.documentElement.classList.add('js');
 
+/* A-090: natívne menu podstránok. Bez JS je otvorené a stále ovládateľné.
+   S JS je na mobile zavreté, na desktope otvorené. Používa vlastné triedy,
+   preto sa neprebije s historickým menu-btn kódom produktových stránok. */
+(function () {
+  'use strict';
+  function pripojMenu() {
+    var hlavicka = document.querySelector('header.site-header');
+    if (!hlavicka) return;
+    var menu = hlavicka.querySelector('details.site-menu');
+    var prepinac = menu && menu.querySelector('summary');
+    if (!menu || !prepinac) return;
+    var uzke = window.matchMedia('(max-width: 960px)');
+    function sirka() { menu.open = !uzke.matches; }
+    sirka();
+    if (uzke.addEventListener) uzke.addEventListener('change', sirka);
+    else if (uzke.addListener) uzke.addListener(sirka);
+    document.addEventListener('click', function (e) {
+      if (uzke.matches && menu.open && !hlavicka.contains(e.target)) menu.open = false;
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && uzke.matches && menu.open) { menu.open = false; prepinac.focus(); }
+    });
+    menu.addEventListener('click', function (e) {
+      var odkaz = e.target.closest && e.target.closest('a[href]');
+      if (odkaz && uzke.matches) menu.open = false;
+    });
+    // Niektoré aplikácie menia jazyk za behu. Hlavička musí nasledovať ich
+    // html lang, nie zasahovať do ich formulárov alebo prekladových slovníkov.
+    var texty = {
+      sk: { menu:'Menu', domov:'ARLing: úvod', nav:'Hlavná navigácia', stranka:'Na tejto stránke', skip:'Prejsť na obsah', nazvy:['Obchod','Nástroje','Hry','Články','Účet'] },
+      en: { menu:'Menu', domov:'ARLing home', nav:'Main navigation', stranka:'On this page', skip:'Skip to content', nazvy:['Shop','Tools','Free puzzles','Notes','Account'] },
+      de: { menu:'Menü', domov:'ARLing Startseite', nav:'Hauptnavigation', stranka:'Auf dieser Seite', skip:'Zum Inhalt springen', nazvy:['Shop','Werkzeuge','Gratis-Rätsel','Artikel','Konto'] },
+      cs: { menu:'Menu', domov:'ARLing: úvod', nav:'Hlavní navigace', stranka:'Na této stránce', skip:'Přejít na obsah', nazvy:['Obchod','Nástroje','Hry','Články','Účet'] }
+    };
+    function jazyk() {
+      var kod = (document.documentElement.lang || 'sk').slice(0,2).toLowerCase();
+      var t = texty[kod] || texty.sk;
+      var cast = kod === 'en' || kod === 'de' ? kod + '/' : '';
+      var cesty = ['/shop/', '/'+cast+'#tools', '/games/', '/notes/'+cast, '/ucet/'+cast];
+      hlavicka.querySelectorAll('[data-site-nav]').forEach(function (a) {
+        var i = Number(a.getAttribute('data-site-nav'));
+        a.href = 'https://arling.sk' + cesty[i];
+        a.textContent = t.nazvy[i];
+      });
+      var domov = hlavicka.querySelector('[data-site-home]');
+      domov.href = 'https://arling.sk/' + cast;
+      domov.setAttribute('aria-label',t.domov);
+      document.querySelectorAll('[data-site-label]').forEach(function (el) {
+        var k = el.getAttribute('data-site-label');
+        if (t[k]) el.textContent = t[k];
+      });
+      hlavicka.querySelectorAll('[data-site-aria]').forEach(function (el) {
+        var k = el.getAttribute('data-site-aria');
+        if (t[k]) el.setAttribute('aria-label', t[k]);
+      });
+    }
+    jazyk();
+    if (window.MutationObserver) new MutationObserver(jazyk).observe(document.documentElement, {attributes:true,attributeFilter:['lang']});
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', pripojMenu);
+  else pripojMenu();
+})();
+
 (function () {
   'use strict';
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -102,6 +165,9 @@ document.documentElement.classList.add('js');
 (function () {
   'use strict';
   function hlavickaVyska() {
+    // 100vw zahŕňa aj scrollbar. Plátno potrebuje skutočnú šírku obsahu okna,
+    // inak na desktope vytváralo vodorovný posun približne o polovicu scrollbaru.
+    document.documentElement.style.setProperty('--sirka-okna', document.documentElement.clientWidth + 'px');
     var h = document.querySelector('header');
     if (!h) return;
     var v = Math.round(h.getBoundingClientRect().height);
