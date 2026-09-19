@@ -16,7 +16,45 @@ document.documentElement.classList.add('js');
    preto sa neprebije s historickým menu-btn kódom produktových stránok. */
 (function () {
   'use strict';
+  var klucDomova = 'arling_hub_lang';
+  function platnyDomov(kod) { return kod === 'sk' || kod === 'en' || kod === 'de'; }
+  function navratDomov() {
+    var kod = (document.documentElement.lang || 'sk').slice(0, 2).toLowerCase();
+    try {
+      var ulozeny = localStorage.getItem(klucDomova);
+      if (platnyDomov(ulozeny)) kod = ulozeny;
+    } catch (e) {}
+    var cast = kod === 'en' || kod === 'de' ? kod + '/' : '';
+    var popis = kod === 'en' ? 'ARLing home' : kod === 'de' ? 'ARLing Startseite' : 'ARLing: úvod';
+    // Includes the shop's custom header and future footer home links, but not
+    // product links or explicit language-switch links pointing at a home page.
+    document.querySelectorAll('header a.brand, footer a.brand, [data-site-home]').forEach(function (a) {
+      a.href = 'https://arling.sk/' + cast;
+      a.setAttribute('aria-label', popis);
+    });
+  }
+  function explicitnyJazyk(e) {
+    var vyber = e.target.closest && e.target.closest('header a[hreflang], header [data-set-lang]');
+    if (!vyber) return;
+    var kod = (vyber.getAttribute('hreflang') || vyber.getAttribute('data-set-lang') || '').toLowerCase();
+    if (kod === 'cs') kod = 'sk';
+    if (!platnyDomov(kod)) return;
+    try { localStorage.setItem(klucDomova, kod); } catch (err) {}
+    navratDomov();
+  }
+  document.addEventListener('click', explicitnyJazyk);
+  window.addEventListener('pageshow', function () {
+    // A home page restored from the back/forward cache does not run uvod.js
+    // again. Visiting it still explicitly chooses that home language.
+    if (document.body && document.body.classList.contains('uvod')) {
+      var kod = (document.documentElement.lang || '').slice(0, 2).toLowerCase();
+      if (platnyDomov(kod)) { try { localStorage.setItem(klucDomova, kod); } catch (e) {} }
+    }
+    navratDomov();
+  });
+  window.addEventListener('storage', function (e) { if (e.key === klucDomova) navratDomov(); });
   function pripojMenu() {
+    navratDomov();
     var hlavicka = document.querySelector('header.site-header');
     if (!hlavicka) return;
     var menu = hlavicka.querySelector('details.site-menu');
@@ -55,9 +93,7 @@ document.documentElement.classList.add('js');
         a.href = 'https://arling.sk' + cesty[i];
         a.textContent = t.nazvy[i];
       });
-      var domov = hlavicka.querySelector('[data-site-home]');
-      domov.href = 'https://arling.sk/' + cast;
-      domov.setAttribute('aria-label',t.domov);
+      navratDomov();
       document.querySelectorAll('[data-site-label]').forEach(function (el) {
         var k = el.getAttribute('data-site-label');
         if (t[k]) el.textContent = t[k];
