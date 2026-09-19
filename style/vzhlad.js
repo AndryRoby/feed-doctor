@@ -200,21 +200,36 @@ document.documentElement.classList.add('js');
  */
 (function () {
   'use strict';
+  var meranieCaka = false, predoslaSirka = -1, predoslaVyska = -1;
   function hlavickaVyska() {
+    meranieCaka = false;
     // 100vw zahŕňa aj scrollbar. Plátno potrebuje skutočnú šírku obsahu okna,
     // inak na desktope vytváralo vodorovný posun približne o polovicu scrollbaru.
-    document.documentElement.style.setProperty('--sirka-okna', document.documentElement.clientWidth + 'px');
+    // Všetky merania pred zápismi: zmena CSS premennej nesmie vynútiť ďalší
+    // layout tesne pred getBoundingClientRect. Rovnaké hodnoty nezapisujeme.
+    var sirka = document.documentElement.clientWidth;
     var h = document.querySelector('header');
-    if (!h) return;
-    var v = Math.round(h.getBoundingClientRect().height);
-    if (v > 0) document.documentElement.style.setProperty('--hlavicka', v + 'px');
+    var v = h ? Math.round(h.getBoundingClientRect().height) : 0;
+    if (sirka !== predoslaSirka) {
+      document.documentElement.style.setProperty('--sirka-okna', sirka + 'px');
+      predoslaSirka = sirka;
+    }
+    if (v > 0 && v !== predoslaVyska) {
+      document.documentElement.style.setProperty('--hlavicka', v + 'px');
+      predoslaVyska = v;
+    }
+  }
+  function naplanujMeranie() {
+    if (meranieCaka) return;
+    meranieCaka = true;
+    window.requestAnimationFrame(hlavickaVyska);
   }
   function pripoj() {
     hlavickaVyska();
-    window.addEventListener('resize', hlavickaVyska, { passive: true });
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(hlavickaVyska);
+    window.addEventListener('resize', naplanujMeranie, { passive: true });
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(naplanujMeranie);
     // istota pre prípad, že sa niečo dokreslí neskôr
-    setTimeout(hlavickaVyska, 400);
+    setTimeout(naplanujMeranie, 400);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', pripoj);
   else pripoj();
