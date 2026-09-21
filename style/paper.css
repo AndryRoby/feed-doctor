@@ -849,57 +849,213 @@ body.noc .wash i,body.noc .wash::after{display:none}
    ako spodná hrana hlavičky, hoci hlavička je hore zámerne bez nej. */
 body.noc .hero-noc,body.noc main>section:first-of-type,body.noc main>.wrap:first-child{border-top:0}
 
-/* A-090: spoločná navigácia. Natívne details, nezávislé od hub.css a starých
-   inline menu skriptov. Produktové kotvy majú vlastný riadok v tom istom menu. */
-body.noc header.site-header { background:#0a0908; border-bottom:1px solid var(--line); backdrop-filter:none; }
-header.site-header .bar { position:relative; display:flex; align-items:center; flex-wrap:nowrap; gap:24px; height:auto; min-height:72px; padding:12px 0; }
-header.site-header .brand { flex:none; min-width:0; min-height:44px; gap:12px; }
-header.site-header .brand svg { width:40px; height:auto; }
-header.site-header .brand span { max-width:19ch; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#aaa39d; }
-header.site-header .site-menu { flex:1; min-width:0; padding:0; margin:0; border:0; border-radius:0; background:none; box-shadow:none; }
-header.site-header .site-menu-toggle { display:none; }
-header.site-header .site-menu-panel { padding:0; }
-header.site-header .bar .site-menu nav { position:static; display:flex; flex-flow:row wrap; align-items:center; justify-content:flex-end; gap:4px 24px; margin:0; padding:0; width:auto; box-shadow:none; border:0; background:none; }
-header.site-header .bar .site-menu nav a { display:inline-flex; align-items:center; min-height:44px; padding:8px 0; border:0; font:500 15px/1.35 var(--ui); color:#c5beb8; white-space:normal; overflow-wrap:anywhere; text-decoration:none; }
-header.site-header .bar .site-menu nav a:hover { color:var(--accent-light); }
-header.site-header .bar .site-menu nav a::after { display:none; }
-header.site-header .site-page-links { border-top:1px solid var(--line); margin-top:4px; padding-top:4px; }
-header.site-header .site-page-links > p { display:none; }
-header.site-header .bar .site-page-links nav { gap:0 18px; }
-header.site-header .bar .site-page-links nav a { font-size:13px; color:#aaa39d; }
-header.site-header .site-locales { margin:6px 0 0; display:flex; justify-content:flex-end; }
-@media (min-width:961px) {
-  header.site-header .site-menu-panel:has(>.site-locales) { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:0 20px; align-items:center; }
-  header.site-header .site-menu-panel:has(>.site-locales) > .site-main-nav { grid-column:1; grid-row:1; }
-  header.site-header .site-menu-panel > .site-page-links { grid-column:1/-1; grid-row:2; }
-  header.site-header .site-menu-panel > .site-locales { grid-column:2; grid-row:1; margin:0; }
+/* A-093: spoločný rám podľa úvodu v4 (21. 9. 2026). Hlavičku a pätu píše
+   ops/design/obal.mjs na každú stránku; vzhľad je prevzatý zo style/uvod.css
+   (Lampa na stole: noc #0a0908, meď #f2643c, ARLing Sans), aby podstránka
+   vyzerala ako ten istý web. Nahrádza A-090 (riadok odkazov a tri stĺpce textu).
+
+   Pravidlo tejto sekcie: každý selektor začína header.site-header alebo
+   footer.site-footer (s voliteľným body.noc pred tým). Stránky majú vlastné
+   pravidlá pre .cta, .wrap, nav, details, summary, footer a p; preto sú tu
+   selektory zámerne ťažké a vlastnosti, ktoré tie pravidlá nastavujú, sa
+   vypisujú celé. Stráži to test v ops/design/obal.test.mjs.
+   Katalóg je v stránke raz: details.site-menu je na širokej obrazovke
+   rozbaľovacie „Produkty“, do 760 px mobilné menu po skupinách. */
+header.site-header,footer.site-footer{--r-ink:#fafafa;--r-telo:#a8a4a0;--r-tichy:#8d8884;--r-linka:rgba(255,255,255,.10);--r-linka-2:rgba(255,255,255,.16);--r-med:#f2643c;--r-med-tma:#e05630;--r-med-tma-2:#c9421c;--r-zhaslo:#ffb59d;--r-pero:cubic-bezier(.16,1,.3,1);--r-tik:cubic-bezier(.2,.7,.2,1);font-family:var(--ui);font-size:15px;line-height:1.5;letter-spacing:-.004em;color:var(--r-telo);text-align:left}
+/* Šírka rámu je miera Paper (--wrap), nie 1340 px z úvodu: značka má stáť nad ľavým okrajom obsahu
+   stránky. Premennú --wrap si niektoré stránky zužujú (článok 620 px), preto je tu hodnota napevno. */
+header.site-header .wrap,footer.site-footer .wrap{width:min(1432px,89vw);max-width:none;margin:0 auto;padding-left:0;padding-right:0}
+/* Zoznamy len vo vlastných častiach rámu: vlastný prepínač jazykov stránky môže byť tiež ul a li. */
+header.site-header .site-col ul,footer.site-footer .site-foot-cols ul{margin:0;padding:0;list-style:none}
+header.site-header .site-col li,footer.site-footer .site-foot-cols li{display:block;max-width:none;margin:0;padding:0;border:0}
+header.site-header .site-col li::before,header.site-header .site-col li::after,footer.site-footer .site-foot-cols li::before,footer.site-footer .site-foot-cols li::after{content:none}
+header.site-header :focus-visible,footer.site-footer :focus-visible{outline:2px solid var(--r-med);outline-offset:3px}
+.site-skip:focus{position:fixed;left:14px;top:14px;z-index:100;min-height:44px;padding:10px 14px;border:1px solid rgba(255,255,255,.16);border-radius:12px;background:#15110f;color:#fafafa;font:500 15px/1.5 var(--ui);text-decoration:none}
+
+/* Hlavička: plný tmavý materiál, vždy hore. Pevná je už od body.noc header;
+   miesto pod ňou drží body.noc main cez --hlavicka, ktorú meria vzhlad.js. */
+body.noc header.site-header{background:#0a0908;border-bottom:1px solid var(--r-linka);box-shadow:0 1px 0 rgba(255,255,255,.06) inset;backdrop-filter:none;-webkit-backdrop-filter:none;padding-top:env(safe-area-inset-top,0px)}
+header.site-header .bar{position:relative;display:flex;align-items:center;justify-content:flex-start;flex-wrap:nowrap;gap:18px;row-gap:0;height:70px;min-height:0;padding:0}
+header.site-header .brand{display:flex;align-items:center;gap:11px;flex:none;min-width:0;min-height:44px;margin:0 auto 0 0;padding:0;text-decoration:none;color:var(--r-ink)}
+header.site-header .brand svg{width:34px;height:15px;flex:none;display:block}
+header.site-header .brand b{font:700 20px/1 var(--ui);letter-spacing:-.022em;color:var(--r-ink)}
+header.site-header .bar .brand span{display:block;max-width:19ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--r-tichy);font:400 13px/1.3 var(--ui);letter-spacing:0;border-left:1px solid var(--r-linka-2);padding-left:11px}
+
+/* Štyri odkazy ako na úvode. Je to <nav> v .bar, preto sa tu prebíjajú staršie
+   pravidlá „.bar nav“, „header .bar nav“ (paper.css, hub.css) aj „body.noc .bar nav a“. */
+header.site-header .bar .site-main-nav{position:static;order:0;display:flex;flex-flow:row nowrap;align-items:center;gap:26px;width:auto;margin:0;padding:0;border:0;background:none;box-shadow:none;font-size:15px}
+header.site-header .bar .site-main-nav>a{position:relative;display:inline-flex;align-items:center;flex:none;min-height:44px;padding:6px 0;border:0;font:400 15px/1.3 var(--ui);letter-spacing:-.004em;color:var(--r-telo);text-decoration:none;white-space:nowrap;transition:color .2s var(--r-tik)}
+header.site-header .bar .site-main-nav>a::after{content:"";display:block;position:absolute;left:0;bottom:9px;height:1px;width:0;background:var(--r-med);transition:width .24s var(--r-tik)}
+header.site-header .bar .site-main-nav>a:hover{color:var(--r-ink)}
+header.site-header .bar .site-main-nav>a:hover::after{width:100%}
+
+/* Medené tlačidlo: plochá meď, tmavý text, jeden tieň, odozva hneď pri stlačení. */
+header.site-header .site-cta,footer.site-footer .site-cta{display:inline-flex;align-items:center;justify-content:center;gap:10px;flex:none;width:auto;min-height:0;margin:0;padding:11px 19px;border:0;border-radius:999px;background:var(--r-med);color:#1b0e08;font:600 15px/1.2 var(--ui);letter-spacing:-.012em;text-decoration:none;white-space:nowrap;box-shadow:0 6px 16px -6px rgba(0,0,0,.8);transition:transform .16s var(--r-tik),background-color .16s var(--r-tik),box-shadow .16s var(--r-tik)}
+header.site-header .site-cta:hover,footer.site-footer .site-cta:hover{transform:translateY(-1px);background:var(--r-med-tma);color:#1b0e08;box-shadow:0 9px 20px -7px rgba(0,0,0,.85)}
+header.site-header .site-cta:active,footer.site-footer .site-cta:active{transform:scale(.97);background:var(--r-med-tma-2);box-shadow:0 3px 9px -5px rgba(0,0,0,.85);transition-duration:.1s}
+header.site-header .site-cta:focus-visible,footer.site-footer .site-cta:focus-visible{outline:2px solid var(--r-zhaslo);outline-offset:3px;border-radius:999px}
+header.site-header .site-cta svg,footer.site-footer .site-cta svg{width:17px;height:17px;flex:none}
+header.site-header .bar>.site-cta{margin-left:8px}
+
+/* „Produkty“: details funguje bez JS. Stránky s otázkami majú holé pravidlá
+   details{border-top;padding} a summary{font;padding-right} so znakom plus
+   v ::after, preto sa tu všetko nastavuje nanovo. */
+header.site-header .site-menu{position:static;order:0;flex:none;width:auto;max-width:none;margin:0;padding:0;border:0;border-radius:0;background:none;box-shadow:none}
+header.site-header .site-menu>summary{position:static;display:inline-flex;align-items:center;gap:7px;width:auto;height:70px;margin:0;padding:0;border:0;border-radius:0;background:none;box-shadow:none;list-style:none;cursor:pointer;user-select:none;-webkit-user-select:none;color:var(--r-telo);font:400 15px/1.3 var(--ui);letter-spacing:-.004em;text-transform:none;overflow-wrap:normal;transition:color .2s var(--r-tik)}
+header.site-header .site-menu>summary::-webkit-details-marker{display:none}
+header.site-header .site-menu>summary::marker{content:""}
+header.site-header .site-menu>summary::before{content:none}
+header.site-header .site-menu>summary::after,header.site-header .site-menu[open]>summary::after{content:"";position:static;display:inline-block;flex:none;width:.38em;height:.38em;margin:0;border:0;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;background:none;font:inherit;color:inherit;transform:rotate(45deg) translate(-1px,-2px);transition:transform .22s var(--r-tik)}
+header.site-header .site-menu[open]>summary::after{transform:rotate(225deg) translate(-2px,0)}
+header.site-header .site-menu>summary:hover,header.site-header .site-menu[open]>summary{color:var(--r-ink)}
+header.site-header .site-menu-bars,header.site-header .site-menu-word{display:none}
+header.site-header .site-menu-panel{position:absolute;left:0;right:0;top:calc(100% - 4px);z-index:60;max-height:calc(100dvh - 90px);overflow:auto;overscroll-behavior:contain;margin:0;padding:26px 28px 22px;background:rgba(18,15,13,.97);backdrop-filter:blur(18px) saturate(1.2);-webkit-backdrop-filter:blur(18px) saturate(1.2);border:1px solid var(--r-linka-2);border-radius:18px;box-shadow:0 1px 0 rgba(255,255,255,.06) inset,0 34px 70px -24px rgba(0,0,0,.95);animation:site-menu-in .26s var(--r-pero)}
+@keyframes site-menu-in{from{opacity:0;transform:translateY(-8px)}}
+header.site-header .site-cols{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px}
+header.site-header .site-col>p{margin:0 0 8px 10px;max-width:none;font:600 12px/1.4 var(--ui);letter-spacing:.06em;text-transform:uppercase;color:var(--r-tichy)}
+header.site-header .site-col a{display:block;margin:0;padding:8px 10px;border:0;border-radius:10px;text-decoration:none;color:var(--r-telo);transition:background-color .16s var(--r-tik)}
+header.site-header .site-col a:hover{background:rgba(255,255,255,.05);color:var(--r-telo)}
+header.site-header .site-col a:active{background:rgba(255,255,255,.09);transition-duration:.1s}
+header.site-header .site-col a>b{display:block;margin:0;color:var(--r-ink);font:600 15px/1.35 var(--ui);letter-spacing:-.012em}
+header.site-header .site-col a>span{display:block;margin:1px 0 0;color:var(--r-tichy);font:400 13px/1.4 var(--ui);letter-spacing:0}
+header.site-header .site-sk,footer.site-footer .site-sk{display:inline-block;vertical-align:2px;margin-left:7px;padding:1px 5px;border:1px solid var(--r-linka-2);border-radius:5px;font:600 10px/1.4 var(--ui);font-style:normal;letter-spacing:.06em;color:var(--r-tichy)}
+header.site-header .site-dev,footer.site-footer .site-dev{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;max-width:none;margin:20px 0 0;padding:16px 0 0;border-top:1px solid var(--r-linka);font:400 13.5px/1.4 var(--ui);color:var(--r-telo)}
+header.site-header .site-dev>span,footer.site-footer .site-dev>span{margin-right:8px;color:var(--r-tichy)}
+header.site-header .site-dev>a,footer.site-footer .site-dev>a{display:inline-block;padding:4px 11px;border:1px solid var(--r-linka);border-radius:999px;color:var(--r-telo);text-decoration:none;white-space:nowrap;transition:color .16s var(--r-tik),border-color .16s var(--r-tik),background-color .16s var(--r-tik)}
+header.site-header .site-dev>a:hover,footer.site-footer .site-dev>a:hover{color:var(--r-ink);border-color:var(--r-linka-2);background:rgba(255,255,255,.04)}
+/* Skupina Firma a tlačidlo v paneli sú len tam, kde sa z lišty stratia. */
+header.site-header .site-firma,header.site-header .site-menu-cta{display:none}
+
+/* Prepínač jazykov: vlastný prepínač stránky (obal ho len presunie) alebo
+   langsel z prepinac.js, ktorý sa pripája na koniec .bar. */
+header.site-header .site-locales{display:flex;align-items:center;flex:none;min-width:0;margin:0}
+header.site-header .bar .site-locales nav{position:static;order:0;display:flex;flex-flow:row nowrap;align-items:center;width:auto;margin:0;padding:0;border:0;background:none;box-shadow:none}
+header.site-header .bar .langsel{position:relative;order:3;flex:none;margin:0;padding:0;border:0;background:none;box-shadow:none;font-family:var(--ui)}
+header.site-header .bar .langsel>summary{position:static;display:inline-flex;align-items:center;justify-content:center;gap:6px;width:auto;height:38px;min-height:0;margin:0;padding:0 12px;border:1px solid var(--r-linka-2);border-radius:999px;background:rgba(255,255,255,.03);box-shadow:none;color:var(--r-telo);font:500 13.5px/1 var(--ui);letter-spacing:0;transition:border-color .2s var(--r-tik),color .2s var(--r-tik)}
+header.site-header .bar .langsel>summary::after,header.site-header .bar .langsel[open]>summary::after{width:.45em;height:.45em;margin-left:0}
+header.site-header .bar .langsel[open]>summary,header.site-header .bar .langsel>summary:hover{border-color:rgba(255,255,255,.34);color:var(--r-ink)}
+header.site-header .bar .langsel ul{position:absolute;right:0;top:calc(100% + 8px);z-index:61;min-width:170px;margin:0;padding:6px;list-style:none;background:rgba(20,17,15,.96);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--r-linka-2);border-radius:14px;box-shadow:0 20px 44px -16px rgba(0,0,0,.9);animation:site-menu-in .22s var(--r-pero)}
+header.site-header .bar .langsel a{display:block;padding:9px 12px;border-radius:9px;color:var(--r-telo);font:400 15px/1.3 var(--ui);text-decoration:none;white-space:nowrap}
+header.site-header .bar .langsel a:hover{background:rgba(255,255,255,.06);color:var(--r-ink)}
+header.site-header .bar .langsel a[aria-current]{color:var(--r-ink);font-weight:500}
+
+/* Kotvy stránky (#pro, #cennik…) ako druhý tichý riadok pod lištou. */
+header.site-header .site-page-links{margin:0;padding:0;border-top:1px solid var(--r-linka)}
+header.site-header .site-page-links>.wrap{display:flex;align-items:center;gap:6px 22px;min-height:40px}
+header.site-header .site-page-links p{flex:none;max-width:none;margin:0;font:600 11.5px/1.4 var(--ui);letter-spacing:.06em;text-transform:uppercase;color:var(--r-tichy)}
+header.site-header .site-page-links nav{position:static;display:flex;flex-flow:row wrap;align-items:center;gap:0 20px;width:auto;margin:0;padding:0;border:0;background:none;box-shadow:none}
+header.site-header .site-page-links nav a{position:relative;display:inline-flex;align-items:center;flex:none;min-height:40px;padding:0;border:0;font:400 13.5px/1.3 var(--ui);letter-spacing:0;color:var(--r-telo);text-decoration:none;white-space:nowrap;transition:color .2s var(--r-tik)}
+header.site-header .site-page-links nav a::after{content:none}
+header.site-header .site-page-links nav a:hover{color:var(--r-ink)}
+
+/* Päta: značka a tlačidlo hore, päť stĺpcov katalógu, pás pre vývojárov, spodok. */
+body.noc footer.site-footer{position:relative;z-index:2;margin:0;padding:60px 0 44px;border-top:1px solid var(--r-linka);background:#100e0c;font-size:15px;line-height:1.6;color:var(--r-telo)}
+footer.site-footer .foot{display:block}
+footer.site-footer .foot>div{max-width:none}
+footer.site-footer p{max-width:none;margin:0;color:inherit}
+footer.site-footer .site-foot-top{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;flex-wrap:wrap;margin:0 0 44px;padding:0 0 36px;border-bottom:1px solid var(--r-linka)}
+footer.site-footer .site-brand{display:flex;align-items:center;gap:11px;text-decoration:none;color:var(--r-ink)}
+footer.site-footer .site-brand svg{width:34px;height:15px;flex:none;display:block}
+footer.site-footer .site-brand b{font:700 20px/1 var(--ui);letter-spacing:-.022em;color:var(--r-ink)}
+footer.site-footer .site-foot-firma{max-width:44ch;margin:14px 0 0;font-size:14px;line-height:1.6;color:var(--r-tichy)}
+/* .num je v Paper oranžové číslo sekcie; v päte je to len IČO vo vete o firme. */
+footer.site-footer .num{margin:0;font:inherit;font-variant-numeric:tabular-nums;letter-spacing:inherit;color:inherit}
+footer.site-footer .site-foot-cols{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:clamp(22px,2.6vw,40px)}
+footer.site-footer .site-foot-cols p{margin:0 0 14px;font:600 12px/1.4 var(--ui);letter-spacing:.06em;text-transform:uppercase;color:var(--r-tichy)}
+footer.site-footer .site-foot-cols ul{display:grid;gap:9px}
+footer.site-footer .site-foot-cols a{color:var(--r-telo);font:400 15px/1.45 var(--ui);text-decoration:none;transition:color .2s var(--r-tik)}
+footer.site-footer .site-foot-cols a:hover{color:var(--r-ink)}
+footer.site-footer .site-dev{margin-top:44px;padding-top:22px}
+footer.site-footer .site-foot-bottom{display:flex;justify-content:space-between;gap:12px 20px;flex-wrap:wrap;margin:36px 0 0;padding:24px 0 0;border-top:1px solid var(--r-linka);font-size:14px;color:var(--r-tichy)}
+footer.site-footer .site-foot-legal{margin:14px 0 0;font-size:13px;line-height:1.6;color:var(--r-tichy)}
+footer.site-footer .site-foot-bottom a,footer.site-footer .site-foot-legal a{color:var(--r-tichy);text-decoration:none;border-bottom:1px solid var(--r-linka-2);transition:color .2s var(--r-tik)}
+footer.site-footer .site-foot-bottom a:hover,footer.site-footer .site-foot-legal a:hover{color:var(--r-ink)}
+
+@media (prefers-reduced-motion:reduce){
+  header.site-header *,header.site-header *::before,header.site-header *::after,footer.site-footer *,footer.site-footer *::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important;transition-delay:0s !important}
 }
-header.site-header .site-locales :is(a,button,select) { min-height:44px; }
-header.site-header .bar > .langsel { flex:none; order:3; margin:0; }
-header.site-header .bar > .langsel > summary { min-height:44px; color:#c5beb8; }
-header.site-header :focus-visible { outline:2px solid var(--accent-light); outline-offset:4px; }
-.site-skip:focus { position:fixed; left:12px; top:12px; min-height:44px; padding:10px 16px; z-index:100; background:#0a0908; color:#fafafa; }
-@media (max-width:1100px) {
-  header.site-header .bar { gap:16px; }
-  header.site-header .brand span { display:none; }
+@media (prefers-reduced-transparency:reduce){
+  header.site-header .site-menu-panel,header.site-header .bar .langsel ul{background:#15110f;backdrop-filter:none;-webkit-backdrop-filter:none}
 }
-@media (max-width:960px) {
-  header.site-header .bar { min-height:64px; height:64px; padding:0; gap:10px; }
-  header.site-header .brand { margin-right:auto; gap:9px; }
-  header.site-header .brand b { font-size:18px; }
-  header.site-header .brand svg { width:36px; }
-  header.site-header .site-menu { flex:none; order:4; }
-  header.site-header .site-menu-toggle { display:flex; align-items:center; justify-content:center; gap:8px; min-height:44px; padding:0 12px; margin:0; border:1px solid var(--line); border-radius:8px; list-style:none; color:#fafafa; font:500 14px/1.3 var(--ui); cursor:pointer; }
-  header.site-header .site-menu-toggle::-webkit-details-marker { display:none; }
-  header.site-header .site-menu-toggle::before,header.site-header .site-menu-toggle::after { content:none; }
-  header.site-header .site-menu-toggle svg { width:18px; height:12px; }
-  header.site-header .site-menu-panel { position:absolute; left:0; right:0; top:64px; z-index:60; max-height:calc(100dvh - 80px); overflow-y:auto; overscroll-behavior:contain; padding:12px 16px 16px; border:1px solid var(--line); background:#0a0908; box-shadow:0 18px 32px rgba(0,0,0,.4); }
-  header.site-header .bar .site-menu nav { display:flex; flex-direction:column; align-items:stretch; gap:0; }
-  header.site-header .bar .site-menu nav a { min-height:48px; padding:12px 0; font-size:16px; border-bottom:1px solid var(--line); }
-  header.site-header .site-page-links { margin-top:16px; border:0; padding:0; }
-  header.site-header .site-page-links > p { display:block; margin:0 0 4px; font:500 12px/1.4 var(--ui); color:#aaa39d; }
-  header.site-header .bar .site-page-links nav a { font-size:15px; }
-  header.site-header .site-locales { justify-content:flex-start; margin-top:16px; }
-  header.site-header .bar > .langsel { order:3; }
-  header.site-header .bar > .langsel > summary { padding:0 10px; }
+@media (hover:none){
+  header.site-header .site-cta:hover,footer.site-footer .site-cta:hover{transform:none;background:var(--r-med)}
+  header.site-header .site-col a:hover{background:none}
+}
+@media (max-width:1240px){
+  header.site-header .bar .brand span{display:none}
+}
+@media (max-width:1180px){
+  header.site-header .bar{gap:14px}
+  header.site-header .bar .site-main-nav{gap:18px}
+  /* Tri stĺpce namiesto dvoch z úvodu: prvá a tretia skupina pod sebou, inak panel
+     na tablete naležato (768 px na výšku) pretiekol a roloval sa vnútri. */
+  header.site-header .site-cols{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px 20px}
+  header.site-header .site-cols>.site-col:nth-child(2){grid-column:2;grid-row:1 / span 2}
+  header.site-header .site-cols>.site-col:nth-child(3){grid-column:1;grid-row:2}
+  header.site-header .site-cols>.site-col:nth-child(4){grid-column:3;grid-row:1 / span 2}
+  header.site-header .site-menu-panel{padding:22px 20px 18px}
+  footer.site-footer .site-foot-cols{grid-template-columns:repeat(3,minmax(0,1fr));row-gap:36px}
+}
+/* Tablet: textové odkazy z lišty zmiznú, ostávajú Produkty, tlačidlo a jazyk;
+   odkazy sa presunú do panela ako skupina Firma. */
+@media (max-width:1000px){
+  header.site-header .bar .site-main-nav{display:none}
+  header.site-header .site-firma{display:block;margin:20px 0 0;padding:16px 0 0;border-top:1px solid var(--r-linka)}
+  header.site-header .site-firma ul{display:flex;flex-wrap:wrap;gap:0 6px}
+  header.site-header .site-firma a{padding:12px 10px}
+}
+/* Mobil: to isté details je menu s tromi čiarkami, skupiny pod sebou, popisy skryté. */
+@media (max-width:760px){
+  header.site-header .bar{height:60px;gap:10px}
+  header.site-header .bar>.site-cta{margin-left:0;padding:10px 15px;font-size:14px}
+  header.site-header .site-menu{order:5}
+  header.site-header .site-menu>summary{flex-direction:column;justify-content:center;gap:4px;width:40px;height:40px;border:1px solid var(--r-linka-2);border-radius:999px;background:rgba(255,255,255,.03);transition:border-color .2s var(--r-tik),color .2s var(--r-tik)}
+  header.site-header .site-menu>summary::after,header.site-header .site-menu[open]>summary::after{content:none}
+  header.site-header .site-menu[open]>summary,header.site-header .site-menu>summary:hover{border-color:rgba(255,255,255,.34)}
+  header.site-header .site-menu-text{display:none}
+  header.site-header .site-menu-bars{display:flex;flex-direction:column;gap:4px}
+  header.site-header .site-menu-bars i{display:block;width:16px;height:1.5px;border-radius:2px;background:currentColor;transition:transform .22s var(--r-tik),opacity .18s var(--r-tik)}
+  header.site-header .site-menu[open] .site-menu-bars i:nth-child(1){transform:translateY(5.5px) rotate(45deg)}
+  header.site-header .site-menu[open] .site-menu-bars i:nth-child(2){opacity:0}
+  header.site-header .site-menu[open] .site-menu-bars i:nth-child(3){transform:translateY(-5.5px) rotate(-45deg)}
+  header.site-header .site-menu-word{display:block;position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+  header.site-header .site-menu-panel{left:calc(12px - 5.5vw);right:calc(12px - 5.5vw);top:calc(100% + 2px);max-height:calc(100dvh - 84px);padding:8px 8px 12px;border-radius:14px;background:rgba(20,17,15,.98);animation-duration:.22s}
+  header.site-header .site-cols{display:block}
+  header.site-header .site-col{padding:6px 0 8px}
+  header.site-header .site-col+.site-col{border-top:1px solid var(--r-linka)}
+  header.site-header .site-col>p{margin:0;padding:10px 12px 4px;font-size:11.5px}
+  header.site-header .site-col a{padding:12px;border-radius:9px}
+  header.site-header .site-col a>b{font-weight:400;color:var(--r-telo)}
+  header.site-header .site-col a>span{display:none}
+  header.site-header .site-dev{margin:0;padding:12px 12px 14px;gap:8px}
+  header.site-header .site-dev>span{width:100%;margin:0 0 2px;font:600 11.5px/1.4 var(--ui);letter-spacing:.06em;text-transform:uppercase}
+  header.site-header .site-dev>a{padding:8px 12px}
+  header.site-header .site-firma{margin:0;padding:6px 0 8px}
+  header.site-header .site-firma ul{display:block}
+  header.site-header .site-firma a{padding:12px}
+  header.site-header .bar .langsel>summary{height:40px}
+  /* Kotvy na telefóne v jednom riadku, ktorý sa dá posunúť prstom a končí až na hrane
+     obrazovky: odseknuté slovo je viditeľný signál. Zalomené do dvoch riadkov robili
+     z pevnej hlavičky 133 px (/asistent/ na 390 px, 21. 9. 2026). */
+  header.site-header .site-page-links>.wrap{width:auto;min-height:36px;margin:0 0 0 5.5vw;padding-right:5.5vw;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none}
+  header.site-header .site-page-links>.wrap::-webkit-scrollbar{display:none}
+  header.site-header .site-page-links p{display:none}
+  header.site-header .site-page-links nav{flex-wrap:nowrap;gap:0 16px}
+  header.site-header .site-page-links nav a{min-height:36px;font-size:13px}
+  body.noc footer.site-footer{padding-top:48px}
+  footer.site-footer .site-foot-top{margin-bottom:34px;padding-bottom:28px}
+  footer.site-footer .site-foot-cols{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:30px}
+  footer.site-footer .site-foot-cols a{display:inline-block;padding:3px 0}
+  footer.site-footer .site-dev{margin-top:34px}
+  footer.site-footer .site-dev>a{padding:8px 12px}
+  footer.site-footer .site-foot-bottom{margin-top:30px}
+}
+/* Úzky telefón: tlačidlo z lišty sa presunie na koniec menu, aby Proof ostal na dosah. */
+@media (max-width:520px){
+  header.site-header .bar>.site-cta{display:none}
+  header.site-header .site-menu-cta{display:block;max-width:none;margin:0;padding:8px 12px 6px;border-top:1px solid var(--r-linka)}
+  header.site-header .site-menu-cta .site-cta{display:flex;width:100%;padding:13px 19px}
+}
+@media (max-width:460px){
+  footer.site-footer .site-foot-cols{grid-template-columns:1fr}
 }
