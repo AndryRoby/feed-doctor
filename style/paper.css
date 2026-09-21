@@ -849,6 +849,9 @@ body.noc .wash i,body.noc .wash::after{display:none}
    ako spodná hrana hlavičky, hoci hlavička je hore zámerne bez nej. */
 body.noc .hero-noc,body.noc main>section:first-of-type,body.noc main>.wrap:first-child{border-top:0}
 
+/* Riadok nad nadpisom (názov | Nástroje pre prácu | firma) Andrej 21. 9. odmietol na všetkých stránkach. */
+.uv-masthead{display:none !important}
+
 /* A-093: spoločný rám podľa úvodu v4 (21. 9. 2026). Hlavičku a pätu píše
    ops/design/obal.mjs na každú stránku; vzhľad je prevzatý zo style/uvod.css
    (Lampa na stole: noc #0a0908, meď #f2643c, ARLing Sans), aby podstránka

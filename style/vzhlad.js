@@ -121,7 +121,9 @@ document.documentElement.classList.add('js');
     // Kto na slovo Produkty zo zvyku aj klikne tesne po tom, čo sa otvorilo
     // prejdením, nemá si ho tým istým klikom zavrieť.
     prepinac.addEventListener('click', function (e) {
-      if (menu.open && Date.now() - prejdenim < 450) e.preventDefault();
+      // Andrej 21. 9.: „mám tendenciu na to kliknúť a kliknutím to vypnem“. Na myši preto klik na slovo
+      // Produkty otvorené menu nikdy nezatvára; zatvára ho odchod kurzora, Escape alebo klik mimo.
+      if (menu.open && jemne.matches && siroke.matches) e.preventDefault();
     });
     function poZmeneSirky() { clearTimeout(cas); zatvor(null); }
     if (siroke.addEventListener) siroke.addEventListener('change', poZmeneSirky);
