@@ -1,0 +1,138 @@
+/* ARLing Nástroj: spoločný hárok pracovných nástrojov (A-091, Fable, 20. 9. 2026).
+   Prečo existuje: každá stránka nástroja si dovtedy niesla vlastný vložený <style>
+   (životopis 17 882 B, párovač 16 153 B, mail-doctor 15 890 B ...) a tie isté pravidlá
+   .hero, .cena a .facts sa na každej stránke deklarovali trochu inak. Preto rodina
+   nečítala ako jeden katalóg. Tento súbor drží tie isté komponenty ako style/uvod.css
+   na úvode, len pre stránky nástrojov.
+
+   Zdroj: ops/design/paper/nastroj.css. Do produktov sa kopíruje ops/design/sync-paper.mjs,
+   verziu adresy pripisuje ops/design/verzia.mjs. Neupravovať v produkte.
+   Platí len pre <body class="noc nastroj">, takže nič iné na webe nemení.
+   paper.css a obal.mjs ostávajú nedotknuté; čo sa musí opraviť v nich, je poznámka
+   v ops/design/impeccable/poznamky-nastroje.md. */
+
+/* ── 1. Lokálne tokeny ──────────────────────────────────────────────────────
+   --muted #74716e z paper.css má na --paper 4,10 : 1 a na paneli ceny 3,81 : 1,
+   pod podlahou 4,5 : 1 z DESIGN.md bod 8. A práve táto farba nesie vetu o vrátení
+   peňazí, riadok „Predávajúci: ARLing s. r. o., IČO 56583486" a každý figcaption,
+   teda presne text dôvery. #8a8784 má na #0a0908 5,57 : 1 a na #161311 5,18 : 1
+   (ops/design/kontrast.mjs). Prepis je lokálny, paper.css sa nemení. */
+body.noc.nastroj{
+  --muted:#8a8784;
+  --linka-silna:rgba(255,255,255,.42);
+  --tien:0 26px 60px -20px rgba(0,0,0,.75),0 0 0 1px rgba(255,255,255,.06);
+}
+
+/* ── 2. Mierka písma podľa DESIGN.md bod 2 ────────────────────────────────── */
+body.noc.nastroj h1{font-size:clamp(34px,4.5vw,60px);font-weight:600;line-height:1.05;letter-spacing:-.024em}
+body.noc.nastroj h2{font-size:clamp(26px,2.9vw,38px);font-weight:600;line-height:1.08;letter-spacing:-.02em}
+body.noc.nastroj h3{font-size:clamp(18px,1.5vw,22px);font-weight:600;line-height:1.3;letter-spacing:-.012em}
+/* h1 .l{display:block} v paper.css drží ručne zalomené riadky nadpisu a na 390 px
+   preto nevedia pretiecť späť. Na stránkach nástrojov sa nadpis láme sám. */
+body.nastroj h1 .l{display:inline}
+body.nastroj h1 .l+.l::before{content:" "}
+/* Kickery a eyebrow sú zakázané (DESIGN.md bod 3, craft-floor). V značke sú
+   zmazané; toto je poistka pre generovanú stránku, ktorá by sa vrátila. */
+body.nastroj .kicker{display:none}
+/* Verzálky so sledovaním sú ten istý štítok, len inde: hlavička tabuľky,
+   legenda formulára, podnadpis vo výpise. */
+body.nastroj th{text-transform:none;letter-spacing:.01em;font-size:13px;color:var(--muted)}
+body.nastroj legend{text-transform:none;letter-spacing:0}
+
+/* ── 3. Hlavička hárku: tri údaje medzi silnou a slabou linkou ─────────────── */
+.nastroj .uv-masthead{display:flex;justify-content:space-between;gap:12px;padding:10px 0;max-width:none;margin:0;
+  border-top:1px solid var(--linka-silna);border-bottom:1px solid var(--line);
+  font:500 13px/1.3 var(--ui);color:var(--muted);letter-spacing:.01em}
+.nastroj .uv-masthead span:nth-child(2){color:var(--body)}
+
+/* ── 4. Úvodný blok: sľub vľavo, skutočný artefakt vpravo ──────────────────── */
+.nastroj .uv-lead{padding-top:34px}
+.nastroj .uv-lead-grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);
+  gap:clamp(28px,5vw,72px);align-items:start;padding:clamp(34px,5vw,64px) 0 clamp(20px,3vw,40px)}
+.nastroj .uv-lead-grid>div{min-width:0}
+.nastroj .uv-lead h1{max-width:18ch;margin:0;text-wrap:balance}
+.nastroj .uv-lead-p{margin:22px 0 0;font-size:clamp(18px,1.3vw,21px);line-height:1.5;max-width:54ch;color:var(--body)}
+.nastroj .uv-actions{display:flex;flex-wrap:wrap;align-items:center;gap:14px 26px;margin-top:26px;max-width:none}
+.nastroj .uv-quiet{font:500 15px/1.4 var(--ui);color:var(--body);text-decoration:underline;
+  text-decoration-thickness:1px;text-underline-offset:.18em;text-decoration-color:rgba(255,255,255,.25)}
+.nastroj .uv-quiet:hover{color:var(--ink);text-decoration-color:var(--accent)}
+.nastroj .uv-note{margin:12px 0 0;font:500 13.5px/1.5 var(--ui);color:var(--muted)}
+
+/* Štyri fakty, každý s linkou nad sebou: čo je zadarmo, čo sa platí, hranice,
+   čo sa deje s údajmi. Nie reťaz oddelená bodkami. */
+.nastroj .uv-facts{display:grid;grid-template-columns:1fr 1fr;gap:0 28px;margin:34px 0 0;padding:0}
+.nastroj .uv-facts div{border-top:1px solid var(--line);padding:11px 0 12px;min-width:0}
+.nastroj .uv-facts dt{font:600 12.5px/1.3 var(--ui);color:var(--muted);letter-spacing:.02em}
+.nastroj .uv-facts dd{margin:4px 0 0;font-size:15.5px;line-height:1.42;color:var(--body);
+  font-family:var(--ui);max-width:34ch}
+.nastroj .uv-facts b{color:var(--ink);font-weight:600}
+
+/* Artefakt: skutočná snímka nástroja pri práci, s popisom, čo to je a odkiaľ. */
+.nastroj .uv-lead-art{margin:0;justify-self:end;width:100%;max-width:470px}
+.nastroj .uv-lead-art img{display:block;width:100%;height:auto;background:#0f0d0c;
+  border:1px solid rgba(255,255,255,.14);border-radius:12px;box-shadow:var(--tien);
+  animation:uv-usadenie .9s var(--spring) both}
+.nastroj .uv-lead-art figcaption{margin-top:14px;font:500 13px/1.45 var(--ui);color:var(--muted)}
+.nastroj .uv-lead-art figcaption a{color:var(--body)}
+@keyframes uv-usadenie{from{opacity:0;transform:translateY(22px) rotate(-.6deg)}to{opacity:1;transform:none}}
+
+/* ── 5. Hárok: pravítkované riadky namiesto mriežky kariet ─────────────────── */
+.nastroj .uv-sheet{list-style:none;margin:clamp(18px,2vw,28px) 0 0;padding:0;border-top:1px solid var(--linka-silna)}
+.nastroj .uv-sheet li{border-bottom:1px solid var(--line)}
+.nastroj .uv-sheet-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(120px,auto);
+  gap:6px 22px;align-items:baseline;padding:14px 12px;margin:0 -12px;border-radius:10px;
+  text-decoration:none;color:inherit;transition:background-color .18s var(--ease)}
+.nastroj a.uv-sheet-row:hover,.nastroj a.uv-sheet-row:focus-visible{background:rgba(255,255,255,.04)}
+.nastroj .uv-row-main strong{display:block;font:600 18px/1.25 var(--display);color:var(--ink);letter-spacing:-.01em}
+.nastroj .uv-row-main span{display:block;margin-top:3px;font:15.5px/1.4 var(--ui);color:var(--body)}
+.nastroj .uv-row-price{font:600 16px/1.2 var(--ui);color:var(--ink);text-align:right;
+  white-space:nowrap;font-variant-numeric:tabular-nums}
+.nastroj .uv-row-price small{display:block;font:400 12px/1.3 var(--ui);color:var(--muted)}
+
+/* ── 6. Tlačidlá: jedno plné na obrazovku ─────────────────────────────────── */
+.nastroj .btn-solid{color:#0a0908}
+.nastroj .btn-solid:hover{color:#0a0908}
+.nastroj .btn-line{border-color:rgba(255,255,255,.35);color:var(--ink)}
+.nastroj .btn-line:hover{background:rgba(255,255,255,.06);color:var(--ink)}
+
+/* ── 7. Panel ceny ────────────────────────────────────────────────────────
+   Farebný 3 px border-left na paneli craft-floor odmieta. Panel drží vlasová
+   linka dookola a riadky sa oddeľujú linkami, ako .uv-facts a tiráž. */
+.nastroj .cena{border:1px solid var(--line);border-left-width:1px;border-left-color:var(--line);
+  background:var(--card-plna);max-width:520px}
+.nastroj .cena .suma{font-variant-numeric:tabular-nums}
+.nastroj .cena .fineprint,.nastroj .cena .pomoc{color:var(--muted)}
+
+/* ── 8. Tiráž: kto vydáva, ako sa platí, ukážka a podmienky ────────────────── */
+.nastroj .uv-colophon{margin-top:0;border-top:1px solid var(--linka-silna);
+  padding:clamp(36px,4.5vw,64px) 0 clamp(32px,4vw,56px)}
+body.noc.nastroj .uv-colophon h2{font-size:clamp(22px,2.2vw,30px)}
+.nastroj .uv-colophon-rows{display:grid;grid-template-columns:1fr 1fr;gap:0 40px;margin:22px 0 0;padding:0}
+.nastroj .uv-colophon-rows div{border-top:1px solid var(--line);padding:12px 0 14px;min-width:0}
+.nastroj .uv-colophon-rows dt{font:600 12.5px/1.3 var(--ui);color:var(--muted);letter-spacing:.02em}
+.nastroj .uv-colophon-rows dd{margin:5px 0 0;font:15.5px/1.45 var(--ui);color:var(--body)}
+.nastroj .uv-colophon-rows dd a{color:var(--body)}
+.nastroj .uv-colophon-akcie{display:flex;flex-wrap:wrap;gap:12px;margin-top:26px}
+
+/* ── 9. Zlomy ─────────────────────────────────────────────────────────────── */
+@media(max-width:1040px){
+  .nastroj .uv-lead-grid{grid-template-columns:1fr;gap:34px}
+  .nastroj .uv-lead-art{justify-self:start;max-width:520px}
+}
+@media(max-width:680px){
+  .nastroj .uv-lead{padding-top:22px}
+  .nastroj .uv-masthead{flex-wrap:wrap;gap:6px 14px;font-size:12.5px}
+  .nastroj .uv-masthead span:last-child{width:100%}
+  body.noc.nastroj h1{font-size:clamp(30px,8.4vw,38px)}
+  .nastroj .uv-lead h1{max-width:none}
+  .nastroj .uv-lead-p{font-size:17.5px}
+  .nastroj .uv-facts,.nastroj .uv-colophon-rows{grid-template-columns:1fr}
+  .nastroj .uv-lead-art{max-width:100%}
+  .nastroj .uv-sheet-row{grid-template-columns:minmax(0,1fr);padding:12px 8px;margin:0 -8px}
+  .nastroj .uv-row-price{text-align:left}
+  .nastroj .uv-row-price small{display:inline;margin-left:8px}
+}
+@media(prefers-reduced-motion:reduce){
+  .nastroj .uv-lead-art img{animation:none}
+  .nastroj .uv-sheet-row,.nastroj .btn{transition:none}
+}
