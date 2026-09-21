@@ -152,7 +152,11 @@ document.documentElement.classList.add('js');
         a.href = 'https://arling.sk' + cesty[i];
         a.textContent = t.nazvy[i];
       });
-      hlavicka.querySelectorAll('[data-site-cta]').forEach(function (a) { a.href = 'https://arling.sk' + proof; });
+      // Stránka produktu môže mať vlastné tlačidlo (obal.mjs CTA_STRANKY); to sa neprepisuje.
+      hlavicka.querySelectorAll('[data-site-cta]').forEach(function (a) {
+        if (a.getAttribute && a.getAttribute('data-site-cta') === 'vlastne') return;
+        a.href = 'https://arling.sk' + proof;
+      });
       navratDomov();
       document.querySelectorAll('[data-site-label]').forEach(function (el) {
         var k = el.getAttribute('data-site-label');
