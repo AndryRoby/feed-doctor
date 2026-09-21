@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-<script src="/style/vzhlad.js?v=dc0ce8df"></script>
+<script src="/style/vzhlad.js?v=2fa7f462"></script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://homelab.tailbf8f27.ts.net 'sha256-eDzuIw8eS/ujB2xhamu0U4OsM/BTfH48fnmZD0eWgbI=' 'sha256-avElJkKe6tQwGekvBXG7rzb1w1XcN/pP7bDkKG1OVUA=' 'sha256-7mJqGkGElkpK/Or3vRZ3YaMts7P76Ic02673H9K31lk=' 'sha256-6IA4bg0ckguc4W9mh2knXqf966l4uJsnwALVHIvdy2k='; connect-src 'self' https:; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
@@ -140,7 +140,8 @@
 
 <link rel="preload" href="fonts/arling-sans.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/arling-serif.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="style/paper.css?v=2ebf5aa4">
+<link rel="stylesheet" href="style/paper.css?v=4ee4d148">
+<link rel="stylesheet" href="style/nastroj.css?v=c9081cae">
 
 <style>
   /* Only what is specific to this page. Every colour, font, heading, button,
@@ -175,8 +176,7 @@
   @media (max-width:900px){.rules{grid-template-columns:repeat(2,1fr)}}
   @media (max-width:560px){.rules{grid-template-columns:1fr}}
   .rules li{padding-top:14px;border-top:1px solid var(--line);min-width:0}
-  .rules li::before{counter-increment:r;content:counter(r,decimal-leading-zero);
-    font:500 12px/1 var(--ui);letter-spacing:.12em;color:var(--accent);display:block;margin-bottom:8px}
+  /* bez cisla: nezavisle pravidla nie su postupnost */
   .rules b{display:block;font-family:var(--display);font-weight:600;font-size:16.5px;color:var(--ink);margin-bottom:4px}
   .rules p{margin:0;font-size:15px;overflow-wrap:anywhere}
 
@@ -211,7 +211,7 @@
   .field-row input[type="text"]:focus{border-color:var(--ink)}
   .fetch-status{margin:0;padding:9px 12px;font-size:13.5px;line-height:1.6;border-left:2px solid var(--accent);
     background:var(--soft);color:var(--body);border-radius:0 var(--ctl) var(--ctl) 0}
-  .or-divider{font-family:var(--ui);font-size:11px;text-transform:uppercase;letter-spacing:.08em;
+  .or-divider{font-family:var(--ui);font-size:11px;text-transform:none;letter-spacing:0;
     color:var(--muted);text-align:center;margin:2px 0}
   textarea.feed-text{width:100%;background:var(--paper);color:var(--ink);border:1px solid var(--line);
     border-radius:var(--ctl);padding:10px 12px;font-family:var(--mono);font-size:12.5px;line-height:1.6;
@@ -248,7 +248,7 @@
   .export-row{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0}
   .handoff{margin:0;padding-top:16px;border-top:1px solid var(--line);font-size:15px;color:var(--body);max-width:68ch}
 
-  .result-section-title{font:500 11px/1.3 var(--ui);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);
+  .result-section-title{font:500 11px/1.3 var(--ui);letter-spacing:0;text-transform:none;color:var(--muted);
     border-bottom:1px solid var(--line);padding-bottom:8px;margin:26px 0 12px}
   .result-section-title:first-of-type{margin-top:0}
   .found-rule{border:1px solid var(--line);border-left:3px solid var(--line);border-radius:0 var(--ctl) var(--ctl) 0;
@@ -270,7 +270,7 @@
 
   /* ── Monitor this feed ───────────────────────────────────────────────── */
   .monitor-box{margin-top:18px;padding-top:18px;border-top:1px solid var(--line)}
-  .monitor-box h3{font:500 11px/1.3 var(--ui);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 12px}
+  .monitor-box h3{font:500 11px/1.3 var(--ui);letter-spacing:0;text-transform:none;color:var(--muted);margin:0 0 12px}
   .monitor-form{display:flex;flex-direction:column;gap:10px;max-width:520px}
   .monitor-row{display:flex;flex-wrap:wrap;gap:8px}
   .monitor-row input{flex:1 1 220px;min-width:0;height:42px;padding:0 12px;border:1px solid var(--line);
@@ -292,7 +292,7 @@
   @media (max-width:860px){.endpoint{grid-template-columns:1fr}}
   .codeblock{border:1px solid var(--line);background:var(--card);border-radius:var(--radius);overflow:hidden}
   .codeblock-head{padding:10px 14px;border-bottom:1px solid var(--line);background:var(--paper-deep);
-    font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);
+    font-family:var(--mono);font-size:11px;letter-spacing:0;text-transform:none;color:var(--muted);
     display:flex;justify-content:space-between;align-items:center;gap:12px}
   .codeblock pre{margin:0;border:none;border-radius:0;background:none;padding:16px 18px;
     font-size:12px;line-height:1.7;color:var(--body);-webkit-overflow-scrolling:touch}
@@ -377,7 +377,7 @@
      text column and hides it under 1720 px, where the labels stop fitting. */
 </style>
 </head>
-<body class="noc">
+<body class="noc nastroj">
 <div class="wash" aria-hidden="true"><i></i><i></i></div>
 
 <!-- Header -->
@@ -388,38 +388,42 @@
       <svg viewBox="0 0 488 215" width="38" height="15" aria-hidden="true" focusable="false"><path fill="#f4f4f7" fill-rule="evenodd" d="M0.00,213.00L74.00,214.00L181.00,85.00L285.00,214.00L360.00,214.00L206.00,21.00L185.00,4.00L164.00,10.00Z M221.00,0.00L263.00,50.00L395.00,50.00L409.00,55.00L419.00,76.00L401.00,96.00L313.00,98.00L411.00,214.00L487.00,214.00L422.00,139.00L457.00,123.00L482.00,88.00L482.00,48.00L463.00,19.00L417.00,0.00Z"/><path fill="#f2643c" d="M269.00,66.00L269.00,67.00L268.00,68.00L268.00,70.00L267.00,71.00L267.00,76.00L268.00,77.00L268.00,79.00L270.00,81.00L270.00,82.00L271.00,82.00L273.00,84.00L274.00,84.00L277.00,86.00L279.00,86.00L280.00,87.00L287.00,87.00L288.00,86.00L290.00,86.00L291.00,85.00L294.00,84.00L298.00,80.00L298.00,79.00L299.00,78.00L299.00,75.00L300.00,74.00L300.00,72.00L299.00,71.00L299.00,69.00L298.00,68.00L297.00,65.00L295.00,63.00L294.00,63.00L289.00,60.00L278.00,60.00L277.00,61.00L276.00,61.00L275.00,62.00L272.00,63.00Z"/></svg>
       <b>ARLing</b><span>Product Feed Doctor</span>
     </a>
-    <details class="site-menu" open>
-      <summary class="site-menu-toggle"><svg viewBox="0 0 18 12" fill="none" aria-hidden="true"><path d="M1 1h16M1 6h16M1 11h16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span data-site-label="menu">Menu</span></summary>
-      <div class="site-menu-panel"><nav id="hlavne-menu" class="site-main-nav" aria-label="Main navigation" data-site-aria="nav"><a href="https://arling.sk/shop/" data-site-nav="0">Shop</a><a href="https://arling.sk/en/#tools" data-site-nav="1">Tools</a><a href="https://arling.sk/games/" data-site-nav="2">Free puzzles</a><a href="https://arling.sk/notes/en/" data-site-nav="3">Notes</a><a href="https://arling.sk/ucet/en/" data-site-nav="4">Account</a></nav><div class="site-page-links"><p data-site-label="stranka">On this page</p><nav aria-label="On this page" data-site-aria="stranka"><a href="#tool">Check your feed</a><a href="#checks">What it checks</a><a href="#fixes">Fixes</a><a href="#faq">FAQ</a></nav></div></div>
+    <details class="site-menu">
+      <summary class="site-menu-toggle"><span class="site-menu-text" data-site-label="produkty">Products</span><span class="site-menu-bars" aria-hidden="true"><i></i><i></i><i></i></span><span class="site-menu-word" data-site-label="menu">Menu</span></summary>
+      <div class="site-menu-panel" role="navigation" aria-label="Products" data-site-aria="produkty"><div class="site-cols"><div class="site-col"><p>Business software</p><ul><li><a href="https://arling.sk/proof/"><b>Proof</b><span>Customer approval before printing</span></a></li><li><a href="https://arling.sk/renewals/"><b>Renewals</b><span>Supplier documents and renewal dates</span></a></li><li><a href="https://arling.sk/asistent/"><b>Asistent<em class="site-sk">SK</em></b><span>Sales assistant for e-shops</span></a></li></ul></div><div class="site-col"><p>Invoices and payments</p><ul><li><a href="https://arling.sk/efaktura/en/"><b>E-invoice</b><span>Check, preview and create XML</span></a></li><li><a href="https://arling.sk/sepa-pain001-doctor/"><b>pain.001 check</b><span>Why the bank rejected the file</span></a></li><li><a href="https://arling.sk/sepa-pain001-generator/"><b>pain.001 generator</b><span>Bulk transfer from a table</span></a></li><li><a href="https://arling.sk/camt053-to-excel/"><b>Statement to Excel</b><span>camt.053 and MT940 to a sheet</span></a></li><li><a href="https://arling.sk/parovac-platieb/"><b>Payment matcher<em class="site-sk">SK</em></b><span>Statement against invoices</span></a></li><li><a href="https://arling.sk/kontrola-suboru/en/"><b>SEPA file check</b><span>Before the November 2026 change</span></a></li><li><a href="https://arling.sk/bankove-nastroje/"><b>Banking tools Pro<em class="site-sk">SK</em></b><span>One licence, four tools</span></a></li></ul></div><div class="site-col"><p>Documents and company</p><ul><li><a href="https://arling.sk/gdpr-dokumenty/"><b>GDPR documents<em class="site-sk">SK</em></b><span>For a company or e-shop in 10 minutes</span></a></li><li><a href="https://arling.sk/vzory-zmluv/"><b>Contract templates<em class="site-sk">SK</em></b><span>Under Slovak law, free</span></a></li><li><a href="https://arling.sk/zivotopis/en/"><b>CV builder</b><span>A finished CV, no account</span></a></li><li><a href="https://arling.sk/feed-doctor/"><b>Feed Doctor</b><span>Product feed check</span></a></li><li><a href="https://arling.sk/mail-doctor/"><b>Mail Doctor</b><span>SPF, DKIM and DMARC of a domain</span></a></li></ul></div><div class="site-col"><p>Publishing</p><ul><li><a href="https://arling.sk/shop/"><b>Shop</b><span>Books, puzzles and gifts</span></a></li><li><a href="https://arling.sk/classics/"><b>Classics for e-ink</b><span>Books prepared for e-readers</span></a></li><li><a href="https://arling.sk/morning-quiet/"><b>Morning Quiet</b><span>Daily editions for e-ink</span></a></li><li><a href="https://arling.sk/games/"><b>Browser games</b><span>A free daily logic puzzle</span></a></li><li><a href="https://arling.sk/puzzle-post/"><b>Puzzle Post</b><span>Puzzles by post</span></a></li><li><a href="https://arling.sk/memory-post/"><b>Memory Post</b><span>Memories on paper</span></a></li></ul></div></div><p class="site-dev"><span>For developers</span><a href="https://arling.sk/cors-doctor/">CORS</a><a href="https://arling.sk/jwt-doctor/">JWT</a><a href="https://arling.sk/cookie-samesite-doctor/">Cookie SameSite</a><a href="https://arling.sk/redirect-loop-doctor/">Redirect loop</a><a href="https://arling.sk/stripe-webhook-doctor/">Stripe webhook</a><a href="https://arling.sk/firebase-auth-domain-doctor/">Firebase auth</a><a href="https://arling.sk/google-oauth-redirect-doctor/">Google OAuth</a><a href="https://arling.sk/supabase-redirect-doctor/">Supabase redirect</a><a href="https://arling.sk/flutter-supabase-doctor/">Flutter + Supabase</a><a href="https://arling.sk/expo-universal-links-doctor/">Expo links</a><a href="https://arling.sk/expo-supabase-auth-doctor/">Expo + Supabase</a><a href="https://arling.sk/api/">Puzzle API</a></p><div class="site-col site-firma"><p>Company</p><ul><li><a href="https://arling.sk/en/#nastroje"><b>Tools</b></a></li><li><a href="https://arling.sk/en/#piloty"><b>Pilots</b></a></li><li><a href="https://arling.sk/how-we-work/en/"><b>How we work</b></a></li><li><a href="https://arling.sk/notes/en/"><b>Guides</b></a></li><li><a href="https://arling.sk/kontakt/"><b>Contact</b></a></li><li><a href="https://arling.sk/ucet/"><b>Account</b></a></li><li><a href="https://arling.sk/brand/"><b>Brand</b></a></li><li><a href="https://arling.sk/podmienky/en/"><b>Terms</b></a></li><li><a href="https://arling.sk/privacy/"><b>Privacy</b></a></li><li><a href="https://arling.sk/impressum/"><b>Imprint</b></a></li></ul></div><p class="site-menu-cta"><a class="site-cta" href="https://arling.sk/proof/" data-site-cta data-site-label="cta" data-umami-event="shell_cta_menu">Try Proof free</a></p></div>
     </details>
+    <nav id="hlavne-menu" class="site-main-nav" aria-label="Main navigation" data-site-aria="nav"><a href="https://arling.sk/en/#nastroje" data-site-nav="0">Tools</a><a href="https://arling.sk/en/#piloty" data-site-nav="1">Pilots</a><a href="https://arling.sk/notes/en/" data-site-nav="2">Guides</a><a href="https://arling.sk/how-we-work/en/" data-site-nav="3">Company</a></nav>
+    <a class="site-cta" href="https://arling.sk/proof/" data-site-cta data-site-label="cta" data-umami-event="shell_cta">Try Proof free</a>
   </div>
+  <div class="site-page-links"><div class="wrap"><p data-site-label="stranka">On this page</p><nav aria-label="On this page" data-site-aria="stranka"><a href="#tool">Check your feed</a><a href="#checks">What it checks</a><a href="#fixes">Fixes</a><a href="#faq">FAQ</a></nav></div></div>
 </header>
 
 <main id="arling-obsah" tabindex="-1">
 
 <!-- Hero -->
-<div class="wrap hero" id="hero">
-  <div>
-    <h1 id="h1"><span class="l">Product Feed Doctor:</span><span class="l">find what is wrong with</span><span class="l">your shopping feed</span><span class="l">before Google, Meta</span><span class="l">or your AI assistant do</span></h1>
-    <p class="lead r d3">Paste a feed URL, paste the feed content, or upload the file: Google Shopping/Merchant Center RSS, a Facebook/Meta catalog CSV, Shopify's <span class="mono">/products.json</span>, WooCommerce's Store API JSON, a generic XML feed, or plain CSV. Get a score out of 100, a rule-by-rule report, and the exact rows to fix, all in your browser.</p>
-    <div class="cta r d4">
-      <a href="#tool" class="btn btn-solid" data-umami-event="hero_check_feed">Check your feed</a>
-      <a href="https://github.com/AndryRoby/feed-doctor" class="btn btn-line" target="_blank" rel="noopener" data-umami-event="github_click">View source on GitHub</a>
-    </div>
+<div class="wrap uv-lead" id="hero">
+  <p class="uv-masthead"><span>Product Feed Doctor</span><span>Tools for work</span><span>ARLing s. r. o., Bratislava</span></p>
+  <div class="uv-lead-grid">
+    <div>
+      <h1 id="h1">Find what is wrong with your feed before Google does.</h1>
+      <p class="uv-lead-p">Paste a feed URL, the feed content or the file, and get a score out of 100, a rule-by-rule report and the exact rows to fix, all in your browser.</p>
+      <p class="uv-actions">
+        <a class="btn btn-solid" href="#tool" data-umami-event="hero_check_feed">Check your feed</a>
+        <a class="uv-quiet" href="https://github.com/AndryRoby/feed-doctor" target="_blank" rel="noopener" data-umami-event="github_click">View source on GitHub</a>
+      </p>
+      <dl class="uv-facts">
+        <div><dt>Free</dt><dd>The whole check, <b>31</b> rules, the score and the export of findings to CSV and JSON. No account.</dd></div>
+        <div><dt>Paid</dt><dd>Nothing for the check. <b>&euro;9</b> a month buys only <a href="monitor/">Monitor</a>, which watches the feed for you.</dd></div>
+        <div><dt>Limits</dt><dd><b>6</b> feed formats: Google Shopping RSS, a Meta catalog CSV, Shopify products.json, the WooCommerce Store API, a generic XML feed and plain CSV.</dd></div>
+        <div><dt>Your data</dt><dd>Nothing is uploaded anywhere. The feed is read and checked in your browser.</dd></div>
+      </dl>
     <nav class="index r d5" aria-label="How it works">
-      <a href="#tool" data-umami-event="index-paste"><span class="n">[1]</span><span class="t">Paste, upload, or fetch a feed</span><span class="dots"></span></a>
-      <a href="#tool" data-umami-event="index-report"><span class="n">[2]</span><span class="t">Get a score and a rule-by-rule report</span><span class="dots"></span></a>
-      <a href="#tool" data-umami-event="index-fix"><span class="n">[3]</span><span class="t">Fix what is flagged, export the list</span><span class="dots"></span></a>
+      <a href="#tool" data-umami-event="index-paste"><span class="n">1.</span><span class="t">Paste, upload, or fetch a feed</span></a>
+      <a href="#tool" data-umami-event="index-report"><span class="n">2.</span><span class="t">Get a score and a rule-by-rule report</span></a>
+      <a href="#tool" data-umami-event="index-fix"><span class="n">3.</span><span class="t">Fix what is flagged, export the list</span></a>
     </nav>
-    <ul class="facts proof r d6">
-      <li><b>31</b> rules checked</li>
-      <li><b>6</b> feed formats</li>
-      <li><b>0 &euro;</b>, no account</li>
-      <li>nothing is uploaded</li>
-    </ul>
-  </div>
-
-  <figure class="r d2 shotwrap">
+    </div>
+  <figure class="uv-lead-art shotwrap">
     <div class="shot">
       <div class="chrome" aria-hidden="true"><i></i><i></i><i></i></div>
       <img src="shot/report.webp" width="1598" height="1210" decoding="async" loading="lazy"
@@ -427,13 +431,13 @@
     </div>
     <figcaption>The sample feed, checked in this page. Nothing left the browser.</figcaption>
   </figure>
+  </div>
 </div>
 
 <!-- The tool -->
 <section id="tool" class="deep anchor-offset">
   <div class="wrap">
     <div class="section-head">
-      <p class="kicker r"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 5a15 15 0 0 1 15 15"/></svg>01</p>
       <h2 class="r">Check your feed</h2>
       <div class="rule"></div>
       <p class="sub r d1">Everything below runs in your browser. Paste a feed URL and click Fetch, paste the feed content directly, upload the downloaded file, or load the built-in sample to see how a report looks.</p>
@@ -474,7 +478,6 @@
 <section id="checks" class="anchor-offset">
   <div class="wrap">
     <div class="section-head">
-      <p class="kicker r"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M9 10v9M15 10v9"/></svg>02</p>
       <h2 class="r">31 rules, each with a severity and a one-line fix.</h2>
       <div class="rule"></div>
       <p class="sub r d1">Every rule below has a stable id, a severity (error, warning or info), and, where it applies, the Merchant Center product data specification field it checks. This table is generated straight from feed-doctor.js, so it never drifts from what the tool actually runs.</p>
@@ -494,7 +497,6 @@
 <section id="fixes" class="deep anchor-offset">
   <div class="wrap">
     <div class="section-head">
-      <p class="kicker r"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M8.5 12.3l2.4 2.4 4.6-4.9"/></svg>03</p>
       <h2 class="r">The six issues that show up in almost every feed.</h2>
       <div class="rule"></div>
       <p class="sub r d1">Most feeds fail on a small, repeating set of mistakes. Here is what causes each one and the fastest way to fix it.</p>
@@ -532,7 +534,6 @@
 <section id="assistant" class="band anchor-offset">
   <div class="wrap">
     <div class="section-head">
-      <p class="kicker r"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h16l-1 12H5z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>04</p>
       <h2 class="r">Turn your feed into a shopping assistant</h2>
       <div class="rule"></div>
       <p class="sub r d1">Once your feed is clean, the same product data can power a chat assistant on your store that answers "does this come in blue" or "what's in stock under 30 euro" from your real catalog.</p>
@@ -548,7 +549,6 @@
 <section id="how" class="anchor-offset">
   <div class="wrap">
     <div class="section-head">
-      <p class="kicker r"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M9 8V5.5M15 8V5.5M4 13h2M18 13h2"/></svg>05</p>
       <h2 class="r">One function. Feed text in, report out.</h2>
       <div class="rule"></div>
       <p class="sub r d1">No server, no API key, no signup. <span class="mono">feed-doctor.js</span> is plain JavaScript: read it, fork it, or run it in your own scripts or CI.</p>
@@ -590,7 +590,6 @@
 <section id="pricing" class="deep anchor-offset">
   <div class="wrap">
     <div class="section-head">
-      <p class="kicker r"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="9" width="17" height="11" rx="1.5"/><path d="M2.5 9h19M12 9v11"/><path d="M12 9c-1.5-3.5-2.8-4.7-4.2-4.2C6.4 5.3 6.6 7.6 8 8.4c1 .5 2.4.6 4 .6zM12 9c1.5-3.5 2.8-4.7 4.2-4.2 1.4.5 1.2 2.8-.2 3.6-1 .5-2.4.6-4 .6z"/></svg>06</p>
       <h2 class="r">Free.</h2>
       <div class="rule"></div>
       <p class="sub r d1">No account, no payment, no usage limit: it runs as a static page in your browser, so there is no server to bill for.</p>
@@ -603,7 +602,7 @@
         <button class="btn btn-solid" type="submit" data-umami-event="subscribe_submit">Notify me</button>
       </form>
       <p id="subscribe-thanks" hidden>Thanks. You will hear from us only when something new is live.</p>
-      <p id="subscribe-error" hidden>Could not save. Write to <a href="mailto:andrej@arling.sk">andrej@arling.sk</a>.</p>
+      <p id="subscribe-error" hidden>Could not save. Write to <a href="mailto:andrej@arling.sk" data-umami-event="klik_email" data-umami-event-produkt="feed-doctor">andrej@arling.sk</a>.</p>
     </div>
   </div>
 </section>
@@ -612,7 +611,6 @@
 <section id="faq" class="anchor-offset">
   <div class="wrap">
     <div class="section-head">
-      <p class="kicker r"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>07</p>
       <h2 class="r">Questions people actually search for.</h2>
       <div class="rule"></div>
       <p class="sub r d1">Straight answers to the same product feed questions this tool checks, for when you just need the answer, not the checker.</p>
@@ -659,6 +657,23 @@
   </div>
 </section>
 
+<section class="uv-colophon" id="tirag">
+  <div class="wrap">
+    <h2 class="r">Who publishes this and how it works.</h2>
+    <dl class="uv-colophon-rows">
+      <div><dt>Publisher</dt><dd>ARLing s. r. o., Ivanská cesta 32E, 821 04 Bratislava, Slovakia. Company number 56583486, VAT ID SK2122352100.</dd></div>
+      <div><dt>Who makes it</dt><dd>Written and maintained by one person in Bratislava. The source is public on <a href="https://github.com/AndryRoby/feed-doctor">GitHub</a>.</dd></div>
+      <div><dt>Payment and delivery</dt><dd>The check is not paid for. Monitor is paid through Stripe, which is the seller towards you and issues the receipt; alerts arrive by e-mail.</dd></div>
+      <div><dt>Sample and terms</dt><dd>You can check the sample feed right on this page before you paste your own.</dd></div>
+      <div><dt>Reply</dt><dd>We answer <a href="mailto:andrej@arling.sk" data-umami-event="klik_email" data-umami-event-produkt="feed">andrej@arling.sk</a> within 24 hours.</dd></div>
+      <div><dt>What it is not</dt><dd>We are not Google or Meta. The check is about format; whether a product is approved is their decision.</dd></div>
+    </dl>
+    <p class="uv-colophon-akcie">
+      <a class="btn btn-line" href="https://arling.sk/podmienky/">Terms</a>
+      <a class="btn btn-line" href="https://arling.sk/privacy/">Privacy</a>
+    </p>
+  </div>
+</section>
 </main>
 
 <nav class="rail" aria-label="Where you are">
@@ -672,11 +687,13 @@
   <a href="#faq"><i></i><span>FAQ</span></a>
 </nav>
 
-<footer>
+<footer class="site-footer">
   <div class="wrap foot">
-    <div><b>ARLing s. r. o.</b><br>Ivanská cesta 32E<br>821 04 Bratislava, Slovakia</div>
-    <div>Company ID 56583486<br>VAT ID SK2122352100<br><a href="mailto:andrej@arling.sk">andrej@arling.sk</a></div>
-    <div><a href="https://arling.sk/shop/">shop</a> · <a href="https://arling.sk/privacy/en/">privacy</a> · <a href="https://arling.sk/podmienky/en/">terms</a> · <a href="https://arling.sk/gdpr/en/">GDPR</a> · <a href="https://arling.sk/impressum/en/">Impressum</a> · <a href="https://arling.sk/llms.txt">llms.txt</a> · <a href="https://arling.sk/sitemap-index.xml">sitemap</a><br>Tools are provided as is, without warranty. Anonymous visit counts via self-hosted Umami.</div>
+    <div class="site-foot-top"><div><a class="site-brand" href="https://arling.sk/en/" aria-label="ARLing home" data-site-home><svg viewBox="0 0 488 215" width="38" height="15" aria-hidden="true" focusable="false"><path fill="#f4f4f7" fill-rule="evenodd" d="M0.00,213.00L74.00,214.00L181.00,85.00L285.00,214.00L360.00,214.00L206.00,21.00L185.00,4.00L164.00,10.00Z M221.00,0.00L263.00,50.00L395.00,50.00L409.00,55.00L419.00,76.00L401.00,96.00L313.00,98.00L411.00,214.00L487.00,214.00L422.00,139.00L457.00,123.00L482.00,88.00L482.00,48.00L463.00,19.00L417.00,0.00Z"/><path fill="#f2643c" d="M269.00,66.00L269.00,67.00L268.00,68.00L268.00,70.00L267.00,71.00L267.00,76.00L268.00,77.00L268.00,79.00L270.00,81.00L270.00,82.00L271.00,82.00L273.00,84.00L274.00,84.00L277.00,86.00L279.00,86.00L280.00,87.00L287.00,87.00L288.00,86.00L290.00,86.00L291.00,85.00L294.00,84.00L298.00,80.00L298.00,79.00L299.00,78.00L299.00,75.00L300.00,74.00L300.00,72.00L299.00,71.00L299.00,69.00L298.00,68.00L297.00,65.00L295.00,63.00L294.00,63.00L289.00,60.00L278.00,60.00L277.00,61.00L276.00,61.00L275.00,62.00L272.00,63.00Z"/></svg><b>ARLing</b></a><p class="site-foot-firma">ARLing s. r. o., company ID <span class="num">56583486</span>, Bratislava. Own server in the European Union. Software for companies, freelancers and individuals.</p></div><a class="site-cta" href="https://arling.sk/proof/" data-umami-event="shell_footer_cta">Try Proof free<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></a></div>
+    <div class="site-foot-cols"><div><p>Business software</p><ul><li><a href="https://arling.sk/proof/">Proof</a></li><li><a href="https://arling.sk/renewals/">Renewals</a></li><li><a href="https://arling.sk/asistent/">Asistent<em class="site-sk">SK</em></a></li></ul></div><div><p>Invoices and payments</p><ul><li><a href="https://arling.sk/efaktura/en/">E-invoice</a></li><li><a href="https://arling.sk/sepa-pain001-doctor/">pain.001 check</a></li><li><a href="https://arling.sk/sepa-pain001-generator/">pain.001 generator</a></li><li><a href="https://arling.sk/camt053-to-excel/">Statement to Excel</a></li><li><a href="https://arling.sk/parovac-platieb/">Payment matcher<em class="site-sk">SK</em></a></li><li><a href="https://arling.sk/kontrola-suboru/en/">SEPA file check</a></li><li><a href="https://arling.sk/bankove-nastroje/">Banking tools Pro<em class="site-sk">SK</em></a></li></ul></div><div><p>Documents and company</p><ul><li><a href="https://arling.sk/gdpr-dokumenty/">GDPR documents<em class="site-sk">SK</em></a></li><li><a href="https://arling.sk/vzory-zmluv/">Contract templates<em class="site-sk">SK</em></a></li><li><a href="https://arling.sk/zivotopis/en/">CV builder</a></li><li><a href="https://arling.sk/feed-doctor/">Feed Doctor</a></li><li><a href="https://arling.sk/mail-doctor/">Mail Doctor</a></li></ul></div><div><p>Publishing</p><ul><li><a href="https://arling.sk/shop/">Shop</a></li><li><a href="https://arling.sk/classics/">Classics for e-ink</a></li><li><a href="https://arling.sk/morning-quiet/">Morning Quiet</a></li><li><a href="https://arling.sk/games/">Browser games</a></li><li><a href="https://arling.sk/puzzle-post/">Puzzle Post</a></li><li><a href="https://arling.sk/memory-post/">Memory Post</a></li></ul></div><div><p>Company</p><ul><li><a href="https://arling.sk/how-we-work/en/">How we work</a></li><li><a href="https://arling.sk/notes/en/">Guides</a></li><li><a href="https://arling.sk/kontakt/">Contact</a></li><li><a href="https://arling.sk/ucet/">Account</a></li><li><a href="https://arling.sk/brand/">Brand</a></li><li><a href="https://arling.sk/podmienky/en/">Terms</a></li><li><a href="https://arling.sk/privacy/">Privacy</a></li><li><a href="https://arling.sk/impressum/">Imprint</a></li></ul></div></div>
+    <p class="site-dev"><span>For developers</span><a href="https://arling.sk/cors-doctor/">CORS</a><a href="https://arling.sk/jwt-doctor/">JWT</a><a href="https://arling.sk/cookie-samesite-doctor/">Cookie SameSite</a><a href="https://arling.sk/redirect-loop-doctor/">Redirect loop</a><a href="https://arling.sk/stripe-webhook-doctor/">Stripe webhook</a><a href="https://arling.sk/firebase-auth-domain-doctor/">Firebase auth</a><a href="https://arling.sk/google-oauth-redirect-doctor/">Google OAuth</a><a href="https://arling.sk/supabase-redirect-doctor/">Supabase redirect</a><a href="https://arling.sk/flutter-supabase-doctor/">Flutter + Supabase</a><a href="https://arling.sk/expo-universal-links-doctor/">Expo links</a><a href="https://arling.sk/expo-supabase-auth-doctor/">Expo + Supabase</a><a href="https://arling.sk/api/">Puzzle API</a></p>
+    <div class="site-foot-bottom"><p>ARLing s. r. o., Ivanská cesta 32E, 821 04 Bratislava, Slovakia. Company ID 56583486, VAT ID SK2122352100. <a href="mailto:andrej@arling.sk">andrej@arling.sk</a></p><p><a href="https://arling.sk/impressum/en/">Impressum</a> · <a href="https://arling.sk/llms.txt">llms.txt</a> · <a href="https://arling.sk/sitemap-index.xml">Sitemap</a></p></div>
+    <p class="site-foot-legal">Tools are provided as is, without warranty. Anonymous visit counts via self-hosted Umami. <a href="https://arling.sk/privacy/en/">Privacy</a> · <a href="https://arling.sk/podmienky/en/">Terms</a> · <a href="https://arling.sk/gdpr/en/">GDPR</a></p>
   </div>
 </footer>
 

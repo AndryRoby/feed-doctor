@@ -11,9 +11,11 @@
  */
 document.documentElement.classList.add('js');
 
-/* A-090: natívne menu podstránok. Bez JS je otvorené a stále ovládateľné.
-   S JS je na mobile zavreté, na desktope otvorené. Používa vlastné triedy,
-   preto sa neprebije s historickým menu-btn kódom produktových stránok. */
+/* A-093: hlavička podstránok podľa úvodu v4. Bez JS je menu čisté details,
+   ktoré sa otvára kliknutím. Tento blok drží jazyk značky (arling_hub_lang),
+   prekladá lištu, keď aplikácia zmení <html lang>, a dáva menu rovnaké správanie
+   ako na úvode. Používa vlastné triedy (site-…), preto sa neprebije s historickým
+   menu-btn kódom produktových stránok. */
 (function () {
   'use strict';
   var klucDomova = 'arling_hub_lang';
@@ -60,39 +62,95 @@ document.documentElement.classList.add('js');
     var menu = hlavicka.querySelector('details.site-menu');
     var prepinac = menu && menu.querySelector('summary');
     if (!menu || !prepinac) return;
-    var uzke = window.matchMedia('(max-width: 960px)');
-    function sirka() { menu.open = !uzke.matches; }
-    sirka();
-    if (uzke.addEventListener) uzke.addEventListener('change', sirka);
-    else if (uzke.addListener) uzke.addListener(sirka);
+
+    /* Rám podľa úvodu v4 (A-093). Všetky details v hlavičke (Produkty alebo
+       mobilné menu, langsel z prepinac.js, vlastný prepínač stránky) sa správajú
+       rovnako ako na úvode: otvorené je vždy len jedno, zatvára sa klikom mimo,
+       klávesom Escape s návratom fokusu, po kliknutí na odkaz a pri zmene šírky
+       cez hranicu mobilu. Bez tohto skriptu ostáva čisté details, ktoré sa
+       otvára a zatvára kliknutím. */
+    function otvorene() {
+      return Array.prototype.slice.call(hlavicka.querySelectorAll('details[open]'));
+    }
+    function zatvor(okrem) {
+      otvorene().forEach(function (d) { if (d !== okrem) d.open = false; });
+    }
+    // toggle nebublá, vo fáze capture ho však hlavička zachytí aj pre langsel,
+    // ktorý prepinac.js pridá až po tomto skripte.
+    hlavicka.addEventListener('toggle', function (e) {
+      var d = e.target;
+      if (d && d.open) zatvor(d);
+    }, true);
+    hlavicka.addEventListener('click', function (e) {
+      var odkaz = e.target.closest && e.target.closest('a[href]');
+      var d = odkaz && odkaz.closest('details');
+      if (!d || !hlavicka.contains(d)) return;
+      d.open = false;
+      // Ktorý odkaz z katalógu ľudia volia; Mail Doctor analytiku nenačíta, tam sa nič nepošle.
+      if (d === menu) {
+        try { if (window.umami && typeof window.umami.track === 'function') window.umami.track('shell_menu', { target: odkaz.getAttribute('href') }); } catch (err) {}
+      }
+    });
     document.addEventListener('click', function (e) {
-      if (uzke.matches && menu.open && !hlavicka.contains(e.target)) menu.open = false;
+      if (!(e.target.closest && e.target.closest('header.site-header details[open]'))) zatvor(null);
     });
     document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && uzke.matches && menu.open) { menu.open = false; prepinac.focus(); }
+      if (e.key !== 'Escape') return;
+      var o = otvorene()[0];
+      if (!o) return;
+      o.open = false;
+      var s = o.querySelector('summary');
+      if (s) s.focus();
     });
-    menu.addEventListener('click', function (e) {
-      var odkaz = e.target.closest && e.target.closest('a[href]');
-      if (odkaz && uzke.matches) menu.open = false;
+    // Na myši sa Produkty otvárajú prejdením: 90 ms, aby nepreblikli pri ceste
+    // kurzora inam, a zatvárajú po 180 ms, aby sa dalo prejsť zo slova na panel.
+    // Na mobilnej šírke a na dotyku sa menu otvára len kliknutím.
+    var jemne = window.matchMedia('(hover: hover) and (pointer: fine)');
+    var siroke = window.matchMedia('(min-width: 761px)');
+    var cas = null, prejdenim = 0;
+    menu.addEventListener('pointerenter', function () {
+      if (!jemne.matches || !siroke.matches) return;
+      clearTimeout(cas);
+      cas = setTimeout(function () { if (!menu.open) { menu.open = true; prejdenim = Date.now(); } }, 90);
     });
+    menu.addEventListener('pointerleave', function () {
+      if (!jemne.matches || !siroke.matches) return;
+      clearTimeout(cas);
+      cas = setTimeout(function () { menu.open = false; }, 180);
+    });
+    // Kto na slovo Produkty zo zvyku aj klikne tesne po tom, čo sa otvorilo
+    // prejdením, nemá si ho tým istým klikom zavrieť.
+    prepinac.addEventListener('click', function (e) {
+      if (menu.open && Date.now() - prejdenim < 450) e.preventDefault();
+    });
+    function poZmeneSirky() { clearTimeout(cas); zatvor(null); }
+    if (siroke.addEventListener) siroke.addEventListener('change', poZmeneSirky);
+    else if (siroke.addListener) siroke.addListener(poZmeneSirky);
+
     // Niektoré aplikácie menia jazyk za behu. Hlavička musí nasledovať ich
     // html lang, nie zasahovať do ich formulárov alebo prekladových slovníkov.
+    // Poradie názvov a ciest je to isté ako NAV a CTA v ops/design/obal.mjs
+    // (stráži to test). Katalóg v paneli ostáva v jazyku, v ktorom stránku
+    // postavil obal; tri jeho preklady by tento súbor zväčšili na každej stránke.
     var texty = {
-      sk: { menu:'Menu', domov:'ARLing: úvod', nav:'Hlavná navigácia', stranka:'Na tejto stránke', skip:'Prejsť na obsah', nazvy:['Obchod','Nástroje','Hry','Články','Účet'] },
-      en: { menu:'Menu', domov:'ARLing home', nav:'Main navigation', stranka:'On this page', skip:'Skip to content', nazvy:['Shop','Tools','Free puzzles','Notes','Account'] },
-      de: { menu:'Menü', domov:'ARLing Startseite', nav:'Hauptnavigation', stranka:'Auf dieser Seite', skip:'Zum Inhalt springen', nazvy:['Shop','Werkzeuge','Gratis-Rätsel','Artikel','Konto'] },
-      cs: { menu:'Menu', domov:'ARLing: úvod', nav:'Hlavní navigace', stranka:'Na této stránce', skip:'Přejít na obsah', nazvy:['Obchod','Nástroje','Hry','Články','Účet'] }
+      sk: { menu:'Menu', produkty:'Produkty', domov:'ARLing: úvod', nav:'Hlavná navigácia', stranka:'Na tejto stránke', skip:'Prejsť na obsah', cta:'Vyskúšať Proof zadarmo', nazvy:['Nástroje','Piloty','Návody','O firme'] },
+      en: { menu:'Menu', produkty:'Products', domov:'ARLing home', nav:'Main navigation', stranka:'On this page', skip:'Skip to content', cta:'Try Proof free', nazvy:['Tools','Pilots','Guides','Company'] },
+      de: { menu:'Menü', produkty:'Produkte', domov:'ARLing Startseite', nav:'Hauptnavigation', stranka:'Auf dieser Seite', skip:'Zum Inhalt springen', cta:'Proof kostenlos testen', nazvy:['Werkzeuge','Piloten','Anleitungen','Unternehmen'] },
+      cs: { menu:'Menu', produkty:'Produkty', domov:'ARLing: úvod', nav:'Hlavní navigace', stranka:'Na této stránce', skip:'Přejít na obsah', cta:'Vyskúšať Proof zadarmo', nazvy:['Nástroje','Piloty','Návody','O firme'] }
     };
     function jazyk() {
       var kod = (document.documentElement.lang || 'sk').slice(0,2).toLowerCase();
       var t = texty[kod] || texty.sk;
       var cast = kod === 'en' || kod === 'de' ? kod + '/' : '';
-      var cesty = ['/shop/', '/'+cast+'#tools', '/games/', '/notes/'+cast, '/ucet/'+cast];
+      var cesty = ['/'+cast+'#nastroje', '/'+cast+'#piloty', '/notes/'+cast, '/how-we-work/'+cast];
+      var proof = kod === 'en' ? '/proof/' : kod === 'de' ? '/proof/de/' : '/proof/sk/';
       hlavicka.querySelectorAll('[data-site-nav]').forEach(function (a) {
         var i = Number(a.getAttribute('data-site-nav'));
+        if (!cesty[i]) return;
         a.href = 'https://arling.sk' + cesty[i];
         a.textContent = t.nazvy[i];
       });
+      hlavicka.querySelectorAll('[data-site-cta]').forEach(function (a) { a.href = 'https://arling.sk' + proof; });
       navratDomov();
       document.querySelectorAll('[data-site-label]').forEach(function (el) {
         var k = el.getAttribute('data-site-label');
