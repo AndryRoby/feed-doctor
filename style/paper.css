@@ -139,6 +139,62 @@ section{padding:var(--sec) 0;border-top:1px solid var(--line);position:relative}
 .shot .chrome i{width:9px;height:9px;border-radius:50%;background:rgba(20,20,19,.16);display:block}
 .shot img{display:block;width:100%}
 
+/* ── 8b. Ilustrácia stránky: jeden predmet na tmavom podklade, ktorý splýva so stránkou.
+   21. 9. obrázok v rámiku ako samostatná sekcia, 22. 9. pás cez celú šírku medzi sekciami.
+   Oboje bola chyba. Andrej 24. 9.: "ja som myslel, že tie obrázky logicky niekam pekne dať,
+   nie random sekcia len obrázok". Pás medzi sekciami je stále sekcia s obrázkom.
+   Od 24. 9. stojí obrázok vždy pri texte, ktorý hovorí o jeho predmete, a to len dvomi
+   spôsobmi (zoznam stránok a dôvody v ops/design/obrazky/ako-pouzit.md):
+     .vedla            text a obrázok vedľa seba; na telefóne obrázok pod týmto textom
+     .hero-s-obrazkom  to isté v prvej obrazovke; obrázok eager a fetchpriority="high"
+   a v textovom stĺpci, ktorý už má vedľa seba iný obsah, stojí figure.ilu priamo pod odsekom.
+   Zakázané: sekcia, ktorej jediným obsahom je obrázok, a pás medzi sekciami. Stráži to
+   node ops/design/obrazky/kontrola.mjs.
+   Blok medzi značkami ilu:od a ilu:do číta aj ops/design/postav-uvod.mjs a vkladá ho do úvodu,
+   ktorý paper.css nenačítava. Preto tu nie sú premenné z paper.css, len pevné hodnoty. ── */
+/* ilu:od */
+.ilu{margin:0;padding:0;max-width:none;width:auto;height:auto;position:relative;overflow:visible}
+/* Bez rámu, tieňa a zaoblenia: okraje renderu sa mäkko strácajú do rovnako tmavej stránky. */
+.ilu img{display:block;width:100%;height:auto;aspect-ratio:4/3;object-fit:cover;object-position:center 55%;
+  border:0;border-radius:0;box-shadow:none;
+  -webkit-mask-image:radial-gradient(closest-side,#000 58%,transparent);
+  mask-image:radial-gradient(closest-side,#000 58%,transparent)}
+/* Popiska sa nekreslí, jej obsah patrí do alt. Pravidlo ostáva pre staršie kópie stránok. */
+.ilu figcaption{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+/* Textový stĺpec, ktorý už má vedľa seba kroky alebo ukážku: obrázok pod odsekom. */
+.ilu:not(:first-child){margin-top:clamp(18px,2.4vw,32px);max-width:520px}
+.vedla,.hero-s-obrazkom{display:grid;grid-template-columns:minmax(0,1fr);gap:clamp(8px,2vw,20px);
+  align-items:center;margin-bottom:clamp(28px,3.4vw,52px)}
+/* Textový blok vnútri si nesie vlastný spodný okraj z pôvodného miesta; drží ho obal. */
+.vedla>:first-child,.hero-s-obrazkom>:first-child{margin-bottom:0!important}
+.vedla>.ilu,.hero-s-obrazkom>.ilu{margin:0;width:100%;max-width:440px;justify-self:center}
+.vedla>.ilu img,.hero-s-obrazkom>.ilu img{aspect-ratio:16/10}
+@media (min-width:820px){
+  .vedla{grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:clamp(28px,4vw,72px)}
+  .hero-s-obrazkom{grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:clamp(28px,4vw,72px)}
+  .vedla>.ilu,.hero-s-obrazkom>.ilu{max-width:560px;justify-self:end}
+  .vedla>.ilu img,.hero-s-obrazkom>.ilu img{aspect-ratio:4/3}
+}
+/* ilu:do */
+/* Renewals (/renewals/, /sk/, /de/): ilustrácia stojí v textovom stĺpci sekcie .rn-flow pod odsekom
+   o priečinku dokladov a dátume platnosti. Tá sekcia bola béžová (#eae4d8 v renewals.css) a tmavý
+   render by sa na nej cez masku rozmazal do tmavej elipsy. Preto je sekcia tmavá ako zvyšok stránky,
+   o odtieň svetlejšia (--paper-deep v .noc = #100e0c), aby ostal rytmus pásu. Farby sú z renewals.css.
+   Patrí to skôr do renewals.css; tu je to preto, že úloha ilustrácií smela meniť len paper.css.
+   Posledný riadok vracia úvodnému odseku šírku a písmo, ktoré mal ako :last-child pred obrázkom. */
+.noc.renewals .rn-flow{background:var(--paper-deep);border-block-color:#3b3329;color:#c2b9ad}
+.noc.renewals .rn-flow h2,.noc.renewals .rn-flow h3{color:#f3ede3}
+.noc.renewals .rn-flow p{color:#c2b9ad}
+.noc.renewals .rn-flow .rn-eyebrow{color:#aaa092}
+.noc.renewals .rn-flow .rn-steps li{border-top-color:#3b3329}
+.noc.renewals .rn-flow .rn-step-number{color:#c29a74}
+.noc.renewals .rn-flow .rn-shot figcaption{color:#aaa092}
+.noc.renewals .rn-flow-layout>div>p:has(+.ilu:last-child){max-width:40ch;font-size:15px;line-height:1.8}
+@media(max-width:760px){.noc.renewals .rn-flow-layout>div>p:has(+.ilu:last-child){max-width:55ch}}
+/* Hlavička zoznamu hier (obsah.css) je sama dvojstĺpcová; vedľa obrázka by sa nadpis a odsek
+   tlačili do polovice stĺpca, preto tam idú pod seba. */
+.vedla>div>.uv-sheet-head{grid-template-columns:minmax(0,1fr);gap:10px}
+
 /* ── 9. Index s bodkovanými vodičmi. Zoznamy nástrojov sú index, nie mriežka kariet. ── */
 .index{display:flex;flex-direction:column;align-items:stretch;gap:2px;margin:clamp(18px,2vw,28px) 0 0}
 .index a{display:flex;align-items:baseline;gap:10px;color:var(--ink);text-decoration:none;
@@ -922,10 +978,20 @@ header.site-header .site-col a:active{background:rgba(255,255,255,.09);transitio
 header.site-header .site-col a>b{display:block;margin:0;color:var(--r-ink);font:600 15px/1.35 var(--ui);letter-spacing:-.012em}
 header.site-header .site-col a>span{display:block;margin:1px 0 0;color:var(--r-tichy);font:400 13px/1.4 var(--ui);letter-spacing:0}
 header.site-header .site-sk,footer.site-footer .site-sk{display:inline-block;vertical-align:2px;margin-left:7px;padding:1px 5px;border:1px solid var(--r-linka-2);border-radius:5px;font:600 10px/1.4 var(--ui);font-style:normal;letter-spacing:.06em;color:var(--r-tichy)}
-header.site-header .site-dev,footer.site-footer .site-dev{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;max-width:none;margin:20px 0 0;padding:16px 0 0;border-top:1px solid var(--r-linka);font:400 13.5px/1.4 var(--ui);color:var(--r-telo)}
-header.site-header .site-dev>span,footer.site-footer .site-dev>span{margin-right:8px;color:var(--r-tichy)}
-header.site-header .site-dev>a,footer.site-footer .site-dev>a{display:inline-block;padding:4px 11px;border:1px solid var(--r-linka);border-radius:999px;color:var(--r-telo);text-decoration:none;white-space:nowrap;transition:color .16s var(--r-tik),border-color .16s var(--r-tik),background-color .16s var(--r-tik)}
-header.site-header .site-dev>a:hover,footer.site-footer .site-dev>a:hover{color:var(--r-ink);border-color:var(--r-linka-2);background:rgba(255,255,255,.04)}
+/* Pas pre vyvojarov (24. 9. 2026): nadpis ako stlpce nad nim, jedna veta a odkaz na cely zoznam. Namiesto 12 bubliniek. */
+header.site-header .site-dev,footer.site-footer .site-dev{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 20px;max-width:none;margin:20px 0 0;padding:16px 0 0;border-top:1px solid var(--r-linka);font:400 14px/1.5 var(--ui);color:var(--r-telo)}
+header.site-header .site-dev>span,footer.site-footer .site-dev>span{font:600 12px/1.4 var(--ui);letter-spacing:.06em;text-transform:uppercase;color:var(--r-tichy)}
+header.site-header .site-dev>em,footer.site-footer .site-dev>em{flex:1 1 360px;min-width:0;font-style:normal;color:var(--r-telo)}
+header.site-header .site-dev>a,footer.site-footer .site-dev>a{display:inline-flex;align-items:center;gap:7px;color:var(--r-ink);font-weight:600;text-decoration:none;white-space:nowrap;transition:color .16s var(--r-tik)}
+header.site-header .site-dev>a svg,footer.site-footer .site-dev>a svg{width:15px;height:15px;flex:none;transition:transform .22s var(--r-pero)}
+header.site-header .site-dev>a:hover,footer.site-footer .site-dev>a:hover{color:var(--r-zhaslo)}
+header.site-header .site-dev>a:hover svg,footer.site-footer .site-dev>a:hover svg{transform:translateX(3px)}
+@media (prefers-reduced-motion:reduce){header.site-header .site-dev>a svg,footer.site-footer .site-dev>a svg{transition:none}}
+/* V pate ostava kazdy nastroj ako tichy textovy odkaz, bez bublin. */
+footer.site-footer .site-dev.site-dev-zoznam{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px 24px}
+footer.site-footer .site-dev.site-dev-zoznam>span{grid-column:1/-1;margin:0 0 2px}
+footer.site-footer .site-dev.site-dev-zoznam>a{font-weight:400;color:var(--r-telo)}
+footer.site-footer .site-dev.site-dev-zoznam>a:hover{color:var(--r-ink)}
 /* Skupina Firma a tlačidlo v paneli sú len tam, kde sa z lišty stratia. */
 header.site-header .site-firma,header.site-header .site-menu-cta{display:none}
 
@@ -1030,9 +1096,10 @@ footer.site-footer .site-foot-bottom a:hover,footer.site-footer .site-foot-legal
   header.site-header .site-col a{padding:12px;border-radius:9px}
   header.site-header .site-col a>b{font-weight:400;color:var(--r-telo)}
   header.site-header .site-col a>span{display:none}
-  header.site-header .site-dev{margin:0;padding:12px 12px 14px;gap:8px}
-  header.site-header .site-dev>span{width:100%;margin:0 0 2px;font:600 11.5px/1.4 var(--ui);letter-spacing:.06em;text-transform:uppercase}
-  header.site-header .site-dev>a{padding:8px 12px}
+  header.site-header .site-dev{margin:0;padding:12px 12px 14px;gap:4px}
+  header.site-header .site-dev>span{width:100%;margin:0 0 2px;font-size:11.5px}
+  header.site-header .site-dev>em{flex-basis:100%}
+  header.site-header .site-dev>a{padding:10px 0 4px}
   header.site-header .site-firma{margin:0;padding:6px 0 8px}
   header.site-header .site-firma ul{display:block}
   header.site-header .site-firma a{padding:12px}
@@ -1050,7 +1117,10 @@ footer.site-footer .site-foot-bottom a:hover,footer.site-footer .site-foot-legal
   footer.site-footer .site-foot-cols{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:30px}
   footer.site-footer .site-foot-cols a{display:inline-block;padding:3px 0}
   footer.site-footer .site-dev{margin-top:34px}
-  footer.site-footer .site-dev>a{padding:8px 12px}
+  footer.site-footer .site-dev>em{flex-basis:100%}
+  footer.site-footer .site-dev>a{padding:10px 0 4px}
+  footer.site-footer .site-dev.site-dev-zoznam{grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 16px}
+  footer.site-footer .site-dev.site-dev-zoznam>a{padding:8px 0}
   footer.site-footer .site-foot-bottom{margin-top:30px}
 }
 /* Úzky telefón: tlačidlo z lišty sa presunie na koniec menu, aby Proof ostal na dosah. */
