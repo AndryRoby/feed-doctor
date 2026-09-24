@@ -135,17 +135,18 @@ document.documentElement.classList.add('js');
     // (stráži to test). Katalóg v paneli ostáva v jazyku, v ktorom stránku
     // postavil obal; tri jeho preklady by tento súbor zväčšili na každej stránke.
     var texty = {
-      sk: { menu:'Menu', produkty:'Produkty', domov:'ARLing: úvod', nav:'Hlavná navigácia', stranka:'Na tejto stránke', skip:'Prejsť na obsah', cta:'Vyskúšať Proof zadarmo', nazvy:['Nástroje','Piloty','Návody','O firme'] },
-      en: { menu:'Menu', produkty:'Products', domov:'ARLing home', nav:'Main navigation', stranka:'On this page', skip:'Skip to content', cta:'Try Proof free', nazvy:['Tools','Pilots','Guides','Company'] },
-      de: { menu:'Menü', produkty:'Produkte', domov:'ARLing Startseite', nav:'Hauptnavigation', stranka:'Auf dieser Seite', skip:'Zum Inhalt springen', cta:'Proof kostenlos testen', nazvy:['Werkzeuge','Piloten','Anleitungen','Unternehmen'] },
-      cs: { menu:'Menu', produkty:'Produkty', domov:'ARLing: úvod', nav:'Hlavní navigace', stranka:'Na této stránce', skip:'Přejít na obsah', cta:'Vyskúšať Proof zadarmo', nazvy:['Nástroje','Piloty','Návody','O firme'] }
+      sk: { menu:'Menu', produkty:'Produkty', domov:'ARLing: úvod', nav:'Hlavná navigácia', stranka:'Na tejto stránke', skip:'Prejsť na obsah', cta:'Skontrolovať e-faktúru zadarmo', nazvy:['Nástroje','Piloty','Návody','O firme'] },
+      en: { menu:'Menu', produkty:'Products', domov:'ARLing home', nav:'Main navigation', stranka:'On this page', skip:'Skip to content', cta:'Shop', nazvy:['Tools','Pilots','Guides','Company'] },
+      de: { menu:'Menü', produkty:'Produkte', domov:'ARLing Startseite', nav:'Hauptnavigation', stranka:'Auf dieser Seite', skip:'Zum Inhalt springen', cta:'E-Rechnung kostenlos prüfen', nazvy:['Werkzeuge','Piloten','Anleitungen','Unternehmen'] },
+      cs: { menu:'Menu', produkty:'Produkty', domov:'ARLing: úvod', nav:'Hlavní navigace', stranka:'Na této stránce', skip:'Přejít na obsah', cta:'Zkontrolovat e-fakturu zdarma', nazvy:['Nástroje','Piloty','Návody','O firme'] }
     };
     function jazyk() {
       var kod = (document.documentElement.lang || 'sk').slice(0,2).toLowerCase();
       var t = texty[kod] || texty.sk;
       var cast = kod === 'en' || kod === 'de' ? kod + '/' : '';
       var cesty = ['/'+cast+'#nastroje', '/'+cast+'#piloty', '/notes/'+cast, '/how-we-work/'+cast];
-      var proof = kod === 'en' ? '/proof/' : kod === 'de' ? '/proof/de/' : '/proof/sk/';
+      // Tlačidlo vedie na produkt s cenou v jazyku stránky (obal.mjs CTA, 25. 9. 2026), nie na Proof.
+      var proof = kod === 'en' ? '/shop/' : kod === 'de' ? '/efaktura/de/' : kod === 'cs' ? '/efaktura/cs/' : '/efaktura/';
       hlavicka.querySelectorAll('[data-site-nav]').forEach(function (a) {
         var i = Number(a.getAttribute('data-site-nav'));
         if (!cesty[i]) return;
