@@ -42,4 +42,4 @@ No account, no server-side processing of your feed. The only analytics are anony
 
 ## Contact
 
-Built by ARLing s. r. o. (Bratislava, Slovakia). andrej@arling.sk
+Built by ARLing s. r. o. (Bratislava, Slovakia). support@arling.sk
