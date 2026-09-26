@@ -1178,13 +1178,16 @@ footer.site-footer .site-foot-bottom a:hover,footer.site-footer .site-foot-legal
 }
 /* Katalóg v dvoch blokoch (26. 9. 2026, ops/audit/ZADANIE-MENU.md): firemné skupiny, potom
    spotrebiteľské, každý s nadpisom, aby sa firma a hry nemiešali v jednom zozname. Na širokej
-   obrazovke bloky vedľa seba (každý s dvomi stĺpcami), pod 1240 px pod sebou: pri dvoch blokoch
-   vedľa seba by mal stĺpec 175 až 222 px a nemecké „Alle in dieser Gruppe“ by pretieklo.
+   obrazovke bloky vedľa seba (každý s dvomi stĺpcami), pod 1000 px pod sebou. Na 1001 až 1240 px
+   ostávajú vedľa seba (panel by pod sebou mal asi 920 px a na iPade na ležato by hry a knihy
+   boli až po posunutí); úzky stĺpec s nemeckým „Alle in dieser Gruppe“ sa zalomí (white-space:normal).
+   Medzera medzi blokmi je column-gap a linka je v jej strede, takže oba bloky majú rovnako široké stĺpce.
    Písmo: audit hubu 26. 9. 2026 žiada v hlavičke, menu a päte nič pod 12 px, popisky aspoň 13 px
    (stráži test v obal.test.mjs). */
-header.site-header .site-bloky{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;margin:0;padding:0}
+header.site-header .site-bloky{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 56px;margin:0;padding:0}
 header.site-header .site-blok{min-width:0;margin:0;padding:0}
-header.site-header .site-blok+.site-blok{margin-left:28px;padding-left:28px;border-left:1px solid var(--r-linka)}
+header.site-header .site-blok+.site-blok{position:relative}
+header.site-header .site-blok+.site-blok::before{content:"";position:absolute;top:0;bottom:0;left:-28px;border-left:1px solid var(--r-linka)}
 header.site-header .site-blok-nazov{max-width:none;margin:0 0 14px 10px;padding:0;font:600 13px/1.4 var(--ui);letter-spacing:-.004em;text-transform:none;text-align:left;color:var(--r-ink)}
 header.site-header .site-blok .site-cols{grid-template-columns:repeat(2,minmax(0,1fr))}
 header.site-header .site-blok a.site-col-all{max-width:100%;white-space:normal}
@@ -1194,9 +1197,10 @@ header.site-header .site-col a>b,header.site-header .site-col a>span,header.site
 @media (min-width:1181px){
   footer.site-footer .site-foot-cols>[data-blok="firemne"]+[data-blok="spotrebitelske"]{margin:0;padding-left:clamp(22px,2.6vw,40px);border-left:1px solid var(--r-linka)}
 }
-@media (max-width:1240px){
+@media (max-width:1000px){
   header.site-header .site-bloky{grid-template-columns:1fr}
-  header.site-header .site-blok+.site-blok{margin:18px 0 0;padding:18px 0 0;border-left:0;border-top:1px solid var(--r-linka)}
+  header.site-header .site-blok+.site-blok{margin:18px 0 0;padding:18px 0 0;border-top:1px solid var(--r-linka)}
+  header.site-header .site-blok+.site-blok::before{content:none}
 }
 @media (max-width:760px){
   header.site-header .site-bloky{display:block}
