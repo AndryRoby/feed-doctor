@@ -116,7 +116,7 @@ a:hover{color:var(--accent)}
 code,kbd,pre{font-family:var(--mono);font-size:.92em}
 pre{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow-x:auto}
 /* audit 26. 9.: nič nesmie stránku na mobile roztiahnuť do strany. Blok kódu sa posúva vo vnútri a článok
-   sa podľa neho nerozšíri; dlhé slovo v nadpise (SEPA-Sammelüberweisung) sa na úzkom displeji rozdelí;
+   sa podľa neho nerozšíri; dlhé slovo v nadpise (SEPA-Sammelüberweisung) sa zlomí, len keď sa nezmestí (bez delenia bežných slov);
    katalóg v hlavičke (dlhé nemecké popisky) sa oreže na šírku hlavičky, panel menu sa posúva sám. */
 pre{max-width:100%}
 article{min-width:0}
@@ -124,7 +124,7 @@ article{min-width:0}
 p code,li code,td code{overflow-wrap:anywhere}
 h1{overflow-wrap:break-word}
 body{overflow-wrap:break-word}
-@media(max-width:520px){h1{hyphens:auto;-webkit-hyphens:auto}h1 .w{max-width:100%}}
+@media(max-width:520px){h1 .w{max-width:100%}}
 header.site-header{overflow-x:clip}
 
 /* ── 7. Sekcie a rytmus ── */
@@ -989,12 +989,12 @@ header.site-header .site-col a:hover{background:rgba(255,255,255,.05);color:var(
 header.site-header .site-col a:active{background:rgba(255,255,255,.09);transition-duration:.1s}
 header.site-header .site-col a>b{display:block;margin:0;color:var(--r-ink);font:600 15px/1.35 var(--ui);letter-spacing:-.012em}
 header.site-header .site-col a>span{display:block;margin:1px 0 0;color:var(--r-tichy);font:400 13px/1.4 var(--ui);letter-spacing:0}
-header.site-header .site-sk,footer.site-footer .site-sk{display:inline-block;vertical-align:2px;margin-left:7px;padding:1px 5px;border:1px solid var(--r-linka-2);border-radius:5px;font:600 10px/1.4 var(--ui);font-style:normal;letter-spacing:.06em;color:var(--r-tichy)}
+header.site-header .site-sk,footer.site-footer .site-sk{display:inline-block;vertical-align:2px;margin-left:7px;padding:1px 5px;border:1px solid var(--r-linka-2);border-radius:5px;font:600 12px/1.3 var(--ui);font-style:normal;letter-spacing:.06em;color:var(--r-tichy)}
 /* Menu podľa návštevníka (25. 9. 2026): v skupine najviac päť položiek, značka Nové, pod skupinou
    odkaz na celú skupinu a pod stĺpcami odkaz na stránku Všetko. Všetko ostatné je tam a v päte. */
 header.site-header .site-col{display:flex;flex-direction:column;align-items:stretch;min-width:0}
-header.site-header .site-col>p .site-sk{vertical-align:1px;margin-left:8px;padding:1px 5px;font-size:9.5px;line-height:12px;text-transform:none}
-header.site-header .site-nove{display:inline-block;vertical-align:2px;margin-left:8px;padding:1px 7px;border:0;border-radius:999px;background:rgba(242,100,60,.16);font:600 10.5px/1.4 var(--ui);font-style:normal;letter-spacing:.02em;color:var(--r-zhaslo)}
+header.site-header .site-col>p .site-sk{vertical-align:1px;margin-left:8px;padding:1px 5px;font-size:12px;line-height:14px;text-transform:none}
+header.site-header .site-nove{display:inline-block;vertical-align:2px;margin-left:8px;padding:1px 7px;border:0;border-radius:999px;background:rgba(242,100,60,.16);font:600 12px/1.3 var(--ui);font-style:normal;letter-spacing:.02em;color:var(--r-zhaslo)}
 header.site-header .site-col a.site-col-all{display:inline-flex;align-items:center;gap:7px;align-self:flex-start;margin:6px 0 0;padding:8px 10px;border-radius:10px;background:none;color:var(--r-ink);font:600 13.5px/1.3 var(--ui);letter-spacing:-.006em;white-space:nowrap;transition:color .16s var(--r-tik)}
 header.site-header .site-col a.site-col-all>b{display:inline;margin:0;font:500 13px/1.3 var(--ui);letter-spacing:0;color:var(--r-tichy);font-variant-numeric:tabular-nums}
 header.site-header .site-col a.site-col-all>span{display:inline;margin:0;font:inherit;color:inherit}
@@ -1046,7 +1046,7 @@ header.site-header .bar .langsel a[aria-current]{color:var(--r-ink);font-weight:
 /* Kotvy stránky (#pro, #cennik…) ako druhý tichý riadok pod lištou. */
 header.site-header .site-page-links{margin:0;padding:0;border-top:1px solid var(--r-linka)}
 header.site-header .site-page-links>.wrap{display:flex;align-items:center;gap:6px 22px;min-height:40px}
-header.site-header .site-page-links p{flex:none;max-width:none;margin:0;font:600 11.5px/1.4 var(--ui);letter-spacing:.06em;text-transform:uppercase;color:var(--r-tichy)}
+header.site-header .site-page-links p{flex:none;max-width:none;margin:0;font:600 12px/1.4 var(--ui);letter-spacing:.06em;text-transform:uppercase;color:var(--r-tichy)}
 header.site-header .site-page-links nav{position:static;display:flex;flex-flow:row wrap;align-items:center;gap:0 20px;width:auto;margin:0;padding:0;border:0;background:none;box-shadow:none}
 header.site-header .site-page-links nav a{position:relative;display:inline-flex;align-items:center;flex:none;min-height:40px;padding:0;border:0;font:400 13.5px/1.3 var(--ui);letter-spacing:0;color:var(--r-telo);text-decoration:none;white-space:nowrap;transition:color .2s var(--r-tik)}
 header.site-header .site-page-links nav a::after{content:none}
@@ -1124,7 +1124,7 @@ footer.site-footer .site-foot-bottom a:hover,footer.site-footer .site-foot-legal
   header.site-header .site-cols{display:block}
   header.site-header .site-col{padding:6px 0 8px}
   header.site-header .site-col+.site-col{border-top:1px solid var(--r-linka)}
-  header.site-header .site-col>p{margin:0;padding:10px 12px 4px;font-size:11.5px}
+  header.site-header .site-col>p{margin:0;padding:10px 12px 4px;font-size:12px}
   header.site-header .site-col a{padding:12px;border-radius:9px}
   header.site-header .site-col a>b{font-weight:400;color:var(--r-telo)}
   header.site-header .site-col a>span{display:none}
@@ -1141,7 +1141,7 @@ footer.site-footer .site-foot-bottom a:hover,footer.site-footer .site-foot-legal
   header.site-header .site-all a{display:flex;justify-content:space-between;width:100%}
   header.site-header .site-all a>b{margin-left:auto}
   header.site-header .site-dev{margin:0;padding:12px 12px 14px;gap:4px}
-  header.site-header .site-dev>span{width:100%;margin:0 0 2px;font-size:11.5px}
+  header.site-header .site-dev>span{width:100%;margin:0 0 2px;font-size:12px}
   header.site-header .site-dev>em{flex-basis:100%}
   header.site-header .site-dev>a{padding:10px 0 4px}
   header.site-header .site-firma{margin:0;padding:6px 0 8px}
@@ -1175,4 +1175,31 @@ footer.site-footer .site-foot-bottom a:hover,footer.site-footer .site-foot-legal
 }
 @media (max-width:460px){
   footer.site-footer .site-foot-cols{grid-template-columns:1fr}
+}
+/* Katalóg v dvoch blokoch (26. 9. 2026, ops/audit/ZADANIE-MENU.md): firemné skupiny, potom
+   spotrebiteľské, každý s nadpisom, aby sa firma a hry nemiešali v jednom zozname. Na širokej
+   obrazovke bloky vedľa seba (každý s dvomi stĺpcami), pod 1240 px pod sebou: pri dvoch blokoch
+   vedľa seba by mal stĺpec 175 až 222 px a nemecké „Alle in dieser Gruppe“ by pretieklo.
+   Písmo: audit hubu 26. 9. 2026 žiada v hlavičke, menu a päte nič pod 12 px, popisky aspoň 13 px
+   (stráži test v obal.test.mjs). */
+header.site-header .site-bloky{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;margin:0;padding:0}
+header.site-header .site-blok{min-width:0;margin:0;padding:0}
+header.site-header .site-blok+.site-blok{margin-left:28px;padding-left:28px;border-left:1px solid var(--r-linka)}
+header.site-header .site-blok-nazov{max-width:none;margin:0 0 14px 10px;padding:0;font:600 13px/1.4 var(--ui);letter-spacing:-.004em;text-transform:none;text-align:left;color:var(--r-ink)}
+header.site-header .site-blok .site-cols{grid-template-columns:repeat(2,minmax(0,1fr))}
+header.site-header .site-blok a.site-col-all{max-width:100%;white-space:normal}
+header.site-header .site-col a>b,header.site-header .site-col a>span,header.site-header .site-blok-nazov,footer.site-footer .site-foot-cols a,footer.site-footer .site-foot-cols p,footer.site-footer .site-dev>a{overflow-wrap:anywhere}
+/* V päte rovnaké poradie (firemné, spotrebiteľské, Firma); kde sú stĺpce v jednom rade, oddeľuje
+   spotrebiteľský blok zvislá linka. V užšej mriežke sa stĺpce lámu do radov a linka by stála náhodne. */
+@media (min-width:1181px){
+  footer.site-footer .site-foot-cols>[data-blok="firemne"]+[data-blok="spotrebitelske"]{margin:0;padding-left:clamp(22px,2.6vw,40px);border-left:1px solid var(--r-linka)}
+}
+@media (max-width:1240px){
+  header.site-header .site-bloky{grid-template-columns:1fr}
+  header.site-header .site-blok+.site-blok{margin:18px 0 0;padding:18px 0 0;border-left:0;border-top:1px solid var(--r-linka)}
+}
+@media (max-width:760px){
+  header.site-header .site-bloky{display:block}
+  header.site-header .site-blok+.site-blok{margin:0;padding:0;border-top:1px solid var(--r-linka-2)}
+  header.site-header .site-blok-nazov{margin:0;padding:14px 12px 2px;font-size:13px}
 }
