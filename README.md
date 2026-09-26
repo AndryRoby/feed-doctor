@@ -1,8 +1,8 @@
 # Product Feed Doctor
 
-A free tool that finds what is wrong with a shopping/product feed before Google, Meta, or a shopping assistant does.
+Product Feed Doctor is a free browser tool for online shops and marketers that finds what is wrong with a shopping or product feed (Google Merchant Center, Meta catalog CSV, Shopify, WooCommerce, generic XML or CSV) before Google, Meta, or a shopping assistant does, by running 31 rules and giving a score out of 100. The checker is free and open source (MIT); the paid path is Feed Doctor Monitor Pro for 9 EUR a month per feed, a daily server check of your feed URL with an alert on every change, next to a free monitor plan with a weekly check.
 
-Live: https://arling.sk/feed-doctor/
+Live: https://arling.sk/feed-doctor/ (Slovak) · https://arling.sk/feed-doctor/en/ (English) · https://arling.sk/feed-doctor/de/ (German)
 
 Paste a feed URL and click Fetch, paste the feed content directly, or upload the downloaded file. The tool detects the format, parses it, normalizes every row to one product shape, and runs 31 rules against it: missing required fields, duplicate ids, price and link formatting, GTIN checksum validity, availability and condition values, and more. Everything runs in the browser; nothing is uploaded.
 
@@ -38,7 +38,7 @@ The full, generated-from-source rule table is on the page itself under "What it 
 An opt-in add-on: give it your feed URL and e-mail from the "Monitor this feed" box below the results, and a server checks the same 31 rules on a schedule and e-mails you when something got worse.
 
 - **Free**: one feed per e-mail address, a check once a week, an alert when a new error-severity rule appears or the score drops by 5 points or more.
-- **Pro** (9 EUR/month per feed): a check every day, an alert on every change, and 90 days of score history on the monitor page (`monitor/index.html`), plus a "Check now" button.
+- **Pro** (9 EUR/month per feed, VAT included): a check every day, an alert on every change, and 90 days of score history on the monitor page (`monitor/index.html`), plus a "Check now" button. Pro is a monthly subscription sold through Stripe Managed Payments; the merchant of record is Link (Sold through Link, LLC), which sends the receipt and the invoice, and ARLing s. r. o. delivers the service. Cancel or change it at any time in the Stripe customer portal (https://billing.stripe.com/p/login/3cIaER9M63hNeFcg8B4ko00); it stays active until the end of the paid period. ARLing refunds a subscription payment on request within 14 days of purchase, without you giving a reason: write to support@arling.sk. Terms: https://arling.sk/podmienky/en/ (sections 4 to 6).
 - Manage a monitor at `monitor/?id=<id>&key=<key>` (the link from the confirmation e-mail): score, issue counts, top issues, history, upgrade, or delete.
 - Unsubscribe with one click from any alert e-mail or from the monitor page's "Delete monitor" button; deleting removes the e-mail address, feed URL and all check history.
 
@@ -80,7 +80,7 @@ python -m http.server
 node tests.mjs
 ```
 
-288 assertions, 288 passed, 0 failed as of this writing, covering every parser (Google RSS, generic XML, generic/Facebook CSV, Shopify JSON, WooCommerce JSON) and every rule.
+Last run on 26 September 2026: 322 passed, 0 failed, covering every parser (Google RSS, generic XML, generic/Facebook CSV, Shopify JSON, WooCommerce JSON) and every rule.
 
 ## Privacy
 
@@ -92,7 +92,7 @@ Field names and required-ness are drawn from Google's Merchant Center product da
 
 ## Report a problem
 
-Found a real feed this tool gets wrong, or a check that flags something that's actually fine? Open an issue: https://github.com/AndryRoby/feed-doctor/issues, or write to andrej@arling.sk. Please redact anything sensitive (API keys, internal URLs) before posting; issues are public.
+Found a real feed this tool gets wrong, or a check that flags something that's actually fine? Open an issue: https://github.com/AndryRoby/feed-doctor/issues, or write to support@arling.sk. Please redact anything sensitive (API keys, internal URLs) before posting; issues are public.
 
 ## License
 
@@ -100,7 +100,7 @@ MIT, see [LICENSE](LICENSE). Use it, fork it, ship it; keep the copyright notice
 
 ---
 
-ARLing s. r. o., Bratislava, Slovakia. andrej@arling.sk
+ARLing s. r. o., Bratislava, Slovakia. support@arling.sk
 
 Hub (more free tools): https://arling.sk/
 

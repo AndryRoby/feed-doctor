@@ -115,4 +115,4 @@ The field names and required-ness this tool checks against are drawn from Google
 
 ## Contact
 
-Built by ARLing s. r. o. (Bratislava, Slovakia). andrej@arling.sk
+Built by ARLing s. r. o. (Bratislava, Slovakia). support@arling.sk

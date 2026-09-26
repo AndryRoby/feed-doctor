@@ -11,4 +11,4 @@ the hosted tool at https://arling.sk/feed-doctor/ and its maker. If you publish
 a fork, please give it its own name so users know which one they are using.
 
 Bug reports and fixes are welcome: https://github.com/AndryRoby/feed-doctor/issues
-or andrej@arling.sk.
+or support@arling.sk.
