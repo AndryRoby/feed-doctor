@@ -115,6 +115,17 @@ a{color:var(--ink);text-decoration:underline;text-decoration-thickness:1px;text-
 a:hover{color:var(--accent)}
 code,kbd,pre{font-family:var(--mono);font-size:.92em}
 pre{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow-x:auto}
+/* audit 26. 9.: nič nesmie stránku na mobile roztiahnuť do strany. Blok kódu sa posúva vo vnútri a článok
+   sa podľa neho nerozšíri; dlhé slovo v nadpise (SEPA-Sammelüberweisung) sa na úzkom displeji rozdelí;
+   katalóg v hlavičke (dlhé nemecké popisky) sa oreže na šírku hlavičky, panel menu sa posúva sám. */
+pre{max-width:100%}
+article{min-width:0}
+.wrap>*{min-width:0}
+p code,li code,td code{overflow-wrap:anywhere}
+h1{overflow-wrap:break-word}
+body{overflow-wrap:break-word}
+@media(max-width:520px){h1{hyphens:auto;-webkit-hyphens:auto}h1 .w{max-width:100%}}
+header.site-header{overflow-x:clip}
 
 /* ── 7. Sekcie a rytmus ── */
 section{padding:var(--sec) 0;border-top:1px solid var(--line);position:relative}
@@ -197,12 +208,12 @@ section{padding:var(--sec) 0;border-top:1px solid var(--line);position:relative}
 
 /* ── 9. Index s bodkovanými vodičmi. Zoznamy nástrojov sú index, nie mriežka kariet. ── */
 .index{display:flex;flex-direction:column;align-items:stretch;gap:2px;margin:clamp(18px,2vw,28px) 0 0}
-.index a{display:flex;align-items:baseline;gap:10px;color:var(--ink);text-decoration:none;
+.index a{display:flex;align-items:baseline;gap:10px;min-width:0;color:var(--ink);text-decoration:none;
   font-size:clamp(15px,1.05vw,17px);padding:7px 0;line-height:1.3}
 .index .n{font-family:var(--ui);font-variant-numeric:tabular-nums;color:var(--accent);font-size:13px;letter-spacing:.06em;flex:none;width:2.1em}
 .index .t{flex:0 1 auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .index .dots{flex:1 1 auto;border-bottom:1px dotted #a39b8c;transform:translateY(-5px);min-width:20px}
-.index .c{flex:none;font-family:var(--ui);font-size:14px;color:var(--muted)}
+.index .c{flex:0 1 auto;min-width:0;text-align:right;font-family:var(--ui);font-size:14px;color:var(--muted)}
 .index a:hover .t{color:var(--accent)}
 .index a:hover .c{color:var(--ink)}
 
@@ -748,6 +759,7 @@ body.noc .hero-noc{padding-top:clamp(48px,9vh,120px);padding-bottom:clamp(48px,9
   border-radius:0 10px 10px 0;padding:14px 18px;margin:22px 0 0;max-width:70ch}
 .termin b{color:var(--ink)}
 .zdroje{font-family:var(--ui);font-size:13px;line-height:1.6;color:var(--muted);margin-top:26px;max-width:88ch}
+.zdroje li,.zdroje a{overflow-wrap:anywhere}
 .mini{font-family:var(--ui);font-size:13px;color:var(--muted);margin:18px 0 6px}
 
 /* Plátno so živým svetlom v úvode. Leží pod obsahom, nedá sa naň kliknúť
