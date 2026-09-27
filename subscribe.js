@@ -16,7 +16,7 @@
 (function () {
   'use strict';
 
-  var ENDPOINT = 'https://server.invalid/subscribe/api/subscribe';
+  var ENDPOINT = 'https://api.arling.workers.dev/subscribe/api/subscribe';
 
   function trackSubscribe(source) {
     try {

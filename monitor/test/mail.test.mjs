@@ -65,7 +65,7 @@ test('alertEmail for a pro plan does not push the upgrade line', () => {
 test('sendMail posts to MAIL_URL with the X-Mail-Token header and returns ok:true on a 2xx', async () => {
   let seenUrl, seenHeaders, seenBody;
   const env = {
-    MAIL_URL: 'https://server.invalid/subscribe/api/mail',
+    MAIL_URL: 'https://api.arling.workers.dev/subscribe/api/mail',
     MAIL_TOKEN: 'secret-token',
     fetchImpl: async (url, opts) => {
       seenUrl = url;

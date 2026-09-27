@@ -116,7 +116,7 @@ test('shouldAlert: no previous check means no alert (first check just sets the b
 // ---------------------------------------------------------------------------
 
 function makeEnv({ feedUrl, feedText, feedStatus = 200, mailOk = true }) {
-  const mailUrl = 'https://server.invalid/subscribe/api/mail';
+  const mailUrl = 'https://api.arling.workers.dev/subscribe/api/mail';
   const sentMails = [];
   return {
     DB: createMockD1(),

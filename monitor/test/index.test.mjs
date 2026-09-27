@@ -32,14 +32,14 @@ function makeEnv({ feedUrl = 'https://shop.sk/feed.xml', feedText = GOOD_FEED, m
     FEEDMONITOR_RATE_LIMIT: createMockKv(),
     ALLOWED_ORIGINS: 'arling.sk',
     ADMIN_TOKEN: 'test-admin-token',
-    MAIL_URL: 'https://server.invalid/subscribe/api/mail',
+    MAIL_URL: 'https://api.arling.workers.dev/subscribe/api/mail',
     MAIL_TOKEN: 'test-mail-token',
     STRIPE_LINK: 'https://buy.stripe.com/test123',
     WORKER_BASE_URL: 'https://feed-monitor.example.workers.dev',
     fetchImpl: async (url, opts) => {
       outbound.push({ url: String(url), opts });
       if (String(url) === feedUrl) return new Response(feedText, { status: 200 });
-      if (String(url) === 'https://server.invalid/subscribe/api/mail') return new Response(JSON.stringify({ ok: mailOk }), { status: mailOk ? 200 : 500 });
+      if (String(url) === 'https://api.arling.workers.dev/subscribe/api/mail') return new Response(JSON.stringify({ ok: mailOk }), { status: mailOk ? 200 : 500 });
       if (stripe && String(url).startsWith('https://api.stripe.com/v1/subscriptions/')) {
         if (stripe.throws) throw new Error('stripe unreachable');
         return new Response(JSON.stringify(stripe.body || {}), { status: stripe.status || 200 });

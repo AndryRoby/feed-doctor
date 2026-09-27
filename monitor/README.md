@@ -100,7 +100,7 @@ Not committed. Values live in `C:/Users/User/.secrets/feed-monitor.txt`.
 | `ADMIN_TOKEN` | secret (`wrangler secret put`) | `X-Admin-Token` required on `PATCH /v1/monitors/:id/plan`. Same value as `FEEDMONITOR_ADMIN_TOKEN` in `products/licence-service`'s `.env` |
 | `MAIL_TOKEN` | secret (`wrangler secret put`) | `X-Mail-Token` sent with every call to the homelab mailer (`MAIL_URL`). Same value as `MAIL_TOKEN` in `products/subscribe-service`'s `.env` |
 | `STRIPE_SECRET_KEY` | secret (`wrangler secret put`) | Only used by DELETE `/v1/monitors/:id` to cancel a Pro monitor's Stripe subscription (see "Delete and the Pro subscription"). A **restricted** key from the Stripe Dashboard (Developers > API keys > Create restricted key) with only "Subscriptions: Write" is enough; keep it in `C:/Users/User/.secrets/stripe.txt`. Without it a Pro delete still works but the reply tells the customer to cancel in the portal themselves |
-| `MAIL_URL` | var (`wrangler.toml`) | `https://server.invalid/subscribe/api/mail` |
+| `MAIL_URL` | var (`wrangler.toml`) | `https://api.arling.workers.dev/subscribe/api/mail` |
 | `STRIPE_LINK` | var (`wrangler.toml`), also `monitor/STRIPE_LINK.txt` | Payment Link for the Pro upgrade, `client_reference_id=<monitor id>` appended per request in `src/links.js` |
 | `ALLOWED_ORIGINS` | var | `arling.sk` (CORS allowlist for the signup box and manage page) |
 | `WORKER_BASE_URL` | var | This worker's own `workers.dev` origin, used only when there is no incoming request to derive it from (cron, background first-check) |
