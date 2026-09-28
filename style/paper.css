@@ -1,32 +1,27 @@
 /* ARLing Paper v2. Jediný zdroj vzhľadu pre všetky naše stránky.
    Zdroj: ops/design/paper/paper.css v AI-OS. Do produktov sa kopíruje skriptom
    ops/design/sync-paper.mjs, takže každá stránka si nesie vlastnú kópiu a nezávisí od cudzej domény.
-   Pravidlá, ktoré tento súbor vynucuje, sú v ops/design/paper-v2.md. Neupravovať v produkte. */
-
-/* ── 1. Fonty. Nadpisy bezpätkovo, text pätkovo, licencia OFL, hostené u nás. ── */
+   Pravidlá, ktoré tento súbor vynucuje, sú v ops/design/paper-v2.md. Neupravovať v produkte.
+   V produkte je bez ďalších komentárov (ops/design/zverejnenie.mjs); vysvetlenia sú len v zdroji. */
 @font-face{font-family:"ARLing Sans";src:url(../fonts/arling-sans.woff2) format("woff2-variations"),url(../fonts/arling-sans.woff2) format("woff2");font-weight:400 700;font-style:normal;font-display:swap}
 @font-face{font-family:"ARLing Serif";src:url(../fonts/arling-serif.woff2) format("woff2-variations"),url(../fonts/arling-serif.woff2) format("woff2");font-weight:400 600;font-style:normal;font-display:swap}
 @font-face{font-family:"ARLing Serif";src:url(../fonts/arling-serif-italic.woff2) format("woff2");font-weight:400;font-style:italic;font-display:swap}
-
-/* ── 2. Tokeny ── */
 :root{
-  --paper:#faf9f5;        /* základ */
-  --paper-deep:#f0eee6;   /* každá druhá sekcia */
-  --card:#ffffff;         /* karta, snímka, scéna */
-  --ink:#141413;          /* nadpisy, tmavá sekcia */
-  --body:#3d3d3a;         /* text */
-  --muted:#5e5d59;        /* metadáta */
-  --line:#e4e2d8;         /* vlasové linky */
-  --accent:#b23a1d;       /* náš tehlový */
-  --accent-dark:#8f2e17;  /* hover */
-  --accent-light:#d0603c; /* na atramente */
+  --paper:#faf9f5;
+  --paper-deep:#f0eee6;
+  --card:#ffffff;
+  --ink:#141413;
+  --body:#3d3d3a;
+  --muted:#5e5d59;
+  --line:#e4e2d8;
+  --accent:#b23a1d;
+  --accent-dark:#8f2e17;
+  --accent-light:#d0603c;
   --ok:#4a6b3f;
-
   --display:"ARLing Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
   --text:"ARLing Serif",Georgia,"Times New Roman",serif;
   --ui:"ARLing Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
   --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
-
   --wrap:min(1432px,89vw);
   --gap:clamp(28px,4vw,64px);
   --sec:clamp(56px,6.5vw,116px);
@@ -34,8 +29,6 @@
   --ease:cubic-bezier(.2,.7,.2,1);
   --spring:cubic-bezier(.16,1,.3,1);
 }
-
-/* ── 3. Základ ── */
 *{box-sizing:border-box}
 html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--paper);color:var(--body);
@@ -47,8 +40,6 @@ img{height:auto}
 :focus-visible{outline:2px solid var(--ink);outline-offset:3px}
 .skip{position:absolute;left:-9999px}
 .skip:focus{left:12px;top:12px;background:var(--card);border:1px solid var(--ink);padding:8px 12px;z-index:99;font-family:var(--ui)}
-
-/* ── 4. Zrno a atramentový nádych. Jediné dve trvalé slučky na stránku. ── */
 .wash{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
 .wash i{position:absolute;display:block;border-radius:50%;filter:blur(90px);opacity:.10}
 .wash i:nth-child(1){width:52vw;height:52vw;left:-10vw;top:-12vw;
@@ -59,8 +50,6 @@ img{height:auto}
 body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:1;opacity:.35;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.055'/%3E%3C/svg%3E")}
 header,main,footer{position:relative;z-index:2}
-
-/* ── 5. Hlavička ── */
 header{border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5;
   background:color-mix(in srgb,var(--paper) 86%,transparent);backdrop-filter:saturate(1.2) blur(8px)}
 .bar{display:flex;align-items:center;justify-content:space-between;height:66px;gap:18px}
@@ -73,13 +62,6 @@ header{border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5;
 .bar nav a:hover::after,.bar nav a[aria-current="page"]::after{width:100%}
 .lang{font-family:var(--ui);font-size:14px;color:var(--body);background:var(--card);
   border:1px solid var(--line);border-radius:10px;padding:7px 10px}
-
-/* Prepínač jazykov. Otvára sa bez JavaScriptu (details/summary).
-   Selektory sú zámerne ťažké (header .bar …): stránky s otázkami majú
-   vlastné pravidlá pre details a summary (rámik hore, padding 16px, plus
-   namiesto šípky, veľké písmo). 10. 9. 2026 tie pravidlá rozbili prepínač
-   na každej stránke s FAQ: vysoké orezané tlačidlo SK so šípkou v rohu.
-   Toto ich prebije bez ohľadu na to, čo si stránka nastaví. */
 header .bar .langsel{position:relative;font-family:var(--ui);font-size:14px;border:0;padding:0;margin:0;background:none;box-shadow:none}
 header .bar .langsel>summary{list-style:none;cursor:pointer;border:1px solid var(--line);background:var(--card);
   border-radius:10px;padding:7px 12px;color:var(--body);user-select:none;display:inline-flex;align-items:center;
@@ -98,8 +80,6 @@ header .bar .langsel a{display:block;padding:7px 10px;border-radius:8px;text-dec
 header .bar .langsel a:hover{background:var(--paper-deep);color:var(--ink)}
 header .bar .langsel a[aria-current="true"]{color:var(--accent);font-weight:500}
 @media (max-width:960px){ header .bar .langsel{order:2} }
-
-/* ── 6. Typografia ── */
 h1{font:700 clamp(34px,4.6vw,64px)/1.1 var(--display);color:var(--ink);letter-spacing:-.02em;margin:0 0 clamp(14px,1.6vw,22px)}
 h1 .l{display:block}
 h2{font:600 clamp(22px,2.1vw,30px)/1.2 var(--display);color:var(--ink);letter-spacing:-.015em;margin:0 0 10px}
@@ -115,9 +95,6 @@ a{color:var(--ink);text-decoration:underline;text-decoration-thickness:1px;text-
 a:hover{color:var(--accent)}
 code,kbd,pre{font-family:var(--mono);font-size:.92em}
 pre{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow-x:auto}
-/* audit 26. 9.: nič nesmie stránku na mobile roztiahnuť do strany. Blok kódu sa posúva vo vnútri a článok
-   sa podľa neho nerozšíri; dlhé slovo v nadpise (SEPA-Sammelüberweisung) sa zlomí, len keď sa nezmestí (bez delenia bežných slov);
-   katalóg v hlavičke (dlhé nemecké popisky) sa oreže na šírku hlavičky, panel menu sa posúva sám. */
 pre{max-width:100%}
 article{min-width:0}
 .wrap>*{min-width:0}
@@ -126,8 +103,6 @@ h1{overflow-wrap:break-word}
 body{overflow-wrap:break-word}
 @media(max-width:520px){h1 .w{max-width:100%}}
 header.site-header{overflow-x:clip}
-
-/* ── 7. Sekcie a rytmus ── */
 section{padding:var(--sec) 0;border-top:1px solid var(--line);position:relative}
 .deep{background:var(--paper-deep)}
 .band{background:var(--ink);color:#d7d3c8;border-top:none}
@@ -138,8 +113,6 @@ section{padding:var(--sec) 0;border-top:1px solid var(--line);position:relative}
 .in .rule{transform:scaleX(1)}
 .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(270px,100%),1fr));gap:var(--gap)}
 .num{font-family:var(--ui);font-size:12px;letter-spacing:.12em;color:var(--accent);margin:0 0 6px}
-
-/* ── 8. Úvod stránky: text vľavo, skutočný artefakt vpravo ── */
 .hero{display:grid;grid-template-columns:7fr 5fr;gap:var(--gap);align-items:center;
   padding:clamp(44px,6vw,104px) 0 clamp(40px,5vw,88px)}
 .proof{font-family:var(--ui);font-size:14px;color:var(--muted);margin-top:22px}
@@ -149,34 +122,15 @@ section{padding:var(--sec) 0;border-top:1px solid var(--line);position:relative}
 .shot .chrome{display:flex;gap:6px;padding:10px 12px;border-bottom:1px solid var(--line)}
 .shot .chrome i{width:9px;height:9px;border-radius:50%;background:rgba(20,20,19,.16);display:block}
 .shot img{display:block;width:100%}
-
-/* ── 8b. Ilustrácia stránky: jeden predmet na tmavom podklade, ktorý splýva so stránkou.
-   21. 9. obrázok v rámiku ako samostatná sekcia, 22. 9. pás cez celú šírku medzi sekciami.
-   Oboje bola chyba. Andrej 24. 9.: "ja som myslel, že tie obrázky logicky niekam pekne dať,
-   nie random sekcia len obrázok". Pás medzi sekciami je stále sekcia s obrázkom.
-   Od 24. 9. stojí obrázok vždy pri texte, ktorý hovorí o jeho predmete, a to len dvomi
-   spôsobmi (zoznam stránok a dôvody v ops/design/obrazky/ako-pouzit.md):
-     .vedla            text a obrázok vedľa seba; na telefóne obrázok pod týmto textom
-     .hero-s-obrazkom  to isté v prvej obrazovke; obrázok eager a fetchpriority="high"
-   a v textovom stĺpci, ktorý už má vedľa seba iný obsah, stojí figure.ilu priamo pod odsekom.
-   Zakázané: sekcia, ktorej jediným obsahom je obrázok, a pás medzi sekciami. Stráži to
-   node ops/design/obrazky/kontrola.mjs.
-   Blok medzi značkami ilu:od a ilu:do číta aj ops/design/postav-uvod.mjs a vkladá ho do úvodu,
-   ktorý paper.css nenačítava. Preto tu nie sú premenné z paper.css, len pevné hodnoty. ── */
-/* ilu:od */
 .ilu{margin:0;padding:0;max-width:none;width:auto;height:auto;position:relative;overflow:visible}
-/* Bez rámu, tieňa a zaoblenia: okraje renderu sa mäkko strácajú do rovnako tmavej stránky. */
 .ilu img{display:block;width:100%;height:auto;aspect-ratio:4/3;object-fit:cover;object-position:center 55%;
   border:0;border-radius:0;box-shadow:none;
   -webkit-mask-image:radial-gradient(closest-side,#000 58%,transparent);
   mask-image:radial-gradient(closest-side,#000 58%,transparent)}
-/* Popiska sa nekreslí, jej obsah patrí do alt. Pravidlo ostáva pre staršie kópie stránok. */
 .ilu figcaption{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
-/* Textový stĺpec, ktorý už má vedľa seba kroky alebo ukážku: obrázok pod odsekom. */
 .ilu:not(:first-child){margin-top:clamp(18px,2.4vw,32px);max-width:520px}
 .vedla,.hero-s-obrazkom{display:grid;grid-template-columns:minmax(0,1fr);gap:clamp(8px,2vw,20px);
   align-items:center;margin-bottom:clamp(28px,3.4vw,52px)}
-/* Textový blok vnútri si nesie vlastný spodný okraj z pôvodného miesta; drží ho obal. */
 .vedla>:first-child,.hero-s-obrazkom>:first-child{margin-bottom:0!important}
 .vedla>.ilu,.hero-s-obrazkom>.ilu{margin:0;width:100%;max-width:440px;justify-self:center}
 .vedla>.ilu img,.hero-s-obrazkom>.ilu img{aspect-ratio:16/10}
@@ -186,13 +140,6 @@ section{padding:var(--sec) 0;border-top:1px solid var(--line);position:relative}
   .vedla>.ilu,.hero-s-obrazkom>.ilu{max-width:560px;justify-self:end}
   .vedla>.ilu img,.hero-s-obrazkom>.ilu img{aspect-ratio:4/3}
 }
-/* ilu:do */
-/* Renewals (/renewals/, /sk/, /de/): ilustrácia stojí v textovom stĺpci sekcie .rn-flow pod odsekom
-   o priečinku dokladov a dátume platnosti. Tá sekcia bola béžová (#eae4d8 v renewals.css) a tmavý
-   render by sa na nej cez masku rozmazal do tmavej elipsy. Preto je sekcia tmavá ako zvyšok stránky,
-   o odtieň svetlejšia (--paper-deep v .noc = #100e0c), aby ostal rytmus pásu. Farby sú z renewals.css.
-   Patrí to skôr do renewals.css; tu je to preto, že úloha ilustrácií smela meniť len paper.css.
-   Posledný riadok vracia úvodnému odseku šírku a písmo, ktoré mal ako :last-child pred obrázkom. */
 .noc.renewals .rn-flow{background:var(--paper-deep);border-block-color:#3b3329;color:#c2b9ad}
 .noc.renewals .rn-flow h2,.noc.renewals .rn-flow h3{color:#f3ede3}
 .noc.renewals .rn-flow p{color:#c2b9ad}
@@ -202,11 +149,7 @@ section{padding:var(--sec) 0;border-top:1px solid var(--line);position:relative}
 .noc.renewals .rn-flow .rn-shot figcaption{color:#aaa092}
 .noc.renewals .rn-flow-layout>div>p:has(+.ilu:last-child){max-width:40ch;font-size:15px;line-height:1.8}
 @media(max-width:760px){.noc.renewals .rn-flow-layout>div>p:has(+.ilu:last-child){max-width:55ch}}
-/* Hlavička zoznamu hier (obsah.css) je sama dvojstĺpcová; vedľa obrázka by sa nadpis a odsek
-   tlačili do polovice stĺpca, preto tam idú pod seba. */
 .vedla>div>.uv-sheet-head{grid-template-columns:minmax(0,1fr);gap:10px}
-
-/* ── 9. Index s bodkovanými vodičmi. Zoznamy nástrojov sú index, nie mriežka kariet. ── */
 .index{display:flex;flex-direction:column;align-items:stretch;gap:2px;margin:clamp(18px,2vw,28px) 0 0}
 .index a{display:flex;align-items:baseline;gap:10px;min-width:0;color:var(--ink);text-decoration:none;
   font-size:clamp(15px,1.05vw,17px);padding:7px 0;line-height:1.3}
@@ -216,8 +159,6 @@ section{padding:var(--sec) 0;border-top:1px solid var(--line);position:relative}
 .index .c{flex:0 1 auto;min-width:0;text-align:right;font-family:var(--ui);font-size:14px;color:var(--muted)}
 .index a:hover .t{color:var(--accent)}
 .index a:hover .c{color:var(--ink)}
-
-/* ── 10. Tlačidlá a odkaz so šípkou ── */
 .btn{display:inline-flex;align-items:center;gap:8px;height:46px;padding:0 20px;border-radius:12px;
   font:500 15px/1 var(--ui);text-decoration:none;border:1px solid transparent;cursor:pointer;
   transition:background .16s var(--ease),color .16s var(--ease),transform .16s var(--ease)}
@@ -230,8 +171,6 @@ section{padding:var(--sec) 0;border-top:1px solid var(--line);position:relative}
 .go svg{transition:transform .3s var(--spring)}
 .go:hover{color:var(--accent)}
 .go:hover svg{transform:translateX(4px)}
-
-/* ── 11. Karta smie existovať len tam, kde nesie objekt: výrobok alebo plán ── */
 .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px;
   box-shadow:0 2px 6px rgba(20,20,19,.04)}
 .plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(280px,100%),1fr));gap:18px}
@@ -241,15 +180,10 @@ section{padding:var(--sec) 0;border-top:1px solid var(--line);position:relative}
   text-transform:uppercase;color:var(--accent)}
 .price{font:600 clamp(28px,2.4vw,36px)/1 var(--display);color:var(--ink);margin:6px 0 2px}
 .price small{font:400 14px/1 var(--ui);color:var(--muted)}
-
-/* ── 12. Tabuľky. Na mobile sa rozložia na riadky, nikdy neutekajú do strany. ── */
 .tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--radius);background:var(--card)}
 table{border-collapse:collapse;width:100%;font-size:15px}
 th,td{text-align:left;padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:top}
 th{font:500 13px/1.3 var(--ui);letter-spacing:.04em;color:var(--muted);text-transform:uppercase}
-/* Posledný riadok tabuľky nemá spodnú linku, ale len tam, kde je tabuľka naozaj tabuľkou.
-   Pod 600 px sa každý <tr> mení na kartu a vnútorné linky potrebuje aj posledná z nich;
-   bez tejto závory prepíše tr:last-child td to, čo si mobilný blok nížie nastaví. */
 @media (min-width:601px){tr:last-child td{border-bottom:none}}
 @media (max-width:600px){
   .tablewrap{border:none;background:none;overflow:visible}
@@ -261,23 +195,15 @@ th{font:500 13px/1.3 var(--ui);letter-spacing:.04em;color:var(--muted);text-tran
   td::before{content:attr(data-th);display:block;font:500 11px/1.3 var(--ui);letter-spacing:.08em;
     text-transform:uppercase;color:var(--muted);margin-bottom:4px}
 }
-
-/* ── 13. Pohyb. Príchod sekcií, kresba linky, nadpis po slovách. ── */
-/* Príchod obsahu. Zámerne NEskrýva: začína viditeľným stavom a len sa jemne
-   posunie. Predtým sa obsah skrýval a čakal na skript, a keď skript zlyhal,
-   návštevník videl prázdnu stránku. Toto sa pokaziť nedá. */
 .r{animation:prichod .45s var(--ease) both}
 @keyframes prichod{from{opacity:.001;transform:translateY(8px)}to{opacity:1;transform:none}}
 .d1{animation-delay:.05s}.d2{animation-delay:.1s}.d3{animation-delay:.15s}
 .d4{animation-delay:.2s}.d5{animation-delay:.25s}.d6{animation-delay:.3s}
-/* Uvod stranky sa neskryva nikdy: je to prve, co clovek vidi. */
 @media (scripting: none){ .r,.w{opacity:1 !important;transform:none !important;filter:none !important} }
 .d1{transition-delay:.06s}.d2{transition-delay:.12s}.d3{transition-delay:.18s}
 .d4{transition-delay:.26s}.d5{transition-delay:.32s}.d6{transition-delay:.38s}
 .w{display:inline-block}
 .w{display:inline-block}
-
-/* ── 14. Kreslená scéna: monolinia, nakreslí sa raz, tri svetlá ── */
 .scene{position:relative;border:1px solid var(--line);border-radius:16px;background:var(--scene-bg,var(--card));
   padding:18px 18px 12px;transition:background .6s var(--ease),border-color .6s var(--ease)}
 .scene svg{display:block;width:100%;height:auto}
@@ -307,22 +233,10 @@ th{font:500 13px/1.3 var(--ui);letter-spacing:.04em;color:var(--muted);text-tran
 .scene[data-look="vecer"] .cap{color:#a8a294}
 .scene[data-look="vecer"] .looks button{background:#2a2825;border-color:#3d3a34;color:#c9c2b4}
 .scene[data-look="vecer"] .looks button[aria-pressed="true"]{border-color:#e9e4d8;color:#fffdf8}
-
-
-/* ── 15. Bočný register: vie, kde na stránke ste.
-   Celý stojí v ľavom okraji: čiarky sú zarovnané na pravú hranu registra, ktorá je 40 px od stĺpca
-   textu, popisky rastú doľava do prázdna a sú čiteľné vždy, nie až pri prejdení myšou.
-   Preto sa register ukazuje len tam, kde sa čiarka aj popis zmestia mimo obsahu. Pod tou hranicou
-   sa skryje celý: samotné nepopísané čiarky pri texte sú smeti, nie register.
-   Hranica vychádza z --wrap stránky: polovica obsahu + 40 px odstup + šírka čiarky a najdlhšieho
-   popisu. Stránka, ktorá má užší stĺpec než --wrap (napríklad článok v Notes), si hranicu
-   posunie nižšie vlastným @media vo svojom <style>. ── */
 .rail{position:fixed;right:calc(50% + var(--wrap)/2 + 40px);top:50%;transform:translateY(-50%);z-index:4;
   display:flex;flex-direction:column;gap:13px;
   opacity:0;pointer-events:none;transition:opacity .4s var(--ease)}
 .rail.on{opacity:1;pointer-events:auto}
-/* row-reverse: čiarka je vpravo, popis rastie doľava. Riadky sa natáhnu na šírku registra,
-   takže na stránkach, ktoré si šírku určia samy, sa dlhý popis skráti tromi bodkami. */
 .rail a{display:flex;flex-direction:row-reverse;align-items:center;gap:9px;white-space:nowrap;
   text-decoration:none;color:var(--muted);transition:color .3s var(--ease);
   font-family:var(--ui);font-size:11px;letter-spacing:.1em;text-transform:uppercase}
@@ -331,9 +245,6 @@ th{font:500 13px/1.3 var(--ui);letter-spacing:.04em;color:var(--muted);text-tran
 .rail a:hover{color:var(--ink)}
 .rail a[aria-current="true"]{color:var(--accent)}
 @media (max-width:1719px){.rail{display:none}}
-
-
-/* ── 16. Pripnutá scéna s krokmi ── */
 .steps{display:grid;grid-template-columns:5fr 6fr;gap:var(--gap);align-items:start}
 .step{padding:26vh 0;opacity:.32;transition:opacity .45s var(--ease)}
 .step:first-child{padding-top:2vh}
@@ -355,8 +266,6 @@ th{font:500 13px/1.3 var(--ui);letter-spacing:.04em;color:var(--muted);text-tran
 .stage[data-step="3"] .bars rect:nth-child(2){transition-delay:.08s}
 .stage[data-step="3"] .bars rect:nth-child(3){transition-delay:.16s}
 .stage[data-step="3"] .bars rect:nth-child(4){transition-delay:.24s}
-
-  /* ── fotka v uvode: Ken Burns podla scrollu, parallax podla mysi ── */
   .photo{position:relative;overflow:hidden;border-radius:16px;background:#efece3;
     box-shadow:0 18px 50px rgba(20,20,19,.10);
     clip-path:inset(0 0 100% 0);transition:clip-path 1.1s var(--spring)}
@@ -364,12 +273,10 @@ th{font:500 13px/1.3 var(--ui);letter-spacing:.04em;color:var(--muted);text-tran
   .photo img{display:block;width:100%;height:auto;
     transform:translate3d(calc(var(--px,0)*7px),calc(var(--py,0)*7px),0) scale(1.06);
     transition:transform .6s var(--ease);will-change:transform}
-  /* kde to prehliadac vie, zoom riadi scroll, nie cas */
   @supports (animation-timeline: view()){
     .photo img{animation:kenburns linear both;animation-timeline:view();animation-range:entry 10% exit 90%}
     @keyframes kenburns{from{scale:1.12}to{scale:1.0}}
   }
-  /* kde nevie, jeden velmi pomaly dych */
   @supports not (animation-timeline: view()){
     .photo img{animation:kenburns-t 40s ease-in-out infinite alternate}
     @keyframes kenburns-t{from{scale:1.02}to{scale:1.09}}
@@ -383,8 +290,6 @@ th{font:500 13px/1.3 var(--ui);letter-spacing:.04em;color:var(--muted);text-tran
     .photo{clip-path:none}
     .photo img{animation:none;transform:none;scale:1}
   }
-
-  /* ── široký pás v strede, ktorý sa pri scrollovaní roztiahne ── */
   .banner{margin:clamp(28px,4vw,64px) auto clamp(10px,1.5vw,20px);width:min(1432px,89vw)}
   .banner .frame{position:relative;overflow:hidden;border-radius:22px;background:#efece3;
     box-shadow:0 24px 60px rgba(20,20,19,.12);width:64%;margin:0 auto;aspect-ratio:16/9}
@@ -398,15 +303,12 @@ th{font:500 13px/1.3 var(--ui);letter-spacing:.04em;color:var(--muted);text-tran
   .banner .over span{font-family:var(--ui);font-size:clamp(13px,1vw,15px);color:#ece8dd;max-width:44ch}
   .banner .cap{display:flex;justify-content:space-between;gap:12px;margin:10px 4px 0;
     font-family:var(--ui);font-size:12.5px;color:var(--muted)}
-
-  /* kde to prehliadač vie, šírku aj zaoblenie riadi scroll */
   @supports (animation-timeline: view()){
     .banner .frame{animation:rozsir linear both;animation-timeline:view();animation-range:entry 30% cover 55%}
     @keyframes rozsir{from{width:64%;border-radius:22px}to{width:100%;border-radius:14px}}
     .banner img{animation:zoom linear both;animation-timeline:view();animation-range:entry 20% exit 90%}
     @keyframes zoom{from{scale:1.16}to{scale:1.02}}
   }
-  /* kde nevie, pás je rovno na plnú šírku a fotka len jemne dýcha */
   @supports not (animation-timeline: view()){
     .banner .frame{width:100%;border-radius:14px}
     .banner img{animation:dych 40s ease-in-out infinite alternate}
@@ -417,13 +319,9 @@ th{font:500 13px/1.3 var(--ui);letter-spacing:.04em;color:var(--muted);text-tran
     .banner .frame{width:100%;border-radius:14px;animation:none}
     .banner img{animation:none;transform:none;scale:1}
   }
-
-/* ── 17. Pätička ── */
 footer{padding:44px 0 60px;border-top:1px solid var(--line);color:var(--muted);font-family:var(--ui);font-size:14px}
 footer a{color:var(--body)}
 .foot{display:flex;flex-wrap:wrap;gap:18px 26px;justify-content:space-between;align-items:flex-start}
-
-/* ── 18. Šírky ── */
 @media (max-width:860px){
   .hero{grid-template-columns:1fr}
   .steps{grid-template-columns:1fr}
@@ -439,8 +337,6 @@ footer a{color:var(--body)}
 @media (min-width:1700px){
   .hero{grid-template-columns:6.5fr 5.5fr}
 }
-
-/* ── 19. Kto nechce pohyb, nedostane žiadny ── */
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none !important;transition:none !important}
   html{scroll-behavior:auto}
@@ -454,20 +350,9 @@ footer a{color:var(--body)}
   .scene .cursor,.scene text{opacity:.62}
   .bars rect{transform:none}
 }
-
-/* ── 20. Vrstva remesla: veci, ktoré robia rozdiel medzi „pekné" a „hotové" ──
-   Prevzaté ako technika, nie ako vzhľad, z rozboru anthropic.com (5. 9. 2026).
-   Každá položka rieši konkrétnu chybu, ktorá je inak vidieť. */
-
-/* 20.1 Orezanie prázdneho miesta v riadkovaní (leading trim).
-   Font má nad veľkými písmenami a pod dotiahnutými ťahmi prázdno, ktoré sa
-   pripočíta k medzere medzi nadpisom a textom. Bez tohto sedí nadpis opticky
-   nižšie, než má, a odstupy nikdy nesedia s mriežkou. */
 h1,h2,h3,.lead{--trim-top:.36em;--trim-bottom:.34em}
 h1::before,h2::before,h3::before,.lead::before{content:"";display:table;margin-bottom:calc(-0.5lh + var(--trim-top))}
 h1::after,h2::after,h3::after,.lead::after{content:"";display:table;margin-top:calc(-0.5lh + var(--trim-bottom))}
-
-/* 20.2 Dvanásťstĺpcová mriežka ako premenné, aby sa dala použiť kdekoľvek. */
 :root{
   --stlpcov:12;
   --medzera:clamp(18px,1.9vw,31px);
@@ -475,118 +360,58 @@ h1::after,h2::after,h3::after,.lead::after{content:"";display:table;margin-top:c
 }
 .grid12{display:grid;grid-template-columns:repeat(var(--stlpcov),minmax(0,1fr));gap:var(--medzera)}
 @media (max-width:860px){ .grid12{grid-template-columns:repeat(4,minmax(0,1fr))} }
-
-/* 20.3 Rozbaľovanie bez počítania výšky: mriežka z 0fr na 1fr.
-   Riešenie s max-height buď skáče, alebo potrebuje JavaScript na zmeranie. */
 .rozbal{display:grid;grid-template-rows:0fr;transition:grid-template-rows .4s cubic-bezier(.77,0,.175,1)}
 .rozbal>div{min-height:0;overflow:hidden}
 [aria-expanded="true"]+.rozbal{grid-template-rows:1fr}
-
-/* 20.4 Karta s obrázkom: pri prejdení myšou sa obrázok priblíži o 5 %. */
 .card-img{overflow:hidden;border-radius:10px}
 .card-img img{display:block;width:100%;height:auto;transition:transform .25s var(--ease)}
 a:hover .card-img img,.card:hover .card-img img{transform:scale(1.05)}
-
-/* 20.5 Odkaz mimo stránku má šípku, ktorá sa pootočí. */
 .ext::after{content:"";display:inline-block;width:.7em;height:.7em;margin-left:.35em;
   background:currentColor;-webkit-mask:var(--sipka) center/contain no-repeat;mask:var(--sipka) center/contain no-repeat;
   transform:rotate(-45deg);transition:transform .25s var(--spring)}
 :root{--sipka:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 12h13M13 6l6 6-6 6' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
 .ext:hover::after{transform:rotate(-45deg) translateX(3px)}
-
-/* 20.6 Dialóg: natívny <dialog>, tlmené pozadie a jemné vynorenie. */
 dialog{border:1px solid var(--line);border-radius:var(--radius);background:var(--card);color:var(--body);
   padding:clamp(18px,2.4vw,32px);max-width:min(560px,92vw)}
 dialog::backdrop{background:color-mix(in srgb,var(--ink) 62%,transparent)}
 dialog[open]{animation:dialog-in .4s cubic-bezier(.77,0,.175,1)}
 @keyframes dialog-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-
-/* 20.7 Monogram sa pri prvom načítaní dokreslí. Naša obdoba ich Lottie loga,
-   ale bez knižnice: dve cesty a jeden prechod. */
 .brand svg .draw{stroke:var(--ink);stroke-width:.8;fill-opacity:0;
   animation:mono .8s var(--ease) .1s forwards}
 @keyframes mono{to{fill-opacity:1}}
-
 @media (prefers-reduced-motion:reduce){
   .card-img img,.ext::after,dialog[open],.brand svg .draw{transition:none;animation:none}
   .rozbal{transition:none}
 }
-/* ── 14. Nočná plocha (.noc). ────────────────────────────────────────────────
-   Rozhodnuté 6. 9. 2026 s Andrejom. Máme dve plochy, nie dva weby:
-     - PREDAJNÉ stránky (arling.sk, hlavné produkty) sú tmavé. Tam sa rozhoduje
-       prvý dojem a tam chceme pôsobiť ako produkt roku 2026, nie ako príručka.
-     - PRACOVNÉ stránky (samotné nástroje, dokumentácia, právne texty) ostávajú
-       svetlé. Účtovník číta tabuľku s dvesto riadkami a tmavé pozadie mu to
-       sťaží. Toto nie je vkus, je to čitateľnosť.
-   Menia sa len tokeny, takže každý komponent vyššie funguje na oboch plochách.
-
-   ── Prečo to vyzerá takto a nie inak ──────────────────────────────────────
-   Vzorom je remeslo ragnetiq.com, nie ich stránka. Odmerané naživo
-   (ops/design/odmeraj-vzor.mjs, 6. 9. 2026): pozadie rgb(8,8,8), jediné písmo
-   Manrope na 408 prvkoch, nadpis 88 px váha 800 s prestrkaním -0.02em,
-   podnadpis 48 px váha 700 s riadkovaním 1.0, text 16 px na 1.6 vo farbe
-   rgb(166,166,166), plné tlačidlo #9333ea s polomerom 12 px a výplňou 12/24,
-   karty na rgba(20,20,20,.5), hlavička fixed a priehľadná, sekcie 80 až 128 px.
-   Tieto ROZMERY a túto DISCIPLÍNU preberáme.
-
-   Čo NEPREBERÁME a prečo: ragnetiq.com patrí Andrejovej konkurencii, ktorá vie,
-   že arling.sk je jeho. Kópia by bola vidieť na prvý pohľad. Preberáme teda
-   úroveň remesla a ideme opačnou teplotou:
-     - oni studená fialová #8b5cf6, my teplý žeravý akcent z našej tehlovej;
-     - oni Manrope, my Schibsted Grotesk, ktorý už máme orezaný a hostený u nás;
-     - oni bodková mriežka v pozadí, my mäkký teplý svit bez vzoru.
-   V roku 2026 je fialová na čiernom všade a teplá oranžová na čiernom takmer
-   nikde, takže nás nikto nezamení a pritom hráme v rovnakej lige.
-
-   Meranie, ktoré rozhodlo o pohybe (ops/design/pohyb-dokaz.mjs, 6. 9. 2026):
-   ragnetiq.com má v pokoji 0,001 % pohybu plochy. Žiadne častice, žiadne WebGL,
-   žiadna knižnica. Dojem „všetko sa hýbe" robí príchod prvkov pri scrollovaní.
-   Preto tu nebeží nič rýchlejšie než raz za 26 sekúnd. */
 body.noc{
-  --paper:#0a0908;         /* takmer čierna s náznakom tepla, nie modrá */
+  --paper:#0a0908;
   --paper-deep:#100e0c;
   --card:rgba(24,21,19,.55);
   --card-plna:#161311;
   --ink:#fafafa;
   --body:#a6a3a0;
-  --muted:#74716e;
+  --muted:#8d8884;
   --line:rgba(255,255,255,.10);
   --line-silna:#2b2320;
-  --accent:#f2643c;        /* žeravá, náš tehlový privedený k životu na tmavom */
+  --accent:#f2643c;
   --accent-dark:#e04a1f;
-  --accent-light:#ffb59d;  /* na text a odkazy, aby držal kontrast */
+  --accent-light:#ffb59d;
   --ok:#5ecf9a;
-  /* Jedno písmo na všetko. Pätkové na tmavom pozadí je presne to, čo robí
-     zo stránky príručku namiesto produktu. */
   --text:"ARLing Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
   color-scheme:dark;
 }
 body.noc ::selection{background:rgba(242,100,60,.32);color:#fff}
 body.noc :focus-visible{outline-color:var(--accent-light)}
 body.noc{font:16px/1.6 var(--text);letter-spacing:-.005em}
-
-/* Zrno je na tmavom inak viditeľné než na papieri, preto oveľa slabšie.
-   Vzor v pozadí (bodky, mriežka) zámerne nemáme, to je ich rukopis. */
 body.noc::after{opacity:.16}
-
-/* Dva veľmi pomalé svity. Odmerané u vzoru: priemer 380 až 640 px, blur 40 až
-   64 px, priehľadnosť okolo .32, farba pri 12 až 15 %. Držíme sa toho, len
-   teplo namiesto fialovej. */
 body.noc .wash i{opacity:.34;filter:blur(60px)}
 body.noc .wash i:nth-child(1){width:46vw;height:46vw;left:-6vw;top:-14vw;
   background:radial-gradient(circle,rgba(242,100,60,.15) 0%,rgba(242,100,60,.06) 45%,transparent 72%)}
 body.noc .wash i:nth-child(2){width:38vw;height:38vw;right:-6vw;top:16vh;
   background:radial-gradient(circle,rgba(255,168,80,.11) 0%,rgba(255,168,80,.04) 45%,transparent 74%)}
-/* Tretia vrstva cez celú stránku: veľmi slabý dvojbodový nádych, ktorý drží
-   teplo aj hlboko dole, kde už na svity nedovidno. */
 body.noc .wash::after{content:"";position:absolute;inset:0;
   background:radial-gradient(at 18% 26%,rgba(242,100,60,.055) 0%,transparent 55%),
              radial-gradient(at 82% 68%,rgba(255,150,70,.035) 0%,transparent 58%)}
-
-/* ── Typografia nočnej plochy ──────────────────────────────────────────────
-   Odmerané u vzoru: h1 88/800/1.20/-0.02em, h2 48/700/1.00, h3 24/700/1.33,
-   text 16/1.63. Naše písmo má maximum 700, čo pri 88 px stačí a zároveň nás
-   odlišuje od ich 800. */
 body.noc h1,body.noc h2,body.noc h3,body.noc .h{font-family:var(--display);color:var(--ink)}
 body.noc h1{font-size:clamp(40px,6.6vw,88px);font-weight:700;line-height:1.06;letter-spacing:-.028em}
 body.noc h2{font-size:clamp(28px,3.6vw,48px);font-weight:700;line-height:1.06;letter-spacing:-.022em}
@@ -596,32 +421,18 @@ body.noc p:last-child{margin-bottom:0}
 body.noc h1+p,body.noc h2+p,body.noc h3+p{margin-top:14px}
 body.noc h2{margin:0 0 6px}
 body.noc h3{margin:0 0 8px}
-/* Kurzíva v nadpise je pozostatok pätkového vzhľadu a na tmavom vyzerá lacno. */
 body.noc h1 em,body.noc h2 em{font-style:normal;
   background:linear-gradient(100deg,#ff8a5c 0%,#f2643c 45%,#ff9e4f 100%);
   -webkit-background-clip:text;background-clip:text;color:transparent}
 body.noc .lead{font-family:var(--text);color:var(--body)}
 body.noc .kicker{color:var(--accent-light);letter-spacing:.14em}
-
-/* Akcentované slovo v nadpise. Prechod, nie plochá farba: plochá farba na
-   tmavom vyzerá ako zvýrazňovač, prechod vyzerá ako svetlo. */
 body.noc .zar{background:linear-gradient(100deg,#ff8a5c 0%,#f2643c 45%,#ff9e4f 100%);
   -webkit-background-clip:text;background-clip:text;color:transparent}
 @supports not (background-clip:text){ body.noc .zar{color:var(--accent-light)} }
-
-/* ── Komponenty ────────────────────────────────────────────────────────────
-   .band je na svetlej ploche tmavý pás (var(--ink) ako pozadie). Na nočnej
-   ploche je --ink takmer biely, takže by z pásu bola biela plocha s bielym
-   textom. Preto tu dostane vlastné pozadie. */
 body.noc .band{background:linear-gradient(180deg,#141110 0%,#0d0b0a 100%);
   color:var(--body);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
 body.noc .band h2,body.noc .band h3{color:var(--ink)}
 body.noc .band a{color:var(--accent-light)}
-
-/* Tmavý panel v článkoch Notes. Články ho definujú ako background:var(--ink),
-   čo bola vo svetlej palete tmavá farba. V noci je --ink takmer biela, takže
-   z panela bol biely obdĺžnik so svetlosivým textom. Farby sú tie isté ako
-   pri nočnom .band vyššie, aby to vyzeralo ako zvyšok webu. */
 body.noc .doc .tool-box,
 body.noc .doc .toolbox,
 body.noc .doc .check,
@@ -648,55 +459,31 @@ body.noc .doc .toolbox code,
 body.noc .doc .check code,
 body.noc .doc .try code,
 body.noc .doc .cta code{background:var(--card);border-color:var(--line);color:var(--ink)}
-
-/* Tlačidlá: odmerané 12 px polomer, výplň 12/24, 14 px váha 600. */
 body.noc .btn{height:48px;border-radius:12px;font-weight:600;font-size:15px}
 body.noc .btn-solid{background:var(--accent);color:#1a0d07;
   box-shadow:0 0 0 0 rgba(242,100,60,.45);transition:background .18s var(--ease),box-shadow .28s var(--ease),transform .18s var(--ease)}
 body.noc .btn-solid:hover{background:#ff7a55;color:#1a0d07;box-shadow:0 0 34px -6px rgba(242,100,60,.55);transform:translateY(-1px)}
 body.noc .btn-line{border-color:rgba(255,255,255,.16);color:var(--ink);background:rgba(255,255,255,.03)}
 body.noc .btn-line:hover{background:rgba(255,255,255,.08);color:var(--ink);border-color:rgba(255,255,255,.28)}
-
-/* Karta: sklo na tmavom. Odmerané rgba(20,20,20,.5) plus rám na 10 % bielej. */
 body.noc .card,body.noc .photo,body.noc .karta{background:var(--card);border:1px solid var(--line);
   border-radius:20px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
 body.noc .karta{padding:clamp(20px,2vw,28px);transition:border-color .25s var(--ease),background .25s var(--ease),transform .25s var(--ease)}
 body.noc .karta:hover{border-color:rgba(242,100,60,.34);background:rgba(30,25,22,.62);transform:translateY(-2px)}
-
-/* Odznak. Polomer naplno, tenký rám v akcente, tlmená výplň. */
 body.noc .odznak{display:inline-flex;align-items:center;gap:7px;border-radius:999px;
   border:1px solid rgba(242,100,60,.28);background:rgba(242,100,60,.10);color:#ffb59d;
   padding:7px 15px;font:500 13px/1 var(--ui);letter-spacing:.01em}
-
 body.noc .index a:hover{color:var(--accent-light)}
 body.noc code,body.noc kbd{background:rgba(255,255,255,.06);border-radius:5px;padding:2px 5px;color:#e8c9bd}
 body.noc pre{background:rgba(255,255,255,.035);border-color:var(--line)}
 body.noc hr,body.noc .rule{background:var(--line)}
 body.noc footer{border-top:1px solid var(--line);background:var(--paper)}
-
-/* ── Hlavička, ktorá sa objaví až pri scrollovaní ──────────────────────────
-   Andrej to chcel výslovne a vzor to má tiež: `fixed ... bg-transparent`
-   a prechod 300 ms. Hore je hlavička neviditeľná a splýva s úvodom, po
-   odrolovaní dostane pozadie, rozmazanie a vlasovú linku.
-   Triedu `posunute` pridáva /style/vzhlad.js. Bez skriptu ostane hlavička
-   priehľadná, čo je horší, ale stále použiteľný stav: text je biely na tmavom. */
 body.noc header{position:fixed;top:0;left:0;right:0;z-index:50;
   background:transparent;border-bottom:1px solid transparent;
   transition:background .3s var(--ease),border-color .3s var(--ease),backdrop-filter .3s var(--ease)}
 body.noc.posunute header{background:rgba(10,9,8,.72);border-bottom-color:var(--line);
   backdrop-filter:saturate(150%) blur(14px);-webkit-backdrop-filter:saturate(150%) blur(14px)}
-/* Pevná hlavička prekrýva obsah, preto úvodná sekcia začína pod ňou. Výšku
-   meria /style/vzhlad.js do --hlavicka, lebo na úzkej obrazovke a v nemčine
-   sa hlavička zalamuje a pevné číslo by nadpis prekrylo. 66 px je len záloha
-   pre prípad, že skript nebeží. */
 :root{--hlavicka:66px}
-/* Rezerva patrí na <main>, nie na jeho prvé dieťa. Keď sme ju dávali dieťaťu,
-   NAHRADILA jeho vlastné odsadenie a nadpis sa zlepil s hlavičkou. Takto sa
-   pripočíta a vlastné odsadenie sekcie ostane. */
 body.noc main{padding-top:var(--hlavicka)}
-
-/* Hero cez celú výšku, obsah na stred. Vzor to má takto a je to jediný dôvod,
-   prečo tá stránka pôsobí priestranne: nič iné tam nad ohybom nie je. */
 .hero-noc{min-height:calc(100vh - var(--hlavicka));display:flex;flex-direction:column;justify-content:center;
   align-items:center;text-align:center;padding:clamp(48px,9vh,120px) 0;position:relative;z-index:2}
 .hero-noc h1{margin:0;max-width:17ch}
@@ -707,19 +494,13 @@ body.noc main{padding-top:var(--hlavicka)}
   margin-top:clamp(30px,5vh,56px);font-family:var(--ui);font-size:13.5px;color:var(--muted)}
 .hero-noc .fakty span{display:inline-flex;align-items:center;gap:7px}
 .hero-noc .fakty span::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--accent);flex:none}
-
-/* Odmerané odsadenie sekcií u vzoru: 80 až 128 px. */
 body.noc section{padding-top:clamp(56px,8vw,112px);padding-bottom:clamp(56px,8vw,112px)}
 body.noc .hero-noc{padding-top:clamp(48px,9vh,120px);padding-bottom:clamp(48px,9vh,120px)}
-
-/* Na dotykových zariadeniach neexistuje hover, ale prehliadač ho po klepnutí
-   nechá visieť na prvku. Tlačidlo potom ostane zafarbené, akoby bolo stlačené. */
 @media (hover:none){
   .btn-line:hover{background:transparent;color:var(--ink)}
   .btn-solid:hover{transform:none}
   body.noc .karta:hover{transform:none}
 }
-/* Hero cez celú výšku dáva na telefóne priveľa prázdna nad aj pod textom. */
 @media (max-width:720px){
   .hero-noc{min-height:0;padding:clamp(40px,8vh,72px) 0 clamp(44px,9vh,80px)}
   .hero-noc .fakty{gap:10px 18px;font-size:12.5px}
@@ -727,10 +508,6 @@ body.noc .hero-noc{padding-top:clamp(48px,9vh,120px);padding-bottom:clamp(48px,9
 @media (prefers-reduced-motion:reduce){
   body.noc header,body.noc .karta,body.noc .btn-solid{transition:none}
 }
-
-/* ── 15. Dopytový formulár. ──────────────────────────────────────────────────
-   Jediné miesto na stránke, kde návštevník niečo píše nám. Preto tu nie sú
-   žiadne ozdoby: veľké polia, viditeľné menovky, jedno tlačidlo. */
 .dopyt-blok{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,72px);align-items:start}
 .dopyt-poznamka{font-family:var(--ui);font-size:13.5px;color:var(--muted)}
 .dopyt-form{display:flex;flex-direction:column;gap:7px}
@@ -741,19 +518,14 @@ body.noc .hero-noc{padding-top:clamp(48px,9vh,120px);padding-bottom:clamp(48px,9
   border:1px solid var(--line);border-radius:10px;padding:11px 13px;width:100%;min-width:0}
 .dopyt-form textarea{resize:vertical;min-height:104px}
 .dopyt-form input:focus,.dopyt-form textarea:focus{border-color:var(--accent);outline:none;
-  box-shadow:0 0 0 3px rgba(124,92,255,.18)}
+  box-shadow:0 0 0 3px rgba(242,100,60,.22)}
 .dopyt-form input::placeholder,.dopyt-form textarea::placeholder{color:var(--muted);opacity:.75}
 .dopyt-form button{margin-top:14px;align-self:flex-start}
 .dopyt-vdaka,.dopyt-chyba{font-family:var(--ui);font-size:15px;line-height:1.5}
 .dopyt-vdaka{color:var(--ok)}
 .dopyt-chyba{color:var(--accent-light)}
-/* pasca na roboty: musí byť pre človeka neviditeľná, ale pre robota vyplniteľná,
-   preto sa neschováva cez display:none, ktoré časť robotov preskočí */
 .hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
 @media (max-width:820px){ .dopyt-blok{grid-template-columns:1fr} }
-
-/* Pás s termínom. Použiť len tam, kde termín naozaj existuje a je overený,
-   nikdy ako umelý tlak. Zoznam našich termínov je v ops/BACKLOG.md. */
 .termin{font-family:var(--ui);font-size:15px;line-height:1.55;color:var(--body);
   background:var(--card);border:1px solid var(--line);border-left:3px solid var(--accent);
   border-radius:0 10px 10px 0;padding:14px 18px;margin:22px 0 0;max-width:70ch}
@@ -761,18 +533,8 @@ body.noc .hero-noc{padding-top:clamp(48px,9vh,120px);padding-bottom:clamp(48px,9
 .zdroje{font-family:var(--ui);font-size:13px;line-height:1.6;color:var(--muted);margin-top:26px;max-width:88ch}
 .zdroje li,.zdroje a{overflow-wrap:anywhere}
 .mini{font-family:var(--ui);font-size:13px;color:var(--muted);margin:18px 0 6px}
-
-/* Plátno so živým svetlom v úvode. Leží pod obsahom, nedá sa naň kliknúť
-   a keď sa skript nespustí, ostane pod ním CSS prechod, ktorý vyzerá dobre sám.
-   Skript: /style/zar.js (jeden shader, bez knižnice, bez cudzej domény). */
 .hero-noc{isolation:isolate}
-/* Všetko okrem plátna je bežný prvok v rade. Plátno musí byť vyňaté, inak by
-   sa zaradilo medzi nadpis a text a odtlačilo obsah dole. */
 .hero-noc>*:not(.zar-plocha){position:relative;z-index:1}
-/* Plátno ide cez celú šírku okna, nie len cez obsahový stĺpec, aby svetlo
-   nekončilo zvislou hranou tam, kde sa končí text. */
-/* Plátno siaha aj POD hlavičku, inak je hore pás holého pozadia a hlavička
-   vyzerá ako neprehľadná lišta namiesto priehľadnej. */
 .zar-plocha{position:absolute;top:calc(-1 * var(--hlavicka));bottom:0;left:50%;transform:translateX(-50%);
   width:var(--sirka-okna,100%);max-width:none;height:100%;display:block;
   pointer-events:none;z-index:0;opacity:0;transition:opacity 1.1s var(--ease);
@@ -780,50 +542,19 @@ body.noc .hero-noc{padding-top:clamp(48px,9vh,120px);padding-bottom:clamp(48px,9
   mask-image:linear-gradient(180deg,#000 0%,#000 58%,transparent 100%)}
 body.noc .zar-plocha{opacity:1}
 @media (prefers-reduced-motion:reduce){ .zar-plocha{transition:none} }
-
-/* Plátno v hero blokoch, ktoré nie sú .hero-noc (produktové stránky majú
-   vlastný úvod). Rovnaké pravidlá: pod obsahom, cez celú šírku, bez hrán. */
 .hero,.hero-alt{position:relative;isolation:isolate}
 .hero>*:not(.zar-plocha),.hero-alt>*:not(.zar-plocha){position:relative;z-index:1}
-
-
-/* Hlavička: značka vľavo, všetko ostatné vpravo v jednej skupine.
-   Predtým bola navigácia na strede a prepínač jazyka úplne vpravo, takže
-   medzi nimi zívala diera a nič nebolo zarovnané. */
 .bar{gap:clamp(16px,3vw,40px)}
 .bar nav{margin-left:auto;display:flex;align-items:center;gap:clamp(14px,1.6vw,26px)}
 .bar .langsel{margin-left:clamp(10px,1.4vw,20px)}
-/* Hranica je 960, nie 720: pri 768 px hlavicka pretekala von z obrazovky,
-   "Kontakt" bol odsekly a prepinac jazykov sa nedal dosiahnut. Realny prah,
-   kde sa vsetko este zmesti do riadku, je okolo 930 px. */
 @media (max-width:960px){
   .bar{flex-wrap:wrap;row-gap:8px}
-  /* Navigacia sa na uzkej obrazovke zalamuje po celych polozkach.
-     6. 9. 2026 sa dlhe polozky ("Ako to funguje") lamali dovnutra odkazu,
-     preto white-space:nowrap na odkaze. Od 6. 9. do 10. 9. bol riadok
-     posuvatelny s maskou napravo, ale audit 10. 9. (vizual.md) ukazal, ze
-     maska na 390 px nie je viditelny signal a Kontakt ostal skryty za
-     okrajom. Zalomeny riadok ukaze vsetky polozky, hlavicka je o riadok
-     vyssia a nic sa neschovava. */
-  /* "header .bar nav" a nie ".bar nav": stranky maju vlastne pravidlo
-     .bar nav{gap:16px} za odkazom na paper.css, ktore by inak vyhralo a
-     roztiahlo riadky. */
   header .bar nav{margin-left:0;order:3;width:100%;flex-wrap:wrap;gap:2px 16px;padding-bottom:0;font-size:14px}
   header .bar nav a{white-space:nowrap;flex:none;padding:2px 0;line-height:1.35}
   .bar .langsel{margin-left:auto}
-  /* Znacka sa nesmie zalomit ani tlacit navigaciu */
   .bar .brand{flex:none;min-width:0}
   .bar .brand span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:38vw}
 }
-
-/* Váha písma ako nástroj, nie ako náhoda.
-   Náš rez má 400 až 700, tak nech je vidieť, na čo ktorá váha je. Keď je
-   všetko tučné, nič nie je dôležité; keď je všetko tenké, stránka nemá kostru.
-     700  hlavný nadpis a nadpisy sekcií, jediné miesto, kde kričíme
-     600  podnadpisy, hlavné tlačidlo, menovky sekcií
-     500  navigácia, vedľajšie tlačidlo, odznaky
-     400  bežný text a metadáta
-   Nič medzi tým, aby sa stupnica nerozmazala. */
 body.noc h1,body.noc h2{font-weight:700}
 body.noc h3{font-weight:600;letter-spacing:-.01em}
 body.noc .kicker{font-weight:600}
@@ -834,53 +565,30 @@ body.noc .btn-line{font-weight:500}
 body.noc .odznak,body.noc .tag,body.noc .lbl{font-weight:500}
 body.noc .lead{font-weight:400}
 body.noc b,body.noc strong{font-weight:600;color:var(--ink)}
-/* Metadáta a poznámky pod čiarou nesmú konkurovať textu. */
 body.noc .fakty,body.noc .mini,body.noc .zdroje,body.noc .byline{font-weight:400}
-
-/* Položka prepínača, ktorá vedie len na domovskú stránku daného jazyka.
-   Vyzerá inak zámerne: sľubovať preklad, ktorý neexistuje, je horšie než
-   povedať rovno, kam sa klikom dostanem. */
 .langsel .len-domov{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
 .langsel .len-domov span{font-size:11px;letter-spacing:.04em;color:var(--muted);opacity:.85}
-
-/* Plynulejší príchod sekcií. Predtým to bolo krátke trhnutie (.45 s, posun 8 px),
-   čo pri veľkých blokoch pôsobí ako preblik. Teraz dlhší a mäkší nábeh s malou
-   zmenou mierky: oko to prečíta ako "prišlo to", nie ako "skočilo to".
-   Východiskový stav je stále viditeľný, takže bez skriptu sa nič neskryje. */
 .r{animation:prichod .72s var(--spring) both}
 @keyframes prichod{from{opacity:.001;transform:translate3d(0,14px,0) scale(.994)}to{opacity:1;transform:none}}
 .d1{animation-delay:.06s}.d2{animation-delay:.12s}.d3{animation-delay:.18s}
 .d4{animation-delay:.24s}.d5{animation-delay:.30s}.d6{animation-delay:.36s}
-/* Kotvy nesmú skončiť pod pevnou hlavičkou. */
 html{scroll-padding-top:calc(var(--hlavicka) + 16px)}
 @media (prefers-reduced-motion:reduce){
   .r{animation:none}
   html{scroll-behavior:auto}
 }
-
-/* Značka v hlavičke. Monogram je široký (488:215), takže pri rovnakej výške ako
-   text pôsobí drobne. Riadi sa odtiaľto, aby sa nemuselo prepisovať 102 stránok. */
 .brand{gap:13px}
 .brand svg{width:48px;height:auto;flex:none;display:block}
 .brand b{font:700 20px/1 var(--display);letter-spacing:-.015em}
 @media (max-width:520px){ .brand svg{width:40px} .brand b{font-size:18px} }
-
-/* Vzduch. Sekcie boli natlačené: menovka, nadpis a stĺpce sa dotýkali.
-   Jedna stupnica rozostupov, nič medzi tým, aby sa to znovu nerozišlo. */
 body.noc .kicker{margin:0 0 clamp(14px,1.6vw,22px)}
 body.noc section>.wrap>h2:first-of-type,body.noc section .wrap>h2{margin-top:0}
 body.noc .rule{margin:clamp(22px,2.4vw,34px) 0 clamp(28px,3vw,44px)}
 body.noc .two,body.noc .three,body.noc .dopyt-blok{gap:clamp(28px,4vw,64px)}
 body.noc .band .wrap{padding-top:clamp(8px,1vw,16px);padding-bottom:clamp(8px,1vw,16px)}
-/* Zoznam očíslovaných sľubov: stĺpce potrebujú medzi sebou skutočnú medzeru
-   a pod číslom vzduch, inak to vyzerá ako natlačená tabuľka. */
 body.noc .band ol,body.noc .band ul{gap:clamp(26px,3.2vw,52px)}
 body.noc .band li{padding-right:clamp(10px,1.4vw,24px)}
 body.noc .band li b,body.noc .band li strong{display:block;margin-bottom:10px;line-height:1.35}
-
-/* Natívne ovládacie prvky na tmavom. Prehliadač im dáva vlastný svetlý vzhľad,
-   takže na tmavej ploche svietia ako cudzie teleso. Toto je jediné miesto,
-   kde sa dotýkame vzhľadu formulárov, aby sa to nemuselo riešiť v nástrojoch. */
 body.noc input,body.noc select,body.noc textarea{
   background:rgba(255,255,255,.045);color:var(--ink);border:1px solid var(--line);
   border-radius:9px;font-family:var(--ui)}
@@ -899,78 +607,191 @@ body.noc select{appearance:none;padding-right:34px;
   background-size:5px 5px,5px 5px;background-repeat:no-repeat}
 body.noc option{background:var(--card-plna);color:var(--ink)}
 body.noc input[type="checkbox"],body.noc input[type="radio"]{accent-color:var(--accent)}
-/* Tabuľky s výsledkami: striedavé riadky, aby sa dvesto riadkov dalo čítať. */
 body.noc table{border-color:var(--line)}
 body.noc th{color:var(--ink);border-bottom:1px solid var(--line);font-weight:600}
 body.noc td{border-bottom:1px solid rgba(255,255,255,.055)}
 body.noc tbody tr:nth-child(even){background:rgba(255,255,255,.022)}
 body.noc tbody tr:hover{background:rgba(242,100,60,.06)}
-
-
-/* Rozmazané škvrny (.wash) na nočnej ploche vypnuté. Boli z čias, keď pozadie
-   robilo CSS. Odkedy kreslí shader, len sa s ním sčítavali a hore vznikol
-   oranžový záves cez hlavičku. Na svetlej ploche ostávajú. */
 body.noc .wash i,body.noc .wash::after{display:none}
-
-
-/* Prvá sekcia pod priehľadnou hlavičkou nesmie mať hornú linku. Vyzeralo to
-   ako spodná hrana hlavičky, hoci hlavička je hore zámerne bez nej. */
 body.noc .hero-noc,body.noc main>section:first-of-type,body.noc main>.wrap:first-child{border-top:0}
-
-/* Riadok nad nadpisom (názov | Nástroje pre prácu | firma) Andrej 21. 9. odmietol na všetkých stránkach. */
 .uv-masthead{display:none !important}
-
-/* A-093: spoločný rám podľa úvodu v4 (21. 9. 2026). Hlavičku a pätu píše
-   ops/design/obal.mjs na každú stránku; vzhľad je prevzatý zo style/uvod.css
-   (Lampa na stole: noc #0a0908, meď #f2643c, ARLing Sans), aby podstránka
-   vyzerala ako ten istý web. Nahrádza A-090 (riadok odkazov a tri stĺpce textu).
-
-   Pravidlo tejto sekcie: každý selektor začína header.site-header alebo
-   footer.site-footer (s voliteľným body.noc pred tým). Stránky majú vlastné
-   pravidlá pre .cta, .wrap, nav, details, summary, footer a p; preto sú tu
-   selektory zámerne ťažké a vlastnosti, ktoré tie pravidlá nastavujú, sa
-   vypisujú celé. Stráži to test v ops/design/obal.test.mjs.
-   Katalóg je v stránke raz: details.site-menu je na širokej obrazovke
-   rozbaľovacie „Produkty“, do 760 px mobilné menu po skupinách. */
+@font-face{font-family:"ARLing Draw Text";src:url(/fonts/ARLingDrawText-500-700.woff2?v=a1010959) format("woff2");font-weight:500 700;font-style:normal;font-display:optional}
+:root{
+  --pu-stlac:linear(0, 0.0166 2.3%, 0.0736 5.2%, 0.1985 9.5%, 0.4972 18.8%, 0.6445 24.3%, 0.7583 29.75%, 0.8473 35.6%, 0.9149 42.3%, 0.9629 50.6%, 0.9919 62.35%, 1.0015 88.1%, 1);--pu-stlac-t:.214s;
+  --pu-pust:linear(0, 0.0164 2.25%, 0.0716 5%, 0.1861 8.8%, 0.5397 18.95%, 0.6883 24.05%, 0.8013 29%, 0.8882 34.25%, 0.952 40.15%, 0.9939 47.3%, 1.0139 57.35%, 1);--pu-pust-t:.459s;
+  --pu-rychla:linear(0, 0.0167 2.2%, 0.0723 4.9%, 0.1917 8.8%, 0.5127 18.1%, 0.6611 23.25%, 0.7747 28.3%, 0.863 33.7%, 0.9291 39.85%, 0.9746 47.4%, 0.9999 58.1%, 1.0028 86.15%, 1);--pu-rychla-t:.447s;
+  --pu-tvar:linear(0, 0.0164 2.25%, 0.0716 5%, 0.1861 8.8%, 0.5397 18.95%, 0.6883 24.05%, 0.8013 29%, 0.8882 34.25%, 0.952 40.15%, 0.9939 47.3%, 1.0139 57.35%, 1);--pu-tvar-t:.756s;
+  --pu-vstup:linear(0, 0.0166 2.3%, 0.0733 5.2%, 0.1978 9.5%, 0.4973 18.85%, 0.6442 24.35%, 0.7579 29.8%, 0.8468 35.65%, 0.9145 42.35%, 0.9626 50.65%, 0.9917 62.4%, 1.0015 87.9%, 1);--pu-vstup-t:.507s;
+  --pu-odchod:linear(0, 0.0165 2.1%, 0.0735 4.8%, 0.2092 9.2%, 0.4669 17.05%, 0.6111 22.35%, 0.7245 27.7%, 0.8151 33.55%, 0.8866 40.4%, 0.9399 48.95%, 0.9762 60.95%, 0.9958 82.6%, 1);--pu-odchod-t:.294s;
+}
+@supports not (transition-timing-function:linear(0,1)){
+  :root{--pu-stlac:cubic-bezier(.2,.7,.2,1);--pu-pust:cubic-bezier(.16,1,.3,1);--pu-rychla:cubic-bezier(.2,.7,.2,1);--pu-tvar:cubic-bezier(.16,1,.3,1);--pu-vstup:cubic-bezier(.16,1,.3,1);--pu-odchod:cubic-bezier(.4,0,1,1)}
+}
+:root{
+  --s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:24px;--s6:32px;--s7:48px;--s8:64px;--s9:96px;
+  --r-s:10px;--r-m:14px;--r-l:18px;--r-xl:22px;--r-pill:999px;
+  --pero:cubic-bezier(.16,1,.3,1);--tik:cubic-bezier(.2,.7,.2,1);
+  --tien-1:0 6px 16px -6px rgba(0,0,0,.8);
+  --tien-2:0 9px 20px -7px rgba(0,0,0,.85);
+  --tien-3:0 30px 60px -32px rgba(0,0,0,.95);
+  --tien-ram:0 2px 0 rgba(255,255,255,.07) inset,0 46px 90px -34px rgba(0,0,0,.92);
+  --svit:0 44px 100px -52px rgba(242,100,60,.62);
+  --nadpis:"ARLing Draw Text","ARLing Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+body.noc{--med-tma:#e05630;--med-tma-2:#c9421c;--na-medi:#1b0e08;
+  --linka-2:rgba(255,255,255,.16);--linka-3:rgba(255,255,255,.34);
+  --pu-prsten:rgba(242,100,60,.22);--pu-chyba:#ff8a70;--pu-chyba-prsten:rgba(255,138,112,.2)}
+body.noc h1,body.noc h2{font-family:var(--nadpis);text-wrap:balance}
+body.noc h1{font-size:clamp(2.125rem,4.5vw,4rem);line-height:1.1;letter-spacing:-.02em}
+body.noc h2{font-size:clamp(1.625rem,2.9vw,2.75rem);line-height:1.14;letter-spacing:-.018em}
+body.noc .price{font-family:var(--nadpis)}
+html body.noc main :is(h1,h2){font-family:var(--nadpis)}
+@media (max-width:520px){body.noc h1{letter-spacing:-.012em}}
+body.noc .kicker:not(:has(svg))::before{content:"";display:inline-block;vertical-align:.12em;margin-right:.45em;flex:none;width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px rgba(242,100,60,.18)}
+body.noc .btn{border-radius:var(--r-pill);padding:0 22px;gap:10px;letter-spacing:-.012em;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+  transition:transform var(--pu-pust-t) var(--pu-pust),box-shadow .16s var(--tik),background-color .16s var(--tik),border-color .16s var(--tik),color .16s var(--tik)}
+body.noc .btn-solid{background:var(--accent);color:var(--na-medi);border-color:transparent;box-shadow:var(--tien-1)}
+body.noc .btn-solid:hover{background:var(--med-tma);color:var(--na-medi);box-shadow:var(--tien-2);transform:translateY(-1px)}
+body.noc .btn-line{border-color:var(--linka-2);background:rgba(255,255,255,.03);color:var(--ink)}
+body.noc .btn-line:hover{border-color:var(--linka-3);background:rgba(255,255,255,.06);color:var(--ink);transform:translateY(-1px)}
+body.noc .btn:is(:active,.v3-stlac,.pu-stlacene):not(:disabled,[aria-disabled="true"]){transform:scale(.97);
+  transition:transform var(--pu-stlac-t) var(--pu-stlac),box-shadow .1s var(--tik),background-color .1s var(--tik)}
+body.noc .btn-solid:is(:active,.v3-stlac){background:var(--med-tma-2);box-shadow:0 3px 9px -5px rgba(0,0,0,.85)}
+body.noc .btn:disabled,body.noc .btn[aria-disabled="true"]{cursor:not-allowed;opacity:.55;box-shadow:none;transform:none}
+header.site-header .site-cta.v3-stlac,footer.site-footer .site-cta.v3-stlac{transform:scale(.97)}
+@media (hover:none){
+  body.noc .btn-solid:hover{background:var(--accent);box-shadow:var(--tien-1);transform:none}
+  body.noc .btn-line:hover{background:rgba(255,255,255,.03);border-color:var(--linka-2);transform:none}
+}
+body.noc .card,body.noc .karta,body.noc .photo{backdrop-filter:none;-webkit-backdrop-filter:none}
+body.noc .card,body.noc .karta{--mx:50%;--my:50%;position:relative;border-radius:var(--r-l);border-color:var(--line);
+  background:linear-gradient(180deg,rgba(28,24,21,.72),rgba(17,14,12,.72));transition:none}
+body.noc :is(.card,.karta,[data-svit])::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;
+  background:radial-gradient(240px circle at var(--mx,50%) var(--my,50%),rgba(242,100,60,.62),rgba(255,181,157,.2) 42%,transparent 72%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;
+  mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude;
+  clip-path:circle(176px at var(--mx,50%) var(--my,50%));opacity:0}
+body.noc [data-svit]{position:relative}
+body.noc :is(.card,.karta,[data-svit]):is(:focus-visible,:has(:focus-visible))::after{opacity:1}
+@media (hover:hover) and (pointer:fine){
+  body.noc :is(.card,.karta,[data-svit]):hover::after{opacity:1}
+  body.noc :is(.card,.karta):hover{transform:none}
+  body.noc :is(a.card,a.karta,.card:has(a,button),.karta:has(a,button)):hover{border-color:rgba(255,255,255,.14);background-color:transparent}
+}
+body.noc .card-img{border-radius:var(--r-s)}
+body.noc .card-img img{transition:transform .6s var(--pero)}
+body.noc a:hover .card-img img,body.noc .card:hover .card-img img{transform:scale(1.03)}
+body.noc .shot{border:1px solid rgba(255,255,255,.13);border-radius:var(--r-l);
+  background:linear-gradient(180deg,#272220 0%,#16120f 100%);box-shadow:var(--tien-ram),var(--svit)}
+body.noc .shot .chrome{gap:8px;padding:12px 15px;border-bottom-color:rgba(255,255,255,.08)}
+body.noc .shot .chrome i{background:#3a322e}
+body.noc main::before{content:"";position:absolute;left:0;right:0;top:0;height:min(1080px,140vh);z-index:-1;pointer-events:none;
+  background:radial-gradient(50% 44% at 84% 10%,rgba(150,72,40,.26) 0%,transparent 66%),
+             radial-gradient(62% 52% at 10% 0%,rgba(112,54,30,.2) 0%,transparent 70%)}
+@supports (animation-timeline:scroll()){
+  body.noc main::before{animation:v3-lampa linear both;animation-timeline:scroll(root);animation-range:0 90vh}
+  @keyframes v3-lampa{to{transform:translate3d(0,80px,0);opacity:.55}}
+}
+body.noc main:has(.zar-plocha)::before,body.noc.efv4 main::before,body.noc.svet-mapa main::before{content:none}
+body.noc .deep{box-shadow:inset 0 1px 0 rgba(255,255,255,.035)}
+body.noc .band{isolation:isolate}
+body.noc .band::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background:radial-gradient(56% 80% at 50% 118%,rgba(242,100,60,.2) 0%,transparent 70%)}
+body.noc .band::after{content:"";position:absolute;left:10%;right:10%;top:-1px;height:1px;pointer-events:none;opacity:.6;
+  background:linear-gradient(90deg,transparent,rgba(255,181,157,.7) 30%,#f2643c 50%,rgba(255,181,157,.7) 70%,transparent)}
+body.noc .tablewrap{border-radius:var(--r-m);background:rgba(255,255,255,.015)}
+body.noc thead th{background:rgba(255,255,255,.03)}
+body.noc :is(input,select,textarea):not([type="checkbox"],[type="radio"],[type="range"],[type="file"],[type="submit"],[type="button"],[type="hidden"],[type="color"]){
+  transition:box-shadow var(--pu-rychla-t) var(--pu-rychla),border-color .12s var(--tik),background-color .12s var(--tik)}
+body.noc :is(input,select,textarea)[aria-invalid="true"]{border-color:var(--pu-chyba)}
+body.noc :is(input,select,textarea)[aria-invalid="true"]:focus{border-color:var(--pu-chyba);box-shadow:0 0 0 3px var(--pu-chyba-prsten)}
+body.noc main :is(p,li,dd,td) a:not([class]){text-decoration-color:rgba(255,255,255,.3);transition:color .16s var(--tik),text-decoration-color .16s var(--tik)}
+body.noc main :is(p,li,dd,td) a:not([class]):hover{color:var(--accent-light);text-decoration-color:currentColor}
+body.noc main details[open]>:not(summary){animation:v3-rozbal .32s var(--pero)}
+@keyframes v3-rozbal{from{opacity:.001;transform:translate3d(0,-6px,0)}}
+[data-pocitadlo]{font-variant-numeric:tabular-nums}
+@property --pu-l{syntax:'<length>';inherits:false;initial-value:0px}
+@property --pu-r{syntax:'<length>';inherits:false;initial-value:0px}
+body.noc.pu{--pu-ind:var(--accent);--pu-ind-plocha:rgba(255,255,255,.12);--pu-toast:#1c1815;--pu-toast-text:#fafafa;--pu-toast-linka:rgba(255,255,255,.14)}
+body.pu .pu-chyba{display:block;min-height:1.4em;margin:6px 0 0;font:500 14px/1.4 var(--ui);color:var(--pu-chyba);
+  opacity:0;transform:translateY(-6px);transition:opacity var(--pu-odchod-t) var(--pu-odchod),transform var(--pu-odchod-t) var(--pu-odchod)}
+body.pu .pu-chyba.on{opacity:1;transform:none;transition:opacity var(--pu-vstup-t) var(--pu-vstup),transform var(--pu-vstup-t) var(--pu-vstup)}
+body.pu .pu-morf{position:relative;overflow:hidden;isolation:isolate;
+  transition:width var(--pu-tvar-t) var(--pu-tvar),transform var(--pu-pust-t) var(--pu-pust),background-color 0s,color 0s}
+body.pu .pu-morf.pu-hotovo,body.pu .pu-morf.pu-hotovo:hover{background:var(--accent-dark);box-shadow:none;cursor:default}
+body.pu .pu-morf>.pu-obsah{display:inline-flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap;
+  transition:opacity var(--pu-odchod-t) var(--pu-odchod),transform var(--pu-odchod-t) var(--pu-odchod)}
+body.pu .pu-morf>.pu-obsah.pu-prec{opacity:0;transform:translateY(-6px)}
+body.pu .pu-morf>.pu-obsah.pu-novy{opacity:0;transform:translateY(6px)}
+body.pu .pu-morf>.pu-obsah.pu-novy.on{opacity:1;transform:none;transition:opacity var(--pu-vstup-t) var(--pu-vstup),transform var(--pu-vstup-t) var(--pu-vstup)}
+body.pu .pu-atrament{position:absolute;left:0;top:0;z-index:-1;width:var(--pu-d,0px);height:var(--pu-d,0px);border-radius:50%;
+  background:var(--accent-dark);pointer-events:none;transform:translate(var(--pu-x,0px),var(--pu-y,0px)) scale(0);
+  transition:transform var(--pu-vstup-t) var(--pu-vstup)}
+body.pu .pu-atrament.on{transform:translate(var(--pu-x,0px),var(--pu-y,0px)) scale(1)}
+body.pu .pu-fajka{width:18px;height:18px;flex:none}
+body.pu .pu-fajka path{fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;
+  stroke-dasharray:24;stroke-dashoffset:24;transition:stroke-dashoffset var(--pu-rychla-t) var(--pu-rychla) .08s}
+body.pu .pu-obsah.on .pu-fajka path{stroke-dashoffset:0}
+body.pu .pu-morf>.pu-obsah.pu-meraj{position:absolute;visibility:hidden}
+body.pu .pu-zjav{opacity:0;transform:translateY(6px)}
+body.pu .pu-zjav.on{opacity:1;transform:none;transition:opacity var(--pu-vstup-t) var(--pu-vstup),transform var(--pu-vstup-t) var(--pu-vstup)}
+body.pu [data-pu-zalozky]{position:relative;isolation:isolate}
+body.pu .pu-ind{position:absolute;left:0;right:0;bottom:0;height:2px;z-index:-1;background:var(--pu-ind);pointer-events:none;
+  clip-path:inset(0 calc(100% - var(--pu-r)) 0 var(--pu-l) round 2px)}
+body.pu [data-pu-zalozky="pilulka"]>.pu-ind{bottom:auto;background:var(--pu-ind-plocha);
+  clip-path:inset(0 calc(100% - var(--pu-r)) 0 var(--pu-l) round 999px)}
+body.pu .pu-ind.vpravo{transition:--pu-r var(--pu-rychla-t) var(--pu-rychla),--pu-l var(--pu-tvar-t) var(--pu-tvar)}
+body.pu .pu-ind.vlavo{transition:--pu-l var(--pu-rychla-t) var(--pu-rychla),--pu-r var(--pu-tvar-t) var(--pu-tvar)}
+body.pu .pu-toast{position:fixed;left:0;right:0;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:90;
+  width:fit-content;max-width:min(420px,calc(100vw - 32px));min-height:48px;margin:0 auto;padding:13px 18px;
+  display:flex;align-items:center;justify-content:center;text-align:center;border-radius:12px;
+  background:var(--pu-toast);color:var(--pu-toast-text);border:1px solid var(--pu-toast-linka);
+  font:500 15px/1.4 var(--ui);box-shadow:0 14px 30px -16px rgba(0,0,0,.7);cursor:pointer;
+  opacity:0;visibility:hidden;pointer-events:none;transform:translateY(12px);
+  transition:opacity var(--pu-odchod-t) var(--pu-odchod),transform var(--pu-odchod-t) var(--pu-odchod),visibility 0s linear var(--pu-odchod-t)}
+body.pu .pu-toast.on{opacity:1;visibility:visible;pointer-events:auto;transform:none;
+  transition:opacity var(--pu-vstup-t) var(--pu-vstup),transform var(--pu-vstup-t) var(--pu-vstup),visibility 0s}
+@media (prefers-reduced-motion:reduce){
+  body.noc .btn:is(:hover,:active,.v3-stlac,.pu-stlacene),body.noc :is(.card,.karta):hover,
+  body.noc a:hover .card-img img,body.noc .card:hover .card-img img,
+  body.pu .pu-chyba,body.pu .pu-toast,body.pu .pu-morf>.pu-obsah,body.pu .pu-atrament,body.pu .pu-zjav{transform:none !important}
+  body.noc main::before{transform:none;opacity:1}
+  body.pu .pu-fajka path{stroke-dashoffset:0}
+}
+body.noc .btn{max-width:100%}
+html.v3-text body.noc .btn{height:auto;min-height:48px;padding-top:8px;padding-bottom:8px;line-height:1.15;text-align:center}
+form[data-dopyt]{grid-template-columns:minmax(0,1fr)}
+form[data-dopyt]>*{min-width:0;max-width:100%}
+body.noc .uv-lead-grid>*{min-width:0}
+body.noc .horna{flex-wrap:wrap}
+html.v3-text body.efv4 .ef-ramec-pas h2{text-wrap:wrap;white-space:normal}
+@media (max-width:40em){body.noc .live figcaption{flex-direction:column;gap:2px}}
+body.noc form :is(input,select,textarea){scroll-margin-top:calc(1.5em + 24px)}
 header.site-header,footer.site-footer{--r-ink:#fafafa;--r-telo:#a8a4a0;--r-tichy:#8d8884;--r-linka:rgba(255,255,255,.10);--r-linka-2:rgba(255,255,255,.16);--r-med:#f2643c;--r-med-tma:#e05630;--r-med-tma-2:#c9421c;--r-zhaslo:#ffb59d;--r-pero:cubic-bezier(.16,1,.3,1);--r-tik:cubic-bezier(.2,.7,.2,1);font-family:var(--ui);font-size:15px;line-height:1.5;letter-spacing:-.004em;color:var(--r-telo);text-align:left}
-/* Šírka rámu je miera Paper (--wrap), nie 1340 px z úvodu: značka má stáť nad ľavým okrajom obsahu
-   stránky. Premennú --wrap si niektoré stránky zužujú (článok 620 px), preto je tu hodnota napevno. */
 header.site-header .wrap,footer.site-footer .wrap{width:min(1432px,89vw);max-width:none;margin:0 auto;padding-left:0;padding-right:0}
-/* Zoznamy len vo vlastných častiach rámu: vlastný prepínač jazykov stránky môže byť tiež ul a li. */
 header.site-header .site-col ul,footer.site-footer .site-foot-cols ul{margin:0;padding:0;list-style:none}
 header.site-header .site-col li,footer.site-footer .site-foot-cols li{display:block;max-width:none;margin:0;padding:0;border:0}
 header.site-header .site-col li::before,header.site-header .site-col li::after,footer.site-footer .site-foot-cols li::before,footer.site-footer .site-foot-cols li::after{content:none}
 header.site-header :focus-visible,footer.site-footer :focus-visible{outline:2px solid var(--r-med);outline-offset:3px}
 .site-skip:focus{position:fixed;left:14px;top:14px;z-index:100;min-height:44px;padding:10px 14px;border:1px solid rgba(255,255,255,.16);border-radius:12px;background:#15110f;color:#fafafa;font:500 15px/1.5 var(--ui);text-decoration:none}
-
-/* Hlavička: plný tmavý materiál, vždy hore. Pevná je už od body.noc header;
-   miesto pod ňou drží body.noc main cez --hlavicka, ktorú meria vzhlad.js. */
 body.noc header.site-header{background:#0a0908;border-bottom:1px solid var(--r-linka);box-shadow:0 1px 0 rgba(255,255,255,.06) inset;backdrop-filter:none;-webkit-backdrop-filter:none;padding-top:env(safe-area-inset-top,0px)}
 header.site-header .bar{position:relative;display:flex;align-items:center;justify-content:flex-start;flex-wrap:nowrap;gap:18px;row-gap:0;height:70px;min-height:0;padding:0}
 header.site-header .brand{display:flex;align-items:center;gap:11px;flex:none;min-width:0;min-height:44px;margin:0 auto 0 0;padding:0;text-decoration:none;color:var(--r-ink)}
 header.site-header .brand svg{width:34px;height:15px;flex:none;display:block}
 header.site-header .brand b{font:700 20px/1 var(--ui);letter-spacing:-.022em;color:var(--r-ink)}
 header.site-header .bar .brand span{display:block;max-width:19ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--r-tichy);font:400 13px/1.3 var(--ui);letter-spacing:0;border-left:1px solid var(--r-linka-2);padding-left:11px}
-
-/* Štyri odkazy ako na úvode. Je to <nav> v .bar, preto sa tu prebíjajú staršie
-   pravidlá „.bar nav“, „header .bar nav“ (paper.css, hub.css) aj „body.noc .bar nav a“. */
 header.site-header .bar .site-main-nav{position:static;order:0;display:flex;flex-flow:row nowrap;align-items:center;gap:26px;width:auto;margin:0;padding:0;border:0;background:none;box-shadow:none;font-size:15px}
 header.site-header .bar .site-main-nav>a{position:relative;display:inline-flex;align-items:center;flex:none;min-height:44px;padding:6px 0;border:0;font:400 15px/1.3 var(--ui);letter-spacing:-.004em;color:var(--r-telo);text-decoration:none;white-space:nowrap;transition:color .2s var(--r-tik)}
 header.site-header .bar .site-main-nav>a::after{content:"";display:block;position:absolute;left:0;bottom:9px;height:1px;width:0;background:var(--r-med);transition:width .24s var(--r-tik)}
 header.site-header .bar .site-main-nav>a:hover{color:var(--r-ink)}
 header.site-header .bar .site-main-nav>a:hover::after{width:100%}
-
-/* Medené tlačidlo: plochá meď, tmavý text, jeden tieň, odozva hneď pri stlačení. */
 header.site-header .site-cta,footer.site-footer .site-cta{display:inline-flex;align-items:center;justify-content:center;gap:10px;flex:none;width:auto;min-height:0;margin:0;padding:11px 19px;border:0;border-radius:999px;background:var(--r-med);color:#1b0e08;font:600 15px/1.2 var(--ui);letter-spacing:-.012em;text-decoration:none;white-space:nowrap;box-shadow:0 6px 16px -6px rgba(0,0,0,.8);transition:transform .16s var(--r-tik),background-color .16s var(--r-tik),box-shadow .16s var(--r-tik)}
 header.site-header .site-cta:hover,footer.site-footer .site-cta:hover{transform:translateY(-1px);background:var(--r-med-tma);color:#1b0e08;box-shadow:0 9px 20px -7px rgba(0,0,0,.85)}
 header.site-header .site-cta:active,footer.site-footer .site-cta:active{transform:scale(.97);background:var(--r-med-tma-2);box-shadow:0 3px 9px -5px rgba(0,0,0,.85);transition-duration:.1s}
 header.site-header .site-cta:focus-visible,footer.site-footer .site-cta:focus-visible{outline:2px solid var(--r-zhaslo);outline-offset:3px;border-radius:999px}
 header.site-header .site-cta svg,footer.site-footer .site-cta svg{width:17px;height:17px;flex:none}
 header.site-header .bar>.site-cta{margin-left:8px}
-
-/* „Produkty“: details funguje bez JS. Stránky s otázkami majú holé pravidlá
-   details{border-top;padding} a summary{font;padding-right} so znakom plus
-   v ::after, preto sa tu všetko nastavuje nanovo. */
 header.site-header .site-menu{position:static;order:0;flex:none;width:auto;max-width:none;margin:0;padding:0;border:0;border-radius:0;background:none;box-shadow:none}
 header.site-header .site-menu>summary{position:static;display:inline-flex;align-items:center;gap:7px;width:auto;height:70px;margin:0;padding:0;border:0;border-radius:0;background:none;box-shadow:none;list-style:none;cursor:pointer;user-select:none;-webkit-user-select:none;color:var(--r-telo);font:400 15px/1.3 var(--ui);letter-spacing:-.004em;text-transform:none;overflow-wrap:normal;transition:color .2s var(--r-tik)}
 header.site-header .site-menu>summary::-webkit-details-marker{display:none}
@@ -979,16 +800,11 @@ header.site-header .site-menu>summary::before{content:none}
 header.site-header .site-menu>summary::after,header.site-header .site-menu[open]>summary::after{content:"";position:static;display:inline-block;flex:none;width:.38em;height:.38em;margin:0;border:0;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;background:none;font:inherit;color:inherit;transform:rotate(45deg) translate(-1px,-2px);transition:transform .22s var(--r-tik)}
 header.site-header .site-menu[open]>summary::after{transform:rotate(225deg) translate(-2px,0)}
 header.site-header .site-menu>summary:hover,header.site-header .site-menu[open]>summary{color:var(--r-ink)}
-/* Z-47 pokus 2: summary je vysoké ako lišta (70 px), obrys fokusu by bol stĺp orezaný hornou hranou okna.
-   Na desktope preto zaoblený rámik okolo slova, na mobile ostáva obrys okolo okrúhleho tlačidla. */
-@media (min-width:761px){
+@media (min-width:47.5625em){
   header.site-header .site-menu>summary:focus-visible{position:relative;outline:none}
   header.site-header .site-menu>summary:focus-visible::before{content:"";position:absolute;left:-10px;right:-10px;top:50%;height:36px;margin-top:-18px;border:2px solid var(--r-med);border-radius:10px;pointer-events:none}
 }
 header.site-header .site-menu-bars,header.site-header .site-menu-word{display:none}
-/* Z-47 (28. 9. 2026): panel je plne krycí, bez backdrop-filter. Pri rgba(…,.97) presvital obsah stránky
-   všade, kde sa rozmazanie nevykreslí (snímka Firefoxu, brána Z-05 pokus 3); za plným panelom rozmazanie
-   nemá čo robiť a stojí čas pri otvorení. Odtieň je ten istý, ako dávalo .97 na #0a0908. */
 header.site-header .site-menu-panel{position:absolute;left:0;right:0;top:calc(100% - 4px);z-index:60;max-height:calc(100dvh - 90px);overflow:auto;overscroll-behavior:contain;margin:0;padding:26px 28px 22px;background:#120f0d;border:1px solid var(--r-linka-2);border-radius:18px;box-shadow:0 1px 0 rgba(255,255,255,.06) inset,0 34px 70px -24px rgba(0,0,0,.95);animation:site-menu-in .26s var(--r-pero)}
 @keyframes site-menu-in{from{opacity:0;transform:translateY(-8px)}}
 header.site-header .site-cols{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px}
@@ -999,8 +815,6 @@ header.site-header .site-col a:active{background:rgba(255,255,255,.09);transitio
 header.site-header .site-col a>b{display:block;margin:0;color:var(--r-ink);font:600 15px/1.35 var(--ui);letter-spacing:-.012em}
 header.site-header .site-col a>span{display:block;margin:1px 0 0;color:var(--r-tichy);font:400 13px/1.4 var(--ui);letter-spacing:0}
 header.site-header .site-sk,footer.site-footer .site-sk{display:inline-block;vertical-align:2px;margin-left:7px;padding:1px 5px;border:1px solid var(--r-linka-2);border-radius:5px;font:600 12px/1.3 var(--ui);font-style:normal;letter-spacing:.06em;color:var(--r-tichy)}
-/* Menu podľa návštevníka (25. 9. 2026): v skupine najviac päť položiek, značka Nové, pod skupinou
-   odkaz na celú skupinu a pod stĺpcami odkaz na stránku Všetko. Všetko ostatné je tam a v päte. */
 header.site-header .site-col{display:flex;flex-direction:column;align-items:stretch;min-width:0}
 header.site-header .site-col>p .site-sk{vertical-align:1px;margin-left:8px;padding:1px 5px;font-size:12px;line-height:14px;text-transform:none}
 header.site-header .site-nove{display:inline-block;vertical-align:2px;margin-left:8px;padding:1px 7px;border:0;border-radius:999px;background:rgba(242,100,60,.16);font:600 12px/1.3 var(--ui);font-style:normal;letter-spacing:.02em;color:var(--r-zhaslo)}
@@ -1018,11 +832,9 @@ header.site-header .site-all a svg,footer.site-footer .site-all a svg{width:15px
 header.site-header .site-all a:hover,footer.site-footer .site-all a:hover{border-color:rgba(255,255,255,.34);color:var(--r-ink)}
 header.site-header .site-all a:hover svg,footer.site-footer .site-all a:hover svg{transform:translateX(3px)}
 footer.site-footer .site-all{margin:36px 0 0}
-/* Spodok panelu v jednom riadku: odkaz na stránku Všetko a pás pre vývojárov. */
 header.site-header .site-menu-spodok{display:flex;flex-wrap:wrap;align-items:center;gap:14px 28px;margin:20px 0 0;padding:16px 0 0;border-top:1px solid var(--r-linka)}
 header.site-header .site-menu-spodok .site-all{flex:none;margin:0}
 header.site-header .site-menu-spodok .site-dev{flex:1 1 520px;margin:0;padding:0;border-top:0}
-/* Pas pre vyvojarov (24. 9. 2026): nadpis ako stlpce nad nim, jedna veta a odkaz na cely zoznam. Namiesto 12 bubliniek. */
 header.site-header .site-dev,footer.site-footer .site-dev{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 20px;max-width:none;margin:20px 0 0;padding:16px 0 0;border-top:1px solid var(--r-linka);font:400 14px/1.5 var(--ui);color:var(--r-telo)}
 header.site-header .site-dev>span,footer.site-footer .site-dev>span{font:600 12px/1.4 var(--ui);letter-spacing:.06em;text-transform:uppercase;color:var(--r-tichy)}
 header.site-header .site-dev>em,footer.site-footer .site-dev>em{flex:1 1 360px;min-width:0;font-style:normal;color:var(--r-telo)}
@@ -1031,16 +843,11 @@ header.site-header .site-dev>a svg,footer.site-footer .site-dev>a svg{width:15px
 header.site-header .site-dev>a:hover,footer.site-footer .site-dev>a:hover{color:var(--r-zhaslo)}
 header.site-header .site-dev>a:hover svg,footer.site-footer .site-dev>a:hover svg{transform:translateX(3px)}
 @media (prefers-reduced-motion:reduce){header.site-header .site-dev>a svg,footer.site-footer .site-dev>a svg{transition:none}}
-/* V pate ostava kazdy nastroj ako tichy textovy odkaz, bez bublin. */
 footer.site-footer .site-dev.site-dev-zoznam{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px 24px}
 footer.site-footer .site-dev.site-dev-zoznam>span{grid-column:1/-1;margin:0 0 2px}
 footer.site-footer .site-dev.site-dev-zoznam>a{font-weight:400;color:var(--r-telo)}
 footer.site-footer .site-dev.site-dev-zoznam>a:hover{color:var(--r-ink)}
-/* Skupina Firma a tlačidlo v paneli sú len tam, kde sa z lišty stratia. */
 header.site-header .site-firma,header.site-header .site-menu-cta{display:none}
-
-/* Prepínač jazykov: vlastný prepínač stránky (obal ho len presunie) alebo
-   langsel z prepinac.js, ktorý sa pripája na koniec .bar. */
 header.site-header .site-locales{display:flex;align-items:center;flex:none;min-width:0;margin:0}
 header.site-header .bar .site-locales nav{position:static;order:0;display:flex;flex-flow:row nowrap;align-items:center;width:auto;margin:0;padding:0;border:0;background:none;box-shadow:none}
 header.site-header .bar .langsel{position:relative;order:3;flex:none;margin:0;padding:0;border:0;background:none;box-shadow:none;font-family:var(--ui)}
@@ -1051,8 +858,6 @@ header.site-header .bar .langsel ul{position:absolute;right:0;top:calc(100% + 8p
 header.site-header .bar .langsel a{display:block;padding:9px 12px;border-radius:9px;color:var(--r-telo);font:400 15px/1.3 var(--ui);text-decoration:none;white-space:nowrap}
 header.site-header .bar .langsel a:hover{background:rgba(255,255,255,.06);color:var(--r-ink)}
 header.site-header .bar .langsel a[aria-current]{color:var(--r-ink);font-weight:500}
-
-/* Kotvy stránky (#pro, #cennik…) ako druhý tichý riadok pod lištou. */
 header.site-header .site-page-links{margin:0;padding:0;border-top:1px solid var(--r-linka)}
 header.site-header .site-page-links>.wrap{display:flex;align-items:center;gap:6px 22px;min-height:40px}
 header.site-header .site-page-links p{flex:none;max-width:none;margin:0;font:600 12px/1.4 var(--ui);letter-spacing:.06em;text-transform:uppercase;color:var(--r-tichy)}
@@ -1060,8 +865,6 @@ header.site-header .site-page-links nav{position:static;display:flex;flex-flow:r
 header.site-header .site-page-links nav a{position:relative;display:inline-flex;align-items:center;flex:none;min-height:40px;padding:0;border:0;font:400 13.5px/1.3 var(--ui);letter-spacing:0;color:var(--r-telo);text-decoration:none;white-space:nowrap;transition:color .2s var(--r-tik)}
 header.site-header .site-page-links nav a::after{content:none}
 header.site-header .site-page-links nav a:hover{color:var(--r-ink)}
-
-/* Päta: značka a tlačidlo hore, päť stĺpcov katalógu, pás pre vývojárov, spodok. */
 body.noc footer.site-footer{position:relative;z-index:2;margin:0;padding:60px 0 44px;border-top:1px solid var(--r-linka);background:#100e0c;font-size:15px;line-height:1.6;color:var(--r-telo)}
 footer.site-footer .foot{display:block}
 footer.site-footer .foot>div{max-width:none}
@@ -1071,7 +874,6 @@ footer.site-footer .site-brand{display:flex;align-items:center;gap:11px;text-dec
 footer.site-footer .site-brand svg{width:34px;height:15px;flex:none;display:block}
 footer.site-footer .site-brand b{font:700 20px/1 var(--ui);letter-spacing:-.022em;color:var(--r-ink)}
 footer.site-footer .site-foot-firma{max-width:44ch;margin:14px 0 0;font-size:14px;line-height:1.6;color:var(--r-tichy)}
-/* .num je v Paper oranžové číslo sekcie; v päte je to len IČO vo vete o firme. */
 footer.site-footer .num{margin:0;font:inherit;font-variant-numeric:tabular-nums;letter-spacing:inherit;color:inherit}
 footer.site-footer .site-foot-cols{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:clamp(22px,2.6vw,40px)}
 footer.site-footer .site-foot-cols p{margin:0 0 14px;font:600 12px/1.4 var(--ui);letter-spacing:.06em;text-transform:uppercase;color:var(--r-tichy)}
@@ -1083,7 +885,6 @@ footer.site-footer .site-foot-bottom{display:flex;justify-content:space-between;
 footer.site-footer .site-foot-legal{margin:14px 0 0;font-size:13px;line-height:1.6;color:var(--r-tichy)}
 footer.site-footer .site-foot-bottom a,footer.site-footer .site-foot-legal a{color:var(--r-tichy);text-decoration:none;border-bottom:1px solid var(--r-linka-2);transition:color .2s var(--r-tik)}
 footer.site-footer .site-foot-bottom a:hover,footer.site-footer .site-foot-legal a:hover{color:var(--r-ink)}
-
 @media (prefers-reduced-motion:reduce){
   header.site-header *,header.site-header *::before,header.site-header *::after,footer.site-footer *,footer.site-footer *::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important;transition-delay:0s !important}
 }
@@ -1094,28 +895,24 @@ footer.site-footer .site-foot-bottom a:hover,footer.site-footer .site-foot-legal
   header.site-header .site-cta:hover,footer.site-footer .site-cta:hover{transform:none;background:var(--r-med)}
   header.site-header .site-col a:hover{background:none}
 }
-@media (max-width:1240px){
+@media (max-width:77.5em){
   header.site-header .bar .brand span{display:none}
 }
-@media (max-width:1180px){
+@media (max-width:73.75em){
   header.site-header .bar{gap:14px}
   header.site-header .bar .site-main-nav{gap:18px}
-  /* Od 25. 9. 2026 má každá skupina najviac päť položiek, štyri stĺpce sa zmestia až po tablet. */
   header.site-header .site-cols{gap:18px}
   header.site-header .site-menu-panel{padding:22px 20px 18px}
   footer.site-footer .site-foot-cols{grid-template-columns:repeat(3,minmax(0,1fr));row-gap:36px}
 }
-/* Tablet: textové odkazy z lišty zmiznú, ostávajú Produkty, tlačidlo a jazyk;
-   odkazy sa presunú do panela ako skupina Firma. */
-@media (max-width:1000px){
+@media (max-width:62.5em){
   header.site-header .bar .site-main-nav{display:none}
   header.site-header .site-cols{grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 20px}
   header.site-header .site-firma{display:block;margin:20px 0 0;padding:16px 0 0;border-top:1px solid var(--r-linka)}
   header.site-header .site-firma ul{display:flex;flex-wrap:wrap;gap:0 6px}
   header.site-header .site-firma a{padding:12px 10px}
 }
-/* Mobil: to isté details je menu s tromi čiarkami, skupiny pod sebou, popisy skryté. */
-@media (max-width:760px){
+@media (max-width:47.5em){
   header.site-header .bar{height:60px;gap:10px}
   header.site-header .bar>.site-cta{margin-left:0;padding:10px 15px;font-size:14px}
   header.site-header .site-menu{order:5}
@@ -1137,7 +934,6 @@ footer.site-footer .site-foot-bottom a:hover,footer.site-footer .site-foot-legal
   header.site-header .site-col a{padding:12px;border-radius:9px}
   header.site-header .site-col a>b{font-weight:400;color:var(--r-telo)}
   header.site-header .site-col a>span{display:none}
-  /* Odkaz na celú skupinu stojí v riadku nadpisu skupiny: krátke slovo a počet, bez ďalšieho riadku. */
   header.site-header .site-cols>.site-col{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center}
   header.site-header .site-cols>.site-col>p{grid-column:1;grid-row:1}
   header.site-header .site-cols>.site-col>ul{grid-column:1 / -1}
@@ -1157,9 +953,6 @@ footer.site-footer .site-foot-bottom a:hover,footer.site-footer .site-foot-legal
   header.site-header .site-firma ul{display:block}
   header.site-header .site-firma a{padding:12px}
   header.site-header .bar .langsel>summary{height:40px}
-  /* Kotvy na telefóne v jednom riadku, ktorý sa dá posunúť prstom a končí až na hrane
-     obrazovky: odseknuté slovo je viditeľný signál. Zalomené do dvoch riadkov robili
-     z pevnej hlavičky 133 px (/asistent/ na 390 px, 21. 9. 2026). */
   header.site-header .site-page-links>.wrap{width:auto;min-height:36px;margin:0 0 0 5.5vw;padding-right:5.5vw;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none}
   header.site-header .site-page-links>.wrap::-webkit-scrollbar{display:none}
   header.site-header .site-page-links p{display:none}
@@ -1176,23 +969,14 @@ footer.site-footer .site-foot-bottom a:hover,footer.site-footer .site-foot-legal
   footer.site-footer .site-dev.site-dev-zoznam>a{padding:8px 0}
   footer.site-footer .site-foot-bottom{margin-top:30px}
 }
-/* Úzky telefón: tlačidlo z lišty sa presunie na koniec menu, aby Proof ostal na dosah. */
-@media (max-width:520px){
+@media (max-width:32.5em){
   header.site-header .bar>.site-cta{display:none}
   header.site-header .site-menu-cta{display:block;max-width:none;margin:0;padding:8px 12px 6px;border-top:1px solid var(--r-linka)}
   header.site-header .site-menu-cta .site-cta{display:flex;width:100%;padding:13px 19px}
 }
-@media (max-width:460px){
+@media (max-width:28.75em){
   footer.site-footer .site-foot-cols{grid-template-columns:1fr}
 }
-/* Katalóg v dvoch blokoch (26. 9. 2026, ops/audit/ZADANIE-MENU.md): firemné skupiny, potom
-   spotrebiteľské, každý s nadpisom, aby sa firma a hry nemiešali v jednom zozname. Na širokej
-   obrazovke bloky vedľa seba (každý s dvomi stĺpcami), pod 1000 px pod sebou. Na 1001 až 1240 px
-   ostávajú vedľa seba (panel by pod sebou mal asi 920 px a na iPade na ležato by hry a knihy
-   boli až po posunutí); úzky stĺpec s nemeckým „Alle in dieser Gruppe“ sa zalomí (white-space:normal).
-   Medzera medzi blokmi je column-gap a linka je v jej strede, takže oba bloky majú rovnako široké stĺpce.
-   Písmo: audit hubu 26. 9. 2026 žiada v hlavičke, menu a päte nič pod 12 px, popisky aspoň 13 px
-   (stráži test v obal.test.mjs). */
 header.site-header .site-bloky{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 56px;margin:0;padding:0}
 header.site-header .site-blok{min-width:0;margin:0;padding:0}
 header.site-header .site-blok+.site-blok{position:relative}
@@ -1201,18 +985,18 @@ header.site-header .site-blok-nazov{max-width:none;margin:0 0 14px 10px;padding:
 header.site-header .site-blok .site-cols{grid-template-columns:repeat(2,minmax(0,1fr))}
 header.site-header .site-blok a.site-col-all{max-width:100%;white-space:normal}
 header.site-header .site-col a>b,header.site-header .site-col a>span,header.site-header .site-blok-nazov,footer.site-footer .site-foot-cols a,footer.site-footer .site-foot-cols p,footer.site-footer .site-dev>a{overflow-wrap:anywhere}
-/* V päte rovnaké poradie (firemné, spotrebiteľské, Firma); kde sú stĺpce v jednom rade, oddeľuje
-   spotrebiteľský blok zvislá linka. V užšej mriežke sa stĺpce lámu do radov a linka by stála náhodne. */
-@media (min-width:1181px){
+@media (min-width:73.8125em){
   footer.site-footer .site-foot-cols>[data-blok="firemne"]+[data-blok="spotrebitelske"]{margin:0;padding-left:clamp(22px,2.6vw,40px);border-left:1px solid var(--r-linka)}
 }
-@media (max-width:1000px){
+@media (max-width:62.5em){
   header.site-header .site-bloky{grid-template-columns:1fr}
   header.site-header .site-blok+.site-blok{margin:18px 0 0;padding:18px 0 0;border-top:1px solid var(--r-linka)}
   header.site-header .site-blok+.site-blok::before{content:none}
 }
-@media (max-width:760px){
+@media (max-width:47.5em){
   header.site-header .site-bloky{display:block}
   header.site-header .site-blok+.site-blok{margin:0;padding:0;border-top:1px solid var(--r-linka-2)}
   header.site-header .site-blok-nazov{margin:0;padding:14px 12px 2px;font-size:13px}
 }
+header.site-header .site-cta,footer.site-footer .site-cta,header.site-header .site-all a,footer.site-footer .site-all a,
+header.site-header .site-dev>a,footer.site-footer .site-dev>a{max-width:100%;white-space:normal}

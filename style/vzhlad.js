@@ -11,6 +11,24 @@
  */
 document.documentElement.classList.add('js');
 
+/* Zväčšený text (paper v3 pokus 4): Firefox „Zväčšiť len text“ zdvojí aj písmo v px. Sonda so 100 px to prezradí
+   (počítaná veľkosť nad 110 px) a trieda v3-text uvoľní tlačidlám pevnú výšku, aby sa zalomený text zmestil.
+   Pri bežnej veľkosti trieda nevznikne a nič sa nemení. */
+(function () {
+  function zmeraj() {
+    try {
+      var sonda = document.createElement('i');
+      sonda.style.cssText = 'position:absolute;visibility:hidden;font-size:100px';
+      document.documentElement.appendChild(sonda);
+      var velky = parseFloat(getComputedStyle(sonda).fontSize) > 110;
+      sonda.parentNode.removeChild(sonda);
+      document.documentElement.classList.toggle('v3-text', velky);
+    } catch (e) {}
+  }
+  zmeraj();
+  window.addEventListener('resize', zmeraj);
+})();
+
 /* A-093: hlavička podstránok podľa úvodu v4. Bez JS je menu čisté details,
    ktoré sa otvára kliknutím. Tento blok drží jazyk značky (arling_hub_lang),
    prekladá lištu, keď aplikácia zmení <html lang>, a dáva menu rovnaké správanie
@@ -114,7 +132,8 @@ document.documentElement.classList.add('js');
     // kurzora inam, a zatvárajú po 180 ms, aby sa dalo prejsť zo slova na panel.
     // Na mobilnej šírke a na dotyku sa menu otvára len kliknutím.
     var jemne = window.matchMedia('(hover: hover) and (pointer: fine)');
-    var siroke = window.matchMedia('(min-width: 761px)');
+    // V em ako zlom hlavičky v paper.css: pri dvojnásobnom texte prejde hlavička na mobilnú už pri 1 522 px.
+    var siroke = window.matchMedia('(min-width: 47.5625em)');
     var cas = null, prejdenim = 0;
     menu.addEventListener('pointerenter', function () {
       if (!jemne.matches || !siroke.matches) return;
