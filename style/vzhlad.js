@@ -102,6 +102,14 @@ document.documentElement.classList.add('js');
       var s = o.querySelector('summary');
       if (s) s.focus();
     });
+    // Z-47: keď Tab alebo Shift+Tab odvedie fokus z otvoreného details, zatvorí sa;
+    // inak by na mobile fokus skočil na obsah schovaný pod panelom. Bez relatedTarget
+    // (klik na miesto bez fokusu) rozhoduje klik mimo vyššie.
+    hlavicka.addEventListener('focusout', function (e) {
+      var d = e.target.closest && e.target.closest('details[open]');
+      var kam = e.relatedTarget;
+      if (d && kam && !d.contains(kam)) d.open = false;
+    });
     // Na myši sa Produkty otvárajú prejdením: 90 ms, aby nepreblikli pri ceste
     // kurzora inam, a zatvárajú po 180 ms, aby sa dalo prejsť zo slova na panel.
     // Na mobilnej šírke a na dotyku sa menu otvára len kliknutím.
@@ -155,7 +163,15 @@ document.documentElement.classList.add('js');
       });
       // Stránka produktu môže mať vlastné tlačidlo (obal.mjs CTA_STRANKY); to sa neprepisuje.
       hlavicka.querySelectorAll('[data-site-cta]').forEach(function (a) {
-        if (a.getAttribute && a.getAttribute('data-site-cta') === 'vlastne') return;
+        if (a.getAttribute && a.getAttribute('data-site-cta') === 'vlastne') {
+          // Vlastné tlačidlo stránky s prekladmi (obal.mjs ctaMapaPreStranku): prepne sa na jazyk stránky.
+          var preklad = a.getAttribute('data-cta-' + kod);
+          if (preklad && preklad.indexOf('|') > 0) {
+            a.href = preklad.slice(0, preklad.indexOf('|'));
+            a.textContent = preklad.slice(preklad.indexOf('|') + 1);
+          }
+          return;
+        }
         a.href = 'https://arling.sk' + proof;
       });
       navratDomov();

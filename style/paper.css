@@ -979,8 +979,17 @@ header.site-header .site-menu>summary::before{content:none}
 header.site-header .site-menu>summary::after,header.site-header .site-menu[open]>summary::after{content:"";position:static;display:inline-block;flex:none;width:.38em;height:.38em;margin:0;border:0;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;background:none;font:inherit;color:inherit;transform:rotate(45deg) translate(-1px,-2px);transition:transform .22s var(--r-tik)}
 header.site-header .site-menu[open]>summary::after{transform:rotate(225deg) translate(-2px,0)}
 header.site-header .site-menu>summary:hover,header.site-header .site-menu[open]>summary{color:var(--r-ink)}
+/* Z-47 pokus 2: summary je vysoké ako lišta (70 px), obrys fokusu by bol stĺp orezaný hornou hranou okna.
+   Na desktope preto zaoblený rámik okolo slova, na mobile ostáva obrys okolo okrúhleho tlačidla. */
+@media (min-width:761px){
+  header.site-header .site-menu>summary:focus-visible{position:relative;outline:none}
+  header.site-header .site-menu>summary:focus-visible::before{content:"";position:absolute;left:-10px;right:-10px;top:50%;height:36px;margin-top:-18px;border:2px solid var(--r-med);border-radius:10px;pointer-events:none}
+}
 header.site-header .site-menu-bars,header.site-header .site-menu-word{display:none}
-header.site-header .site-menu-panel{position:absolute;left:0;right:0;top:calc(100% - 4px);z-index:60;max-height:calc(100dvh - 90px);overflow:auto;overscroll-behavior:contain;margin:0;padding:26px 28px 22px;background:rgba(18,15,13,.97);backdrop-filter:blur(18px) saturate(1.2);-webkit-backdrop-filter:blur(18px) saturate(1.2);border:1px solid var(--r-linka-2);border-radius:18px;box-shadow:0 1px 0 rgba(255,255,255,.06) inset,0 34px 70px -24px rgba(0,0,0,.95);animation:site-menu-in .26s var(--r-pero)}
+/* Z-47 (28. 9. 2026): panel je plne krycí, bez backdrop-filter. Pri rgba(…,.97) presvital obsah stránky
+   všade, kde sa rozmazanie nevykreslí (snímka Firefoxu, brána Z-05 pokus 3); za plným panelom rozmazanie
+   nemá čo robiť a stojí čas pri otvorení. Odtieň je ten istý, ako dávalo .97 na #0a0908. */
+header.site-header .site-menu-panel{position:absolute;left:0;right:0;top:calc(100% - 4px);z-index:60;max-height:calc(100dvh - 90px);overflow:auto;overscroll-behavior:contain;margin:0;padding:26px 28px 22px;background:#120f0d;border:1px solid var(--r-linka-2);border-radius:18px;box-shadow:0 1px 0 rgba(255,255,255,.06) inset,0 34px 70px -24px rgba(0,0,0,.95);animation:site-menu-in .26s var(--r-pero)}
 @keyframes site-menu-in{from{opacity:0;transform:translateY(-8px)}}
 header.site-header .site-cols{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px}
 header.site-header .site-col>p{margin:0 0 8px 10px;max-width:none;font:600 12px/1.4 var(--ui);letter-spacing:.06em;text-transform:uppercase;color:var(--r-tichy)}
@@ -1038,7 +1047,7 @@ header.site-header .bar .langsel{position:relative;order:3;flex:none;margin:0;pa
 header.site-header .bar .langsel>summary{position:static;display:inline-flex;align-items:center;justify-content:center;gap:6px;width:auto;height:38px;min-height:0;margin:0;padding:0 12px;border:1px solid var(--r-linka-2);border-radius:999px;background:rgba(255,255,255,.03);box-shadow:none;color:var(--r-telo);font:500 13.5px/1 var(--ui);letter-spacing:0;transition:border-color .2s var(--r-tik),color .2s var(--r-tik)}
 header.site-header .bar .langsel>summary::after,header.site-header .bar .langsel[open]>summary::after{width:.45em;height:.45em;margin-left:0}
 header.site-header .bar .langsel[open]>summary,header.site-header .bar .langsel>summary:hover{border-color:rgba(255,255,255,.34);color:var(--r-ink)}
-header.site-header .bar .langsel ul{position:absolute;right:0;top:calc(100% + 8px);z-index:61;min-width:170px;margin:0;padding:6px;list-style:none;background:rgba(20,17,15,.96);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--r-linka-2);border-radius:14px;box-shadow:0 20px 44px -16px rgba(0,0,0,.9);animation:site-menu-in .22s var(--r-pero)}
+header.site-header .bar .langsel ul{position:absolute;right:0;top:calc(100% + 8px);z-index:61;min-width:170px;margin:0;padding:6px;list-style:none;background:#14110f;border:1px solid var(--r-linka-2);border-radius:14px;box-shadow:0 20px 44px -16px rgba(0,0,0,.9);animation:site-menu-in .22s var(--r-pero)}
 header.site-header .bar .langsel a{display:block;padding:9px 12px;border-radius:9px;color:var(--r-telo);font:400 15px/1.3 var(--ui);text-decoration:none;white-space:nowrap}
 header.site-header .bar .langsel a:hover{background:rgba(255,255,255,.06);color:var(--r-ink)}
 header.site-header .bar .langsel a[aria-current]{color:var(--r-ink);font-weight:500}
@@ -1120,7 +1129,7 @@ footer.site-footer .site-foot-bottom a:hover,footer.site-footer .site-foot-legal
   header.site-header .site-menu[open] .site-menu-bars i:nth-child(2){opacity:0}
   header.site-header .site-menu[open] .site-menu-bars i:nth-child(3){transform:translateY(-5.5px) rotate(-45deg)}
   header.site-header .site-menu-word{display:block;position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
-  header.site-header .site-menu-panel{left:calc(12px - 5.5vw);right:calc(12px - 5.5vw);top:calc(100% + 2px);max-height:calc(100dvh - 84px);padding:8px 8px 12px;border-radius:14px;background:rgba(20,17,15,.98);animation-duration:.22s}
+  header.site-header .site-menu-panel{left:calc(12px - 5.5vw);right:calc(12px - 5.5vw);top:calc(100% + 2px);max-height:calc(100dvh - 84px);padding:8px 8px 12px;border-radius:14px;background:#14110f;animation-duration:.22s}
   header.site-header .site-cols{display:block}
   header.site-header .site-col{padding:6px 0 8px}
   header.site-header .site-col+.site-col{border-top:1px solid var(--r-linka)}
