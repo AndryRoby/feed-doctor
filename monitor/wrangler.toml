@@ -19,7 +19,7 @@ enabled = true
 # products/feed-doctor/monitor/STRIPE_LINK.txt, written by the billing
 # step; client_reference_id=<monitor id> is appended at request time).
 [vars]
-MAIL_URL = "https://server.invalid/subscribe/api/mail"
+MAIL_URL = "https://api.arling.workers.dev/subscribe/api/mail"
 STRIPE_LINK = "https://buy.stripe.com/8x214he2mbOj1Sq2hL4ko05"
 # Cross-origin callers allowed to use the JSON API (the signup box on
 # feed-doctor/index.html and the manage page at feed-doctor/monitor/, both
