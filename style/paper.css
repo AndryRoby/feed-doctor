@@ -18,9 +18,9 @@
   --accent-dark:#8f2e17;
   --accent-light:#d0603c;
   --ok:#4a6b3f;
-  --display:"ARLing Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --display:"ARLing Draw Text","ARLing Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
   --text:"ARLing Serif",Georgia,"Times New Roman",serif;
-  --ui:"ARLing Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --ui:"ARLing Draw Text","ARLing Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
   --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
   --wrap:min(1432px,89vw);
   --gap:clamp(28px,4vw,64px);
@@ -397,7 +397,7 @@ body.noc{
   --accent-dark:#e04a1f;
   --accent-light:#ffb59d;
   --ok:#5ecf9a;
-  --text:"ARLing Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --text:"ARLing Draw Text","ARLing Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
   color-scheme:dark;
 }
 body.noc ::selection{background:rgba(242,100,60,.32);color:#fff}
@@ -1001,3 +1001,4 @@ header.site-header .site-col a>b,header.site-header .site-col a>span,header.site
 }
 header.site-header .site-cta,footer.site-footer .site-cta,header.site-header .site-all a,footer.site-footer .site-all a,
 header.site-header .site-dev>a,footer.site-footer .site-dev>a{max-width:100%;white-space:normal}
+.brand b,header.site-header .brand b,footer.site-footer .brand b{font-family:"ARLing Draw Text","ARLing Sans",system-ui,-apple-system,"Segoe UI",sans-serif;font-weight:700;letter-spacing:-.004em}
