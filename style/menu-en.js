@@ -16,7 +16,7 @@
  "knihy": "<p>Books and gifts</p><ul><li><a href=\"https://arling.sk/shop/budget-2027/\"><b>2027 Budget Spreadsheet<em class=\"site-nove\">New</em></b><span>For Excel and Google Sheets, 9.90 €</span></a></li><li><a href=\"https://arling.sk/shop/\"><b>Shop</b><span>Books, puzzles and gifts</span></a></li><li><a href=\"https://arling.sk/puzzle-books/eink-bundle/\"><b>E-ink puzzle bundle</b><span>3000 puzzles in ten books</span></a></li><li><a href=\"https://arling.sk/puzzle-books/halloween-logic-puzzle-book/\"><b>Halloween puzzle book</b><span>80 printable puzzles, 20 hidden pictures</span></a></li><li><a href=\"https://arling.sk/puzzle-books/logic-puzzle-bundle-200/\"><b>Logic puzzle bundle</b><span>200 printable puzzles in four books</span></a></li></ul><a class=\"site-col-all\" href=\"https://arling.sk/vsetko/en/#knihy\" aria-label=\"All in this group: Books and gifts (13)\" data-umami-event=\"shell_menu_group\" data-umami-event-target=\"knihy\"><span class=\"site-dlho\">All in this group</span><span class=\"site-kratko\">All</span><b>13</b><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12h13M13 6l6 6-6 6\"/></svg></a>"
 };
   var pata = {
- "firmy": "<p>Businesses and accountants</p><ul><li><a href=\"https://arling.sk/efaktura/en/\">E-invoice</a></li><li><a href=\"https://arling.sk/kontrola-suboru/en/\">SEPA file check</a></li><li><a href=\"https://arling.sk/bankove-nastroje/en/\">Banking tools Pro</a></li><li><a href=\"https://arling.sk/proof/\">Proof</a></li><li><a href=\"https://arling.sk/renewals/\">Renewals</a></li><li><a href=\"https://arling.sk/parovac-platieb/en/\">Payment matcher</a></li><li><a href=\"https://arling.sk/sepa-pain001-doctor/\">pain.001 check</a></li><li><a href=\"https://arling.sk/sepa-pain001-generator/\">pain.001 generator</a></li><li><a href=\"https://arling.sk/camt053-to-excel/\">Statement to Excel</a></li><li><a href=\"https://arling.sk/vzory-zmluv/\">Contract templates<em class=\"site-sk\">SK</em></a></li><li><a href=\"https://arling.sk/zivotopis/en/\">CV builder</a></li><li><a href=\"https://arling.sk/sanctions-check/\">EU sanctions check</a></li></ul>",
+ "firmy": "<p>Businesses and accountants</p><ul><li><a href=\"https://arling.sk/efaktura/en/\">E-invoice</a></li><li><a href=\"https://arling.sk/kontrola-suboru/en/\">SEPA file check</a></li><li><a href=\"https://arling.sk/bankove-nastroje/en/\">Banking tools Pro</a></li><li><a href=\"https://arling.sk/proof/\">Proof</a></li><li><a href=\"https://arling.sk/renewals/\">Renewals</a></li><li><a href=\"https://arling.sk/parovac-platieb/en/\">Payment matcher</a></li><li><a href=\"https://arling.sk/sepa-pain001-doctor/en/\">pain.001 check</a></li><li><a href=\"https://arling.sk/sepa-pain001-generator/en/\">pain.001 generator</a></li><li><a href=\"https://arling.sk/camt053-to-excel/en/\">Statement to Excel</a></li><li><a href=\"https://arling.sk/vzory-zmluv/\">Contract templates<em class=\"site-sk\">SK</em></a></li><li><a href=\"https://arling.sk/zivotopis/en/\">CV builder</a></li><li><a href=\"https://arling.sk/sanctions-check/\">EU sanctions check</a></li></ul>",
  "eshopy": "<p>Online shops and websites</p><ul><li><a href=\"https://arling.sk/asistent/en/\">Asistent</a></li><li><a href=\"https://arling.sk/gdpr-dokumenty/\">GDPR documents<em class=\"site-sk\">SK</em></a></li><li><a href=\"https://arling.sk/kontrola-eshopu/\">Online shop check<em class=\"site-sk\">SK</em></a></li><li><a href=\"https://arling.sk/technologies/\">Stacklog</a></li><li><a href=\"https://arling.sk/mail-doctor/\">Mail Doctor</a></li><li><a href=\"https://arling.sk/feed-doctor/en/\">Feed Doctor</a></li></ul>",
  "hry": "<p>Games and puzzles</p><ul><li><a href=\"https://arling.sk/games/\">Browser games</a></li><li><a href=\"https://arling.sk/play/stop/\">Stop at the right frame</a></li><li><a href=\"https://arling.sk/games/owls/\">Owls</a></li><li><a href=\"https://arling.sk/games/beavers/\">Beavers</a></li><li><a href=\"https://arling.sk/games/foxes/\">Foxes</a></li><li><a href=\"https://arling.sk/games/field-notes/\">Field Notes</a></li><li><a href=\"https://arling.sk/shop/detective-kit/\">Detective kit</a></li><li><a href=\"https://arling.sk/shop/pumpkin-escape-kids/\">The Pumpkin Fair Mix-Up</a></li><li><a href=\"https://arling.sk/play/\">Games for Android</a></li><li><a href=\"https://arling.sk/games/village/\">Puzzle Village</a></li><li><a href=\"https://arling.sk/games/escape/lighthouse/\">Grandpa's Lighthouse</a></li><li><a href=\"https://arling.sk/puzzle-video/\">Puzzle video maker</a></li><li><a href=\"https://arling.sk/puzzle-studio/\">Puzzle Studio</a></li><li><a href=\"https://arling.sk/puzzle-post/bulletin/\">Puzzle Post Bulletin</a></li><li><a href=\"https://arling.sk/puzzle-publisher/\">Publisher pack</a></li></ul>",
  "knihy": "<p>Books and gifts</p><ul><li><a href=\"https://arling.sk/shop/budget-2027/\">2027 Budget Spreadsheet</a></li><li><a href=\"https://arling.sk/shop/\">Shop</a></li><li><a href=\"https://arling.sk/puzzle-books/eink-bundle/\">E-ink puzzle bundle</a></li><li><a href=\"https://arling.sk/classics/monte-cristo/drawn/\">Monte Cristo, drawn</a></li><li><a href=\"https://arling.sk/world/\">The World in Squares</a></li><li><a href=\"https://arling.sk/puzzle-books/\">Puzzle books</a></li><li><a href=\"https://arling.sk/puzzle-books/halloween-logic-puzzle-book/\">Halloween puzzle book</a></li><li><a href=\"https://arling.sk/puzzle-books/logic-puzzle-bundle-200/\">Logic puzzle bundle</a></li><li><a href=\"https://arling.sk/puzzle-books/christmas-logic-puzzle-book/\">Christmas puzzle book</a></li><li><a href=\"https://arling.sk/classics/\">Classics for e-ink</a></li><li><a href=\"https://arling.sk/morning-quiet/\">Morning Quiet</a></li><li><a href=\"https://arling.sk/puzzle-post/\">Puzzle Post</a></li><li><a href=\"https://arling.sk/memory-post/\">Memory Post</a></li></ul>"
@@ -55,23 +55,35 @@
     var dev = document.querySelector('footer.site-footer [data-site-vyvojari]');
     if (dev) { dev.innerHTML = vyvojari; dev.className = 'site-dev site-dev-zoznam'; }
   }
+  // Lighthouse 28. 9. 2026: synchrónne meranie päty (getBoundingClientRect) pri DOMContentLoaded
+  // vynútilo prvé rozloženie celej stránky v úlohe skriptu (menu-sk.js 400 až 520 ms blokovania na
+  // /notes/ a /asistent/). Preto: katalóg menu až v nečinnosti alebo pri prvom priblížení k tlačidlu
+  // Menu (dotyk, myš, fokus prídu pred otvorením), päta len cez IntersectionObserver (meria prehliadač
+  // pri svojom vykreslení). Bez týchto API (starý prehliadač, testy) ostáva pôvodná synchrónna cesta.
+  var naplnene = false;
+  function naplnRaz() { if (naplnene) return; naplnene = true; naplnMenu(); }
   function spusti() {
     var d = document.querySelector('header.site-header details.site-menu');
     if (menuPouziva(d) && typeof d.addEventListener === 'function') {
       var cakaj = function () {
         if (d.open) return;
         d.removeEventListener('toggle', cakaj);
-        naplnMenu();
+        naplnRaz();
       };
       d.addEventListener('toggle', cakaj);
-    } else naplnMenu();
+    } else if (typeof window.requestIdleCallback === 'function' && d && typeof d.addEventListener === 'function') {
+      var s = d.querySelector('summary') || d;
+      s.addEventListener('pointerenter', naplnRaz);
+      s.addEventListener('touchstart', naplnRaz, { passive: true });
+      s.addEventListener('focusin', naplnRaz);
+      window.requestIdleCallback(naplnRaz, { timeout: 3000 });
+    } else naplnRaz();
     var stlpce = document.querySelector('footer.site-footer .site-foot-cols');
     if (!stlpce) return;
-    if (podObrazom(stlpce)) { rozvinPatu(stlpce); return; }
-    // Päta je v obraze (krátka stránka alebo obsah, ktorý kreslí až JS). Rozvinie sa neskôr,
-    // až keď ju obsah odsunie pod spodný okraj obrazovky, teda znova bez viditeľného posunu.
+    // Päta sa rozvinie, len keď je pod spodným okrajom obrazovky (žiadny viditeľný posun). Na krátkej
+    // stránke alebo pri obsahu, ktorý kreslí až JS, sa rozvinie neskôr, keď ju obsah odsunie dole.
     var IO = window.IntersectionObserver;
-    if (typeof IO !== 'function') return;
+    if (typeof IO !== 'function') { if (podObrazom(stlpce)) rozvinPatu(stlpce); return; }
     var pozor = new IO(function (zaznamy) {
       for (var i = 0; i < zaznamy.length; i++) {
         var z = zaznamy[i];

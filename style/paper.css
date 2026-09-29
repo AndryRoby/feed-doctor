@@ -1,4 +1,4 @@
-/* ARLing Paper v2. Jediný zdroj vzhľadu pre všetky naše stránky.
+/* ARLing Paper v3. Jediný zdroj vzhľadu pre všetky naše stránky.
    Zdroj: ops/design/paper/paper.css v AI-OS. Do produktov sa kopíruje skriptom
    ops/design/sync-paper.mjs, takže každá stránka si nesie vlastnú kópiu a nezávisí od cudzej domény.
    Pravidlá, ktoré tento súbor vynucuje, sú v ops/design/paper-v2.md. Neupravovať v produkte.
@@ -615,7 +615,7 @@ body.noc tbody tr:hover{background:rgba(242,100,60,.06)}
 body.noc .wash i,body.noc .wash::after{display:none}
 body.noc .hero-noc,body.noc main>section:first-of-type,body.noc main>.wrap:first-child{border-top:0}
 .uv-masthead{display:none !important}
-@font-face{font-family:"ARLing Draw Text";src:url(/fonts/ARLingDrawText-500-700.woff2?v=a1010959) format("woff2");font-weight:500 700;font-style:normal;font-display:optional}
+@font-face{font-family:"ARLing Draw Text";src:url(/fonts/ARLingDrawText-500-700.woff2?v=f2703200) format("woff2");font-weight:500 700;font-style:normal;font-display:swap}
 :root{
   --pu-stlac:linear(0, 0.0166 2.3%, 0.0736 5.2%, 0.1985 9.5%, 0.4972 18.8%, 0.6445 24.3%, 0.7583 29.75%, 0.8473 35.6%, 0.9149 42.3%, 0.9629 50.6%, 0.9919 62.35%, 1.0015 88.1%, 1);--pu-stlac-t:.214s;
   --pu-pust:linear(0, 0.0164 2.25%, 0.0716 5%, 0.1861 8.8%, 0.5397 18.95%, 0.6883 24.05%, 0.8013 29%, 0.8882 34.25%, 0.952 40.15%, 0.9939 47.3%, 1.0139 57.35%, 1);--pu-pust-t:.459s;
@@ -645,6 +645,7 @@ body.noc h1,body.noc h2{font-family:var(--nadpis);text-wrap:balance}
 body.noc h1{font-size:clamp(2.125rem,4.5vw,4rem);line-height:1.1;letter-spacing:-.02em}
 body.noc h2{font-size:clamp(1.625rem,2.9vw,2.75rem);line-height:1.14;letter-spacing:-.018em}
 body.noc .price{font-family:var(--nadpis)}
+html body.noc :is(header.site-header .brand b,footer.site-footer .site-brand b,h3,main summary,.product-price,.suma,.uv-row-price){font-family:var(--nadpis)}
 html body.noc main :is(h1,h2){font-family:var(--nadpis)}
 @media (max-width:520px){body.noc h1{letter-spacing:-.012em}}
 body.noc .kicker:not(:has(svg))::before{content:"";display:inline-block;vertical-align:.12em;margin-right:.45em;flex:none;width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px rgba(242,100,60,.18)}
