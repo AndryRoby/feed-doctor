@@ -3,13 +3,81 @@
  * Prečo tu a nie v každej stránke: keď to robila každá stránka sama, stačilo,
  * aby sa jej skript nespustil (napríklad kvôli CSP), a návštevník videl prázdne
  * sekcie. Presne to sa stalo 6. 9. 2026. Toto je externý súbor, ktorý CSP dovolí,
- * načíta sa v hlavičke bez defer, a robí tri veci v poradí dôležitosti:
+ * načíta sa v hlavičke s defer (od 3. 10. 2026: bez defer stál pred CSP meta a zdržal
+ * CSS aj písmo o celé jedno stiahnutie, na pomalom mobile asi 1 s do prvého vykreslenia;
+ * ops/druhy-ucet/STAV-118.md), funguje aj bez defer, a robí tri veci v poradí dôležitosti:
  *   1. prihlási, že JavaScript beží, takže sa obsah vôbec smie skrývať
  *   2. čokoľvek je pri načítaní v obraze, odhalí okamžite
  *   3. pri scrollovaní odhalí zvyšok, nezávisle od skriptov jednotlivých stránok
  * Ak čokoľvek z toho zlyhá, obsah ostáva viditeľný. Nikdy naopak.
  */
 document.documentElement.classList.add('js');
+
+/* CSS mimo prvej obrazovky (3. 10. 2026, ops/druhy-ucet/STAV-118b.md).
+ *
+ * Stránka s kritickým CSS priamo v hlave má plné súbory zapísané ako
+ *   <link rel="stylesheet" media="print" data-async data-href="/style/paper.css?v=…">
+ * (bez href, takže sa nesťahujú) a v <noscript> ako obyčajné odkazy. Tento blok ich začne sťahovať až po
+ * prvom vykreslení, aby na pomalom mobile nesúperili s HTML a písmom, a zapne ich všetky naraz, keď sú
+ * stiahnuté: jeden prepočet štýlov, nie jeden za každý súbor. Odkaz s href a media="print" (bez data-href)
+ * sa len prepne. Inline onload sa nepoužíva (CSP).
+ * Keď sú štýly zapnuté, <html> dostane triedu `css` a dokument udalosť `arling:css`; skripty, ktoré merajú
+ * rozloženie (galéria /motion/), na ňu čakajú. Stránka bez odložených štýlov ju dostane hneď.
+ * Stránka otvorená s kotvou alebo už odrolovaná nečaká na vykreslenie: jej prvá obrazovka nie je tá,
+ * ktorú kritické CSS pozná. Po zapnutí sa kotva nastaví znova, lebo výšky nad ňou sa zmenili. */
+(function () {
+  var root = document.documentElement;
+  var odkazy = Array.prototype.slice.call(document.querySelectorAll('link[data-async]'));
+  function hotovo() {
+    root.classList.add('css');
+    try { document.dispatchEvent(new Event('arling:css')); } catch (e) {}
+  }
+  if (!odkazy.length) { hotovo(); return; }
+  var caka = odkazy.length, spustene = false, hybal = false;
+  function pouzivatel() { hybal = true; }
+  ['wheel', 'touchmove', 'keydown', 'pointerdown'].forEach(function (typ) {
+    window.addEventListener(typ, pouzivatel, { passive: true, once: true });
+  });
+  function zapni() {
+    odkazy.forEach(function (l) { l.media = 'all'; });
+    hotovo();
+    if (hybal || location.hash.length < 2) return;
+    try {
+      var ciel = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+      if (ciel) ciel.scrollIntoView();
+    } catch (e) {}
+  }
+  function nacitaj() {
+    if (spustene) return;
+    spustene = true;
+    odkazy.forEach(function (l) {
+      var bol = false;
+      function jeden() { if (bol) return; bol = true; if (--caka === 0) zapni(); }
+      l.addEventListener('load', jeden);
+      l.addEventListener('error', jeden);
+      var adresa = l.getAttribute('data-href');
+      if (adresa) l.href = adresa;
+      else if (l.sheet) jeden();
+    });
+  }
+  // Odrolovanie sa nečíta z pageYOffset (vynútilo by rozloženie celej stránky uprostred skriptu): po obnovení
+  // alebo návrate späť prehliadač polohu vracia, pri bežnom príchode bez kotvy je stránka hore.
+  var prichod = '';
+  try { prichod = performance.getEntriesByType('navigation')[0].type; } catch (e) {}
+  var hned = location.hash.length > 1 || prichod === 'reload' || prichod === 'back_forward' || document.visibilityState === 'hidden';
+  var typy = window.PerformanceObserver && PerformanceObserver.supportedEntryTypes;
+  if (hned || !typy || typy.indexOf('paint') < 0) { nacitaj(); return; }
+  try {
+    new PerformanceObserver(function (zoznam, po) {
+      if (!zoznam.getEntriesByName('first-contentful-paint').length) return;
+      po.disconnect();
+      nacitaj();
+    }).observe({ type: 'paint', buffered: true });
+  } catch (e) { nacitaj(); return; }
+  // Poistky: karta na pozadí sa nevykreslí vôbec, a ak by záznam o vykreslení neprišiel, štýly nesmú chýbať.
+  document.addEventListener('visibilitychange', nacitaj);
+  setTimeout(nacitaj, 3000);
+})();
 
 /* Zväčšený text (paper v3 pokus 4): Firefox „Zväčšiť len text“ zdvojí aj písmo v px. Sonda so 100 px to prezradí
    (počítaná veľkosť nad 110 px) a trieda v3-text uvoľní tlačidlám pevnú výšku, aby sa zalomený text zmestil.
@@ -25,7 +93,11 @@ document.documentElement.classList.add('js');
       document.documentElement.classList.toggle('v3-text', velky);
     } catch (e) {}
   }
-  zmeraj();
+  // Až po prvom snímku: getComputedStyle hneď pri spustení skriptu vynútil prepočet štýlov celej stránky
+  // v úlohe skriptu (na /motion/ s CPU 4x 235 ms, Lighthouse 3. 10. 2026). Po snímku sú štýly hotové a sonda
+  // stojí len seba. Bez requestAnimationFrame (staré prehliadače) sa meria hneď ako doteraz.
+  if (window.requestAnimationFrame) window.requestAnimationFrame(function () { setTimeout(zmeraj, 0); });
+  else zmeraj();
   window.addEventListener('resize', zmeraj);
 })();
 
@@ -283,13 +355,22 @@ document.documentElement.classList.add('js');
     window.requestAnimationFrame(prepni);
   }
 
-  // Tento súbor sa načíta v <head> bez defer, takže tu <body> ešte neexistuje.
+  // Bez defer sa tento súbor spustí v <head>, keď <body> ešte neexistuje.
   // Poslucháčov vieme pripojiť hneď (window existuje), ale prvé prepnutie musí
   // počkať na telo dokumentu, inak by hlavička ostala navždy priehľadná.
+  // S defer je dokument už rozparsovaný a prepne sa hneď.
   window.addEventListener('scroll', naScroll, { passive: true });
   window.addEventListener('resize', naScroll, { passive: true });
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', prepni);
-  else prepni();
+  // Prvé prepnutie až po prvom snímku (requestAnimationFrame a za ním setTimeout): čítanie pageYOffset pri
+  // DOMContentLoaded alebo priamo v prvom snímku vynútilo prvé rozloženie celej stránky v úlohe tohto skriptu
+  // (na /motion/ 65 ms, s CPU 4x dlhá úloha). Po snímku je rozloženie hotové a čítanie nestojí nič. Stránku
+  // otvorenú odrolovanú (kotva, obnovenie) medzitým prepne aj udalosť scroll. Bez requestAnimationFrame ako doteraz.
+  function prve() {
+    if (window.requestAnimationFrame) window.requestAnimationFrame(function () { setTimeout(prepni, 0); });
+    else prepni();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', prve);
+  else prve();
 })();
 
 /* Skutočná výška pevnej hlavičky do premennej --hlavicka.
@@ -303,6 +384,7 @@ document.documentElement.classList.add('js');
 (function () {
   'use strict';
   var meranieCaka = false, predoslaSirka = -1, predoslaVyska = -1;
+  var pisalSirku = false, pisalVysku = false;
   function hlavickaVyska() {
     meranieCaka = false;
     // 100vw zahŕňa aj scrollbar. Plátno potrebuje skutočnú šírku obsahu okna,
@@ -312,12 +394,26 @@ document.documentElement.classList.add('js');
     var sirka = document.documentElement.clientWidth;
     var h = document.querySelector('header');
     var v = h ? Math.round(h.getBoundingClientRect().height) : 0;
+    // Zápis premennej na <html> prepočíta štýly celej stránky (na /motion/ 1 500 prvkov, s CPU 4x dlhá
+    // úloha 204 ms, 3. 10. 2026). Preto sa nepíše to, čo CSS už vie:
+    //  - šírka sa píše, len keď sa líši od 100vw (klasický scrollbar) alebo keď ju potrebuje plátno
+    //    .zar-plocha, ktorého náhradná hodnota je 100 % rodiča; ostatní ju čítajú s náhradou 100vw;
+    //  - výška sa nepíše, keď rezerva pod hlavičkou (padding-top prvku main, v paper.css z --hlavicka
+    //    cez :has()) už sedí so skutočnou výškou.
     if (sirka !== predoslaSirka) {
-      document.documentElement.style.setProperty('--sirka-okna', sirka + 'px');
+      if (pisalSirku || sirka !== window.innerWidth || document.querySelector('.zar-plocha')) {
+        document.documentElement.style.setProperty('--sirka-okna', sirka + 'px');
+        pisalSirku = true;
+      }
       predoslaSirka = sirka;
     }
     if (v > 0 && v !== predoslaVyska) {
-      document.documentElement.style.setProperty('--hlavicka', v + 'px');
+      var m = pisalVysku ? null : document.querySelector('main');
+      var rezerva = m ? Math.round(parseFloat(getComputedStyle(m).paddingTop)) : -1;
+      if (v !== rezerva) {
+        document.documentElement.style.setProperty('--hlavicka', v + 'px');
+        pisalVysku = true;
+      }
       predoslaVyska = v;
     }
   }
@@ -327,11 +423,18 @@ document.documentElement.classList.add('js');
     window.requestAnimationFrame(hlavickaVyska);
   }
   function pripoj() {
-    hlavickaVyska();
+    var h = document.querySelector('header');
+    if (window.ResizeObserver && h) {
+      // ResizeObserver hlási po rozložení, ktoré prehliadač robí tak či tak: čítanie rozmerov v ňom
+      // nevynúti rozloženie uprostred skriptu, ako to robilo meranie hneď pri DOMContentLoaded.
+      new ResizeObserver(hlavickaVyska).observe(h);
+    } else {
+      hlavickaVyska();
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(naplanujMeranie);
+      // istota pre prípad, že sa niečo dokreslí neskôr
+      setTimeout(naplanujMeranie, 400);
+    }
     window.addEventListener('resize', naplanujMeranie, { passive: true });
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(naplanujMeranie);
-    // istota pre prípad, že sa niečo dokreslí neskôr
-    setTimeout(naplanujMeranie, 400);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', pripoj);
   else pripoj();

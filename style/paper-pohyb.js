@@ -290,8 +290,19 @@
       }
       try { pocitadla(); } catch (e) {}
     }
-    if (document.readyState === 'complete') poNacitani();
-    else window.addEventListener('load', poNacitani);
+    // Stránka s kritickým CSS v hlave zapína plné štýly až po prvom vykreslení (vzhlad.js, trieda css na
+    // <html> a udalosť arling:css); load môže prísť skôr, a meranie by znova videlo nenaštýlovanú stránku.
+    function poStyloch() {
+      var caka = false;
+      try {
+        var root = document.documentElement;
+        caka = !!document.querySelector('link[data-async]') && !(root && root.classList && root.classList.contains('css'));
+      } catch (e) {}
+      if (caka) document.addEventListener('arling:css', poNacitani);
+      else poNacitani();
+    }
+    if (document.readyState === 'complete') poStyloch();
+    else window.addEventListener('load', poStyloch);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', pripoj);
   else pripoj();
