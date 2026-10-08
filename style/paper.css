@@ -3,9 +3,11 @@
    ops/design/sync-paper.mjs, takže každá stránka si nesie vlastnú kópiu a nezávisí od cudzej domény.
    Pravidlá, ktoré tento súbor vynucuje, sú v ops/design/paper-v2.md. Neupravovať v produkte.
    V produkte je bez ďalších komentárov (ops/design/zverejnenie.mjs); vysvetlenia sú len v zdroji. */
-@font-face{font-family:"ARLing Sans";src:url(../fonts/arling-sans.woff2) format("woff2-variations"),url(../fonts/arling-sans.woff2) format("woff2");font-weight:400 700;font-style:normal;font-display:swap}
-@font-face{font-family:"ARLing Serif";src:url(../fonts/arling-serif.woff2) format("woff2-variations"),url(../fonts/arling-serif.woff2) format("woff2");font-weight:400 600;font-style:normal;font-display:swap}
-@font-face{font-family:"ARLing Serif";src:url(../fonts/arling-serif-italic.woff2) format("woff2");font-weight:400;font-style:italic;font-display:swap}
+@font-face{font-family:"ARLing Sans";src:url(../fonts/arling-sans.woff2) format("woff2-variations"),url(../fonts/arling-sans.woff2) format("woff2");font-weight:400 700;font-style:normal;font-display:optional}
+@font-face{font-family:"ARLing Serif";src:url(../fonts/arling-serif.woff2) format("woff2-variations"),url(../fonts/arling-serif.woff2) format("woff2");font-weight:400 600;font-style:normal;font-display:optional}
+@font-face{font-family:"ARLing Serif";src:url(../fonts/arling-serif-italic.woff2) format("woff2");font-weight:400;font-style:italic;font-display:optional}
+@font-face{font-family:"ARLing Sans nahrada";src:local("Arial"),local("Roboto"),local("Helvetica Neue"),local("Helvetica");size-adjust:103.13%;ascent-override:94.69%;descent-override:25.00%;line-gap-override:0.00%}
+@font-face{font-family:"ARLing Serif nahrada";src:local("Georgia"),local("Times New Roman");size-adjust:99.63%;ascent-override:103.98%;descent-override:33.62%;line-gap-override:0.00%}
 :root{
   --paper:#faf9f5;
   --paper-deep:#f0eee6;
@@ -18,9 +20,9 @@
   --accent-dark:#8f2e17;
   --accent-light:#d0603c;
   --ok:#4a6b3f;
-  --display:"ARLing Draw Text","ARLing Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
-  --text:"ARLing Serif",Georgia,"Times New Roman",serif;
-  --ui:"ARLing Draw Text","ARLing Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --display:"ARLing Sans","ARLing Sans nahrada",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --text:"ARLing Serif","ARLing Serif nahrada",Georgia,"Times New Roman",serif;
+  --ui:"ARLing Sans","ARLing Sans nahrada",system-ui,-apple-system,"Segoe UI",sans-serif;
   --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
   --wrap:min(1432px,89vw);
   --gap:clamp(28px,4vw,64px);
@@ -382,7 +384,7 @@ body.noc{
   --accent-dark:#e04a1f;
   --accent-light:#ffb59d;
   --ok:#5ecf9a;
-  --text:"ARLing Draw Text","ARLing Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --text:"ARLing Sans","ARLing Sans nahrada",system-ui,-apple-system,"Segoe UI",sans-serif;
   color-scheme:dark;
 }
 body.noc ::selection{background:rgba(242,100,60,.32);color:#fff}
@@ -545,7 +547,7 @@ html{scroll-padding-top:calc(var(--hlavicka) + 16px)}
 .brand svg{width:48px;height:auto;flex:none;display:block}
 .brand b{font:700 20px/1 var(--display);letter-spacing:-.015em}
 @media (max-width:520px){ .brand svg{width:40px} .brand b{font-size:18px}}
-.brand b{font-family:"ARLing Draw Text","ARLing Sans",system-ui,-apple-system,"Segoe UI",sans-serif;font-weight:700;letter-spacing:-.004em}
+.brand b{font-family:"ARLing Sans","ARLing Sans nahrada",system-ui,-apple-system,"Segoe UI",sans-serif;font-weight:700;letter-spacing:-.004em}
 body.noc .kicker{margin:0 0 clamp(14px,1.6vw,22px)}
 body.noc section>.wrap>h2:first-of-type,body.noc section .wrap>h2{margin-top:0}
 body.noc .rule{margin:clamp(22px,2.4vw,34px) 0 clamp(28px,3vw,44px)}
@@ -580,7 +582,6 @@ body.noc tbody tr:hover{background:rgba(242,100,60,.06)}
 body.noc .wash i,body.noc .wash::after{display:none}
 body.noc .hero-noc,body.noc main>section:first-of-type,body.noc main>.wrap:first-child{border-top:0}
 .uv-masthead{display:none !important}
-@font-face{font-family:"ARLing Draw Text";src:url(/fonts/ARLingDrawText-500-700.woff2?v=f2703200) format("woff2");font-weight:500 700;font-style:normal;font-display:swap}
 :root{
   --pu-stlac:linear(0, 0.0166 2.3%, 0.0736 5.2%, 0.1985 9.5%, 0.4972 18.8%, 0.6445 24.3%, 0.7583 29.75%, 0.8473 35.6%, 0.9149 42.3%, 0.9629 50.6%, 0.9919 62.35%, 1.0015 88.1%, 1);--pu-stlac-t:.214s;
   --pu-pust:linear(0, 0.0164 2.25%, 0.0716 5%, 0.1861 8.8%, 0.5397 18.95%, 0.6883 24.05%, 0.8013 29%, 0.8882 34.25%, 0.952 40.15%, 0.9939 47.3%, 1.0139 57.35%, 1);--pu-pust-t:.459s;
@@ -600,7 +601,7 @@ body.noc .hero-noc,body.noc main>section:first-of-type,body.noc main>.wrap:first
   --tien-3:0 30px 60px -32px rgba(0,0,0,.95);
   --tien-ram:0 2px 0 rgba(255,255,255,.07) inset,0 46px 90px -34px rgba(0,0,0,.92);
   --svit:0 44px 100px -52px rgba(242,100,60,.62);
-  --nadpis:"ARLing Draw Text","ARLing Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --nadpis:"ARLing Sans","ARLing Sans nahrada",system-ui,-apple-system,"Segoe UI",sans-serif;
 }
 body.noc{--med-tma:#e05630;--med-tma-2:#c9421c;--na-medi:#1b0e08;
   --linka-2:rgba(255,255,255,.16);--linka-3:rgba(255,255,255,.34);
@@ -948,4 +949,4 @@ header.site-header .site-col a>b,header.site-header .site-col a>span,header.site
   header.site-header .site-blok-nazov{margin:0;padding:14px 12px 2px;font-size:13px}}
 header.site-header .site-cta,footer.site-footer .site-cta,header.site-header .site-all a,footer.site-footer .site-all a,
 header.site-header .site-dev>a,footer.site-footer .site-dev>a{max-width:100%;white-space:normal}
-header.site-header .brand b,footer.site-footer .brand b{font-family:"ARLing Draw Text","ARLing Sans",system-ui,-apple-system,"Segoe UI",sans-serif;font-weight:700;letter-spacing:-.004em}
+header.site-header .brand b,footer.site-footer .brand b{font-family:"ARLing Sans","ARLing Sans nahrada",system-ui,-apple-system,"Segoe UI",sans-serif;font-weight:700;letter-spacing:-.004em}

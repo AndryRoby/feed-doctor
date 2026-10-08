@@ -27,6 +27,10 @@ document.documentElement.classList.add('js');
  * ktorú kritické CSS pozná. Po zapnutí sa kotva nastaví znova, lebo výšky nad ňou sa zmenili. */
 (function () {
   var root = document.documentElement;
+  // Od 118d (8. 10. 2026) má stránka s obalom v hlave vložený načítavač (ops/design/nacitavac.mjs), ktorý štýly
+  // aj tento skript načíta po prvom vykreslení a triedu css s udalosťou arling:css dá sám. Tento blok ostáva
+  // pre stránky bez načítavača (iné repozitáre, staršie kópie).
+  if (window.arlingNacitavac) return;
   var odkazy = Array.prototype.slice.call(document.querySelectorAll('link[data-async]'));
   function hotovo() {
     root.classList.add('css');
