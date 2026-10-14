@@ -42,6 +42,8 @@ import {
 import { runCheckForMonitor, refreshDueMonitors } from './check.js';
 import { sendMail, confirmationEmail } from './mail.js';
 import { manageUrl, confirmUrl, deleteUrl, upgradeUrl } from './links.js';
+import { agentReadyRoute } from './agent-ready-route.mjs';
+import { refreshWeekly } from './agent-ready-weekly.mjs';
 
 // ---------------------------------------------------------------------------
 // Validation (same idea as arling-asistent/worker/src/tenants.js: isPrivateHost
@@ -442,6 +444,11 @@ export default {
     const url = new URL(request.url);
     const method = request.method;
 
+    if (url.pathname.startsWith('/v1/agent-ready')) {
+      try { return await agentReadyRoute(request, env); }
+      catch { return jsonResponse({ error: 'agent_ready_unavailable' }, 503, corsFor(request, env)); }
+    }
+
     if (method === 'OPTIONS') {
       const headers = corsFor(request, env);
       return new Response(null, { status: Object.keys(headers).length ? 204 : 403, headers });
@@ -495,5 +502,6 @@ export default {
 
   async scheduled(event, env, ctx) {
     ctx.waitUntil(refreshDueMonitors(env));
+    if (env.AGENT_READY_WEEKLY === 'true') ctx.waitUntil(refreshWeekly(env));
   },
 };

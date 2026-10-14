@@ -32,6 +32,7 @@ ALLOWED_ORIGINS = "arling.sk"
 # route that does have a request derives its origin from request.url
 # instead and ignores this var (src/links.js workerOrigin).
 WORKER_BASE_URL = "https://feed-monitor.arling.workers.dev"
+AGENT_READY_ENABLED = "true"
 
 # D1: monitors + checks, see migrations/0001.sql. One-time setup:
 #   wrangler d1 create feedmonitor
