@@ -2,11 +2,25 @@ import {inspectStore,publicUrl,createReader} from './agent-ready-fetch.mjs';
 import {getWeekly,saveSettings} from './agent-ready-weekly.mjs';
 
 const headers={'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'};
-function cors(request,env){const origin=request.headers.get('origin');const allowed=String(env.AGENT_READY_ORIGINS||'https://arling.sk,https://www.arling.sk').split(',');return origin&&allowed.includes(origin)?{'access-control-allow-origin':origin,vary:'Origin','access-control-allow-methods':'GET,POST,OPTIONS','access-control-allow-headers':'Content-Type'}:{};}
+// Pages are served only from https://arling.sk (www.arling.sk answers 301 to it), 18. 10. 2026.
+function cors(request,env){const origin=request.headers.get('origin');const allowed=String(env.AGENT_READY_ORIGINS||'https://arling.sk').split(',');return origin&&allowed.includes(origin)?{'access-control-allow-origin':origin,vary:'Origin','access-control-allow-methods':'GET,POST,OPTIONS','access-control-allow-headers':'Content-Type'}:{};}
+// One IPv6 subscriber usually holds a whole /64, so the limit counts the /64 prefix; IPv4 counts
+// the address. Unparsable input stays its own bucket (still limited).
+export function limiterSubject(ip){
+  const v=String(ip).trim().toLowerCase(),mapped=/^::ffff:(\d{1,3}(?:\.\d{1,3}){3})$/.exec(v);
+  if(mapped)return mapped[1];
+  if(!v.includes(':'))return v;
+  const halves=v.split('::');if(halves.length>2)return v;
+  const head=halves[0]?halves[0].split(':'):[],tail=halves.length===2&&halves[1]?halves[1].split(':'):[];
+  const groups=halves.length===2?[...head,...Array(Math.max(0,8-head.length-tail.length)).fill('0'),...tail]:head;
+  const prefix=groups.slice(0,4).map(g=>/^[0-9a-f]{1,4}$/.test(g)?parseInt(g,16).toString(16):null);
+  return prefix.length===4&&prefix.every(g=>g!==null)?prefix.join(':')+'::/64':v;
+}
+export async function purgeExpiredLimits(db,now=Date.now()){await db.prepare('DELETE FROM agent_ready_limits WHERE expires_at < ?').bind(now).run();}
 export async function claimPublicCheck(db,ip,now=Date.now()){
- const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(ip));const id=Array.from(new Uint8Array(digest)).map(n=>n.toString(16).padStart(2,'0')).join('');
+ const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(limiterSubject(ip)));const id=Array.from(new Uint8Array(digest)).map(n=>n.toString(16).padStart(2,'0')).join('');
  const key='agent-ready:'+id+':'+Math.floor(now/3600000);
- await db.prepare('DELETE FROM agent_ready_limits WHERE expires_at < ?').bind(now).run();
+ await purgeExpiredLimits(db,now);
  const claimed=await db.prepare('INSERT INTO agent_ready_limits(bucket,count,expires_at) VALUES(?,1,?) ON CONFLICT(bucket) DO UPDATE SET count=count+1 WHERE count<6 RETURNING count').bind(key,now+7200000).first();
  return Boolean(claimed);
 }

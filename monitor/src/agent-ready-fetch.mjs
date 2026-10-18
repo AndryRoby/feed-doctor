@@ -1,4 +1,4 @@
-import { analyzeStore, extractHtml, robotsAllows } from '../../../arling-sk/feed-doctor/agent-ready/core.mjs';
+import { analyzeStore, extractHtml, robotsAllows, robotsReadable } from '../../../arling-sk/feed-doctor/agent-ready/core.mjs';
 
 export const LIMITS=Object.freeze({bytes:2_000_000,timeout:8000,totalMs:55000,requests:14,redirects:2});
 const UA='ARLingAgentReady/1.0 (+https://arling.sk/feed-doctor/agent-ready/)';
@@ -14,10 +14,15 @@ export function publicUrl(input) {
 export function publicAddress(ip) {
   if(/^\d+\.\d+\.\d+\.\d+$/.test(ip)){
     const [a,b,c,d]=ip.split('.').map(Number);if([a,b,c,d].some(n=>n>255))return false;
-    return !(a===0||a===10||a===127||a>=224||a===169&&b===254||a===172&&b>=16&&b<=31||a===192&&(b===168||b===0||b===2)||a===100&&b>=64&&b<=127||a===198&&(b===18||b===19||b===51&&c===100)||a===203&&b===0&&c===113);
+    // IANA special-purpose IPv4: 0/8, 10/8, 100.64/10 (CGNAT, also the ARLing tailnet), 127/8,
+    // 169.254/16, 172.16/12, 192.0.0/24, 192.0.2/24, 192.88.99/24, 192.168/16, 198.18/15,
+    // 198.51.100/24, 203.0.113/24, 224/4 and 240/4. Other 192.x addresses are public (18. 10. 2026).
+    return !(a===0||a===10||a===127||a>=224||a===169&&b===254||a===172&&b>=16&&b<=31||a===192&&(b===168||b===0&&(c===0||c===2)||b===88&&c===99)||a===100&&b>=64&&b<=127||a===198&&(b===18||b===19||b===51&&c===100)||a===203&&b===0&&c===113);
   }
-  // Public global-unicast IPv6 only, no mapped/compatible/NAT64/6to4/documentation.
-  return /^2[0-9a-f]{0,3}:/i.test(ip)&&!/^(?:2001:(?:db8|0|10|20)(?::|$)|2002:)/i.test(ip);
+  // Public global-unicast IPv6 only, no mapped/compatible/NAT64/6to4/documentation. Also excluded:
+  // 2001::/32 Teredo, 2001:2::/48 benchmarking, 2001:10::/28 and 2001:20::/28 ORCHID. ULA fc00::/7
+  // (the tailnet uses fd7a:115c:a1e0::/48) and link-local fe80::/10 never start with 2.
+  return /^2[0-9a-f]{0,3}:/i.test(ip)&&!/^(?:2001:(?:0|db8|1[0-9a-f]|2[0-9a-f]?)(?::|$)|2002:)/i.test(ip);
 }
 async function capped(res,signal,max=LIMITS.bytes){
   if(Number(res.headers.get('content-length'))>max){await res.body?.cancel();throw new Error('response_too_large');}
@@ -68,9 +73,20 @@ export function createReader({fetchImpl=fetch,resolveImpl=resolvePublic,limits=L
     }catch(e){return {url,status:0,error:controller.signal.aborted?'timeout':e.message};}finally{clearTimeout(timer);}
   };
 }
+// The former returns/shipping patterns /\/(?:policies\/...|[^?#]*(?:returns?|...))\b/i backtracked
+// quadratically on hostile paths with many slashes (18. 10. 2026). A URL pathname starts with '/' and
+// has no '?' or '#', so they match exactly when a keyword occurs after position 0 and ends at a word
+// boundary. The contact pattern has no unbounded part and stays a regular expression.
+const POLICY_WORDS={returns:['returns','return','refunds','refund','vratenie','reklamacie','widerruf','ruckgabe','rueckgabe'],shipping:['shipping','delivery','doprava','versand','lieferung']};
+const wordChar=c=>c>=48&&c<=57||c>=65&&c<=90||c>=97&&c<=122||c===95;
+export function policyPathMatches(kind,pathname){
+  if(kind==='contact')return /\/(?:pages\/)?(?:contact|kontakt|contact-us|contact-information|help)(?:\/|$|\?)/i.test(pathname);
+  const p=String(pathname).toLowerCase();
+  for(const word of POLICY_WORDS[kind])for(let at=p.indexOf(word,1);at>=0;at=p.indexOf(word,at+1)){const c=p.charCodeAt(at+word.length);if(!(c>=0)||!wordChar(c))return true;}
+  return false;
+}
 function policyLink(links,origin,kind){
-  const patterns={returns:/\/(?:policies\/refund-policy|[^?#]*(?:returns?|refunds?|vratenie|reklamacie|widerruf|ruckgabe|rueckgabe))\b/i,shipping:/\/(?:policies\/shipping-policy|[^?#]*(?:shipping|delivery|doprava|versand|lieferung))\b/i,contact:/\/(?:pages\/)?(?:contact|kontakt|contact-us|contact-information|help)(?:\/|$|\?)/i};
-  return links.find(link=>{const u=new URL(link);return u.origin===origin&&patterns[kind].test(u.pathname);});
+  return links.find(link=>{const u=new URL(link);return u.origin===origin&&policyPathMatches(kind,u.pathname);});
 }
 export async function collectStore(input,{productUrl='',read=createReader(),now=()=>new Date().toISOString()}={}){
   const start=publicUrl(input);if(start.search)throw new Error('store_query_not_allowed');
@@ -79,7 +95,8 @@ export async function collectStore(input,{productUrl='',read=createReader(),now=
   if([200,404,410].includes(resources.robots.status))origin=new URL(resources.robots.url).origin;
   const canRead=url=>{
     const r=resources.robots;
-    if(![200,404,410].includes(r.status))return false;
+    // Robots we cannot evaluate (over 500 KiB or 5000 rules) stop every further read.
+    if(![200,404,410].includes(r.status)||!robotsReadable(r.text||''))return false;
     return robotsAllows(r.text||'','ARLingAgentReady',new URL(url).pathname+new URL(url).search);
   };
   const permitted=async(url,kind='html')=>canRead(url)?read(url,kind,false):{url,status:0,error:'robots_prevented_fetch'};

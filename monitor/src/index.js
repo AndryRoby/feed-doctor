@@ -42,7 +42,7 @@ import {
 import { runCheckForMonitor, refreshDueMonitors } from './check.js';
 import { sendMail, confirmationEmail } from './mail.js';
 import { manageUrl, confirmUrl, deleteUrl, upgradeUrl } from './links.js';
-import { agentReadyRoute } from './agent-ready-route.mjs';
+import { agentReadyRoute, purgeExpiredLimits } from './agent-ready-route.mjs';
 import { refreshWeekly } from './agent-ready-weekly.mjs';
 
 // ---------------------------------------------------------------------------
@@ -503,5 +503,7 @@ export default {
   async scheduled(event, env, ctx) {
     ctx.waitUntil(refreshDueMonitors(env));
     if (env.AGENT_READY_WEEKLY === 'true') ctx.waitUntil(refreshWeekly(env));
+    // Hashed-IP limiter rows also go when no later check arrives to trigger the cleanup.
+    if (env.DB) ctx.waitUntil(purgeExpiredLimits(env.DB).catch(() => {}));
   },
 };
