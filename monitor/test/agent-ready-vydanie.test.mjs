@@ -94,3 +94,57 @@ test('whole public check through the route: limiter, DNS preflight, Shopify sign
   assert.ok(!JSON.stringify(db.sql.prepare('SELECT * FROM agent_ready_limits').all()).includes('shop.example.org'));
   db.sql.close();
 });
+
+// 19. 10. 2026 noc, štúdia 113 obchodov Shopify: llms.txt ako Markdown, jedno presmerovanie stránky produktu, kontakt /pages/contact-us.
+test('llms.txt served as Markdown is read with the usual limits; robots.txt still needs text/plain',async()=>{
+  let accept='';
+  const reader=(type,body='# Store\n> About the store',limits=zber.LIMITS)=>zber.createReader({limits,resolveImpl:async()=>{},fetchImpl:async(u,init)=>{accept=init.headers.accept;return new Response(body,{headers:{'content-type':type}});}});
+  for(const type of ['text/markdown; charset=utf-8','text/x-markdown','text/plain; charset=utf-8','TEXT/MARKDOWN']){
+    const r=await reader(type)('https://shop.example.org/llms.txt','llms');assert.equal(r.status,200,type);assert.equal(r.text,'# Store\n> About the store');}
+  assert.match(accept,/text\/markdown/);
+  for(const type of ['text/html','application/json','text/markdownx','']){assert.equal((await reader(type)('https://shop.example.org/llms.txt','llms')).error,'unexpected_content_type',type);}
+  assert.equal((await reader('text/markdown','# '+'x'.repeat(100),{...zber.LIMITS,bytes:10})('https://shop.example.org/llms.txt','llms')).error,'response_too_large');
+  assert.equal((await reader('text/markdown','User-agent: *')('https://shop.example.org/robots.txt','text')).error,'unexpected_content_type');
+});
+test('collectStore asks for llms.txt as llms, robots.txt as plain text',async()=>{
+  const kinds={};const read=async(url,kind)=>{kinds[new URL(url).pathname]=kind;return {url,status:url.endsWith('/robots.txt')?200:404,text:''};};
+  await zber.collectStore('https://shop.example.org',{read});
+  assert.equal(kinds['/llms.txt'],'llms');assert.equal(kinds['/robots.txt'],'text');
+});
+test('a redirect that is not followed reports its target without fetching it',async()=>{
+  let calls=0;const read=zber.createReader({resolveImpl:async()=>{},fetchImpl:async()=>{calls++;return new Response(null,{status:301,headers:{location:'/products/new?variant=1'}});}});
+  const r=await read('https://shop.example.org/products/old','html',false);
+  assert.equal(r.error,'redirect_not_followed');assert.equal(r.location,'https://shop.example.org/products/new?variant=1');assert.equal(calls,1);
+});
+test('a product page follows one redirect on the same store only, and only where robots.txt allows',async()=>{
+  const calls=[];const feed=JSON.stringify({products:['a','b','c'].map(handle=>({handle,variants:[]}))});
+  const pages={'/products/a':{error:'redirect_not_followed',location:'https://shop.example.org/products/a-new'},'/products/b':{error:'redirect_not_followed',location:'https://other.example.org/products/b'},'/products/c':{error:'redirect_not_followed',location:'https://shop.example.org/blocked/c'},'/products/a-new':{status:200,text:'<p>moved</p>'}};
+  const read=async(url,kind,redirect)=>{calls.push([url,kind,redirect]);const p=new URL(url).pathname;
+    if(p==='/robots.txt')return {url,status:200,text:'User-agent: *\nDisallow: /blocked/\n'};if(p==='/products.json')return {url,status:200,text:feed};
+    const hit=pages[p];return hit?{url,status:0,...hit}:{url,status:404,text:''};};
+  const s=await zber.collectStore('https://shop.example.org',{read});
+  assert.deepEqual(s.productPages.map(x=>[new URL(x.url).pathname,x.status,x.error||null]),[['/products/a-new',200,null],['/products/b',0,'redirect_not_followed'],['/blocked/c',0,'robots_prevented_fetch']]);
+  assert.ok(calls.every(([url,,redirect])=>redirect===false||url.endsWith('/robots.txt')),'každé čítanie stránky bez automatického presmerovania');
+  assert.ok(!calls.some(([url])=>url.startsWith('https://other.example.org')||url.includes('/blocked/')));
+  assert.ok(!s.productPages.some(x=>'location' in x));
+  // Druhé presmerovanie sa už nesleduje.
+  pages['/products/a-new']={error:'redirect_not_followed',location:'https://shop.example.org/products/a-newer'};calls.length=0;
+  const t=await zber.collectStore('https://shop.example.org',{read});
+  assert.deepEqual([new URL(t.productPages[0].url).pathname,t.productPages[0].error],['/products/a-new','redirect_not_followed']);
+  assert.ok(!calls.some(([url])=>url.endsWith('/products/a-newer')));
+});
+test('contact falls back to /pages/contact-us only when /pages/contact is missing or moved',async()=>{
+  const run=async contact=>{const asked=[];const read=async url=>{const p=new URL(url).pathname;asked.push(p);
+    if(p==='/robots.txt')return {url,status:200,text:''};if(p==='/products.json')return {url,status:200,text:JSON.stringify({products:[{handle:'a',variants:[]}]})};
+    if(p==='/pages/contact')return {url,...contact};if(p==='/pages/contact-us')return {url,status:200,text:'<p>contact</p>'};return {url,status:404,text:''};};
+    const s=await zber.collectStore('https://shop.example.org',{read});return {s,asked};};
+  let {s,asked}=await run({status:404,text:''});
+  assert.equal(new URL(s.resources.contact.url).pathname,'/pages/contact-us');assert.equal(s.resources.contact.status,200);
+  ({s,asked}=await run({status:0,error:'redirect_not_followed',location:'https://shop.example.org/pages/contact-us'}));
+  assert.equal(new URL(s.resources.contact.url).pathname,'/pages/contact-us');assert.equal(s.resources.contact.status,200);
+  ({s,asked}=await run({status:200,text:'<p>contact</p>'}));
+  assert.equal(new URL(s.resources.contact.url).pathname,'/pages/contact');assert.ok(!asked.includes('/pages/contact-us'));
+  ({s,asked}=await run({status:503,text:''}));
+  assert.equal(s.resources.contact.status,503);assert.ok(!asked.includes('/pages/contact-us'));
+  assert.ok(!('location' in s.resources.contact));
+});

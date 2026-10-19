@@ -55,10 +55,11 @@ export function createReader({fetchImpl=fetch,resolveImpl=resolvePublic,limits=L
         if(++requests>limits.requests)throw new Error('request_budget_exhausted');
         const u=publicUrl(url);
         await resolveImpl(u.hostname,{fetchImpl,signal:controller.signal});
-        const res=await fetchImpl(url,{method:'GET',redirect:'manual',credentials:'omit',signal:controller.signal,headers:{'user-agent':UA,accept:kind==='json'?'application/json':kind==='text'?'text/plain':'text/html'}});
+        const res=await fetchImpl(url,{method:'GET',redirect:'manual',credentials:'omit',signal:controller.signal,headers:{'user-agent':UA,accept:kind==='json'?'application/json':kind==='text'?'text/plain':kind==='llms'?'text/markdown, text/plain;q=0.9':'text/html'}});
         if([301,302,303,307,308].includes(res.status)){
           await res.body?.cancel();
-          if(!allowRedirect)throw new Error('redirect_not_followed');
+          // The target is reported, never fetched here; callers decide (same origin, robots.txt).
+          if(!allowRedirect){const stop=new Error('redirect_not_followed'),to=res.headers.get('location');if(to)try{stop.location=new URL(to,url).href;}catch{}throw stop;}
           const next=publicUrl(new URL(res.headers.get('location'),url).href);
           // Prevent arbitrary origin changes; www canonicalization is the only exception.
           if(next.hostname.replace(/^www\./,'')!==u.hostname.replace(/^www\./,''))throw new Error('cross_origin_redirect');
@@ -66,11 +67,13 @@ export function createReader({fetchImpl=fetch,resolveImpl=resolvePublic,limits=L
         }
         if(!res.ok){await res.body?.cancel();return {url,status:res.status,text:''};}
         const type=(res.headers.get('content-type')||'').toLowerCase();
-        if(kind==='json'&&!type.includes('json')||kind==='html'&&!type.includes('html')||kind==='text'&&!type.startsWith('text/plain')){await res.body?.cancel();throw new Error('unexpected_content_type');}
+        // llms.txt: Shopify serves it as text/markdown (19. 10. 2026 study: 108 of 113 stores); robots.txt stays text/plain only.
+        const llmsType=['text/plain','text/markdown','text/x-markdown'].includes(type.split(';')[0].trim());
+        if(kind==='json'&&!type.includes('json')||kind==='html'&&!type.includes('html')||kind==='text'&&!type.startsWith('text/plain')||kind==='llms'&&!llmsType){await res.body?.cancel();throw new Error('unexpected_content_type');}
         return {url,status:res.status,text:await capped(res,controller.signal,limits.bytes)};
       }
       throw new Error('redirect_limit');
-    }catch(e){return {url,status:0,error:controller.signal.aborted?'timeout':e.message};}finally{clearTimeout(timer);}
+    }catch(e){const aborted=controller.signal.aborted;return {url,status:0,error:aborted?'timeout':e.message,...(!aborted&&e.location?{location:e.location}:{})};}finally{clearTimeout(timer);}
   };
 }
 // The former returns/shipping patterns /\/(?:policies\/...|[^?#]*(?:returns?|...))\b/i backtracked
@@ -99,7 +102,18 @@ export async function collectStore(input,{productUrl='',read=createReader(),now=
     if(![200,404,410].includes(r.status)||!robotsReadable(r.text||''))return false;
     return robotsAllows(r.text||'','ARLingAgentReady',new URL(url).pathname+new URL(url).search);
   };
-  const permitted=async(url,kind='html')=>canRead(url)?read(url,kind,false):{url,status:0,error:'robots_prevented_fetch'};
+  const permittedRaw=async(url,kind='html')=>canRead(url)?read(url,kind,false):{url,status:0,error:'robots_prevented_fetch'};
+  // A reported redirect target never leaves this function in the snapshot.
+  const permitted=async(url,kind)=>{const {location,...result}=await permittedRaw(url,kind);return result;};
+  // Product pages that moved inside the store (19. 10. 2026 study: 10 of 339 sampled pages): follow one
+  // redirect, only to the same origin and only where robots.txt allows it. The reader checks the target
+  // URL and DNS again and counts it against the request budget; a second redirect is not followed.
+  const productPage=async url=>{
+    const {location,...first}=await permittedRaw(url);
+    let next=null;try{if(first.error==='redirect_not_followed'&&location)next=new URL(location);}catch{}
+    if(!next||next.origin!==origin)return first;
+    return permitted(next.href);
+  };
   // Home canonical redirects are inspected by the reader; subsequent reads do not
   // follow redirects, so a robots-disallowed destination is never fetched implicitly.
   resources.home=await permitted(origin+'/');
@@ -122,13 +136,24 @@ export async function collectStore(input,{productUrl='',read=createReader(),now=
   else candidates=products.filter(p=>typeof p?.handle==='string'&&/^[a-zA-Z0-9_-]+$/.test(p.handle)).slice(0,3).map(p=>origin+'/products/'+encodeURIComponent(p.handle));
   if(!candidates.length)candidates=links.filter(x=>new URL(x).origin===origin&&/\/(products|product|produkt|p)\//i.test(new URL(x).pathname)).slice(0,3);
   const productPages=[];
-  for(const url of [...new Set(candidates)].slice(0,3)){const page=await permitted(url);productPages.push(page);if(page.status===200)links.push(...extractHtml(page.text,page.url).links);}
-  for(const [kind,fallback] of [['returns','/policies/refund-policy'],['shipping','/policies/shipping-policy'],['contact','/pages/contact']]){
-    const discovered=policyLink(links,origin,kind),url=discovered||(products.length?origin+fallback:null);
-    resources[kind]=url?await permitted(url):{url:origin+'/',status:0,error:'policy_link_not_found'};
-    if(!discovered&&[404,410].includes(resources[kind].status))resources[kind]={url,status:0,error:'policy_link_not_found'};
+  for(const url of [...new Set(candidates)].slice(0,3)){const page=await productPage(url);productPages.push(page);if(page.status===200)links.push(...extractHtml(page.text,page.url).links);}
+  // A link found on the store's pages wins; otherwise Shopify's default addresses, for contact also
+  // /pages/contact-us when /pages/contact is missing or redirects (19. 10. 2026 study). The first answer
+  // is kept unless a later default address answers.
+  for(const [kind,fallbacks] of [['returns',['/policies/refund-policy']],['shipping',['/policies/shipping-policy']],['contact',['/pages/contact','/pages/contact-us']]]){
+    const discovered=policyLink(links,origin,kind);
+    if(discovered){resources[kind]=await permitted(discovered);continue;}
+    if(!products.length){resources[kind]={url:origin+'/',status:0,error:'policy_link_not_found'};continue;}
+    let chosen=null;
+    for(const path of fallbacks){
+      const url=origin+path,r=await permitted(url),missing=[404,410].includes(r.status);
+      const result=missing?{url,status:0,error:'policy_link_not_found'}:r;
+      chosen??=result;
+      if(!missing&&r.error!=='redirect_not_followed'){chosen=result;break;}
+    }
+    resources[kind]=chosen;
   }
-  resources.llms=await permitted(origin+'/llms.txt','text');
+  resources.llms=await permitted(origin+'/llms.txt','llms');
   return {at:now(),storeUrl:origin,resources,productPages};
 }
 export async function inspectStore(url,options={}){return analyzeStore(await collectStore(url,options));}
