@@ -656,7 +656,7 @@ body.noc main::before{content:"";position:absolute;left:0;right:0;top:0;height:m
 @supports (animation-timeline:scroll()){
   body.noc main::before{animation:v3-lampa linear both;animation-timeline:scroll(root);animation-range:0 90vh}
   @keyframes v3-lampa{to{transform:translate3d(0,80px,0);opacity:.55}}}
-body.noc main:has(.zar-plocha)::before,body.noc.efv4 main::before,body.noc.svet-mapa main::before{content:none}
+body.noc main:has(.zar-plocha)::before,body.noc.efv4 main::before,body.noc.svet-mapa main::before,body.noc.vsetko-stranka main::before{content:none}
 body.noc .deep{box-shadow:inset 0 1px 0 rgba(255,255,255,.035)}
 body.noc .band{isolation:isolate}
 body.noc .band::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
@@ -930,6 +930,15 @@ footer.site-footer .site-foot-bottom a:hover,footer.site-footer .site-foot-legal
 @media (max-width:28.75em){
   footer.site-footer .site-foot-cols{grid-template-columns:1fr}}
 header.site-header .site-bloky{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 56px;margin:0;padding:0}
+header.site-header .site-bloky:has(>.site-blok:only-child){display:block}
+header.site-header .site-blok:only-child .site-cols{grid-template-columns:repeat(3,minmax(0,1fr));gap:22px}
+header.site-header .site-hry{flex:1 1 300px;max-width:none;margin:0;padding:0}
+header.site-header .site-hry a{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:1px 14px;min-height:44px;margin:0;padding:6px 10px;border:0;border-radius:10px;background:none;color:var(--r-telo);text-decoration:none;transition:background-color .16s var(--r-tik),color .2s var(--r-tik)}
+header.site-header .site-hry a>b{grid-column:1;margin:0;color:var(--r-ink);font:600 14.5px/1.3 var(--ui);letter-spacing:-.008em}
+header.site-header .site-hry a>span{grid-column:1;margin:0;color:var(--r-tichy);font:400 13px/1.4 var(--ui);letter-spacing:0}
+header.site-header .site-hry a>svg{grid-column:2;grid-row:1 / span 2;width:15px;height:15px;flex:none;transition:transform .22s var(--r-pero)}
+header.site-header .site-hry a:hover{background:rgba(255,255,255,.05);color:var(--r-ink)}
+header.site-header .site-hry a:hover>svg{transform:translateX(3px)}
 header.site-header .site-blok{min-width:0;margin:0;padding:0}
 header.site-header .site-blok+.site-blok{position:relative}
 header.site-header .site-blok+.site-blok::before{content:"";position:absolute;top:0;bottom:0;left:-28px;border-left:1px solid var(--r-linka)}
@@ -946,7 +955,10 @@ header.site-header .site-col a>b,header.site-header .site-col a>span,header.site
 @media (max-width:47.5em){
   header.site-header .site-bloky{display:block}
   header.site-header .site-blok+.site-blok{margin:0;padding:0;border-top:1px solid var(--r-linka-2)}
-  header.site-header .site-blok-nazov{margin:0;padding:14px 12px 2px;font-size:13px}}
+  header.site-header .site-blok-nazov{margin:0;padding:14px 12px 2px;font-size:13px}
+  header.site-header .site-menu-spodok .site-hry{margin:0;padding:6px 8px 8px;border-top:1px solid var(--r-linka)}
+  header.site-header .site-hry a{padding:10px 8px;border:0;border-radius:9px}}
+@media (prefers-reduced-motion:reduce){header.site-header .site-hry a>svg{transition:none}}
 header.site-header .site-cta,footer.site-footer .site-cta,header.site-header .site-all a,footer.site-footer .site-all a,
 header.site-header .site-dev>a,footer.site-footer .site-dev>a{max-width:100%;white-space:normal}
 header.site-header .brand b,footer.site-footer .brand b{font-family:"ARLing Sans","ARLing Sans nahrada",system-ui,-apple-system,"Segoe UI",sans-serif;font-weight:700;letter-spacing:-.004em}

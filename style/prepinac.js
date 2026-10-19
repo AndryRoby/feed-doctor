@@ -72,7 +72,11 @@
     // zakryť odkazom na domovskú stránku.
 
     if (verzie.length < 2) return;
-    verzie.sort(function (a, b) { return a.kod === tu ? -1 : b.kod === tu ? 1 : a.kod.localeCompare(b.kod); });
+    /* 30. 9. 2026 (Andrej: „prečo iné CSS na language toggle na Rukopise ako na hube“): rovnaké poradie ako na hube,
+       SK, EN, DE a ďalšie jazyky až za nimi; aktuálny jazyk prvý. */
+    var PORADIE = ['sk', 'en', 'de', 'cs', 'hu', 'pl'];
+    var miesto = function (k) { var i = PORADIE.indexOf(k); return i < 0 ? 99 : i; };
+    verzie.sort(function (a, b) { return a.kod === tu ? -1 : b.kod === tu ? 1 : miesto(a.kod) - miesto(b.kod); });
 
     var d = document.createElement('details');
     d.className = 'langsel';

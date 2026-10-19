@@ -8,8 +8,10 @@
  * Safari blokuje cookies naprieč doménami (arling.sk a workers.dev).
  *
  * API: token(), prihlaseny(), posliKod(email, jazyk?), over(email, kod),
- * ja(), odhlas(), zabudni(), priradSession(session_id), hra.nacitaj(hra), hra.uloz(hra, stav).
+ * ja(), odhlas(), zabudni(), priradSession(session_id), pristupNakupu(id),
+ * hra.nacitaj(hra), hra.uloz(hra, stav).
  * Nič viac sa sem nepridáva bez zmeny ops/spec-ucet.md (časť E: čo sa nerobí).
+ * pristupNakupu pribudol 30. 9. 2026 s opravou O-04 (ops/audit/2026-09-30-velky-audit/oprava-O-04.md).
  */
 const API = 'https://arling-asistent.arling.workers.dev';
 const KLUC = 'arling:ucet';
@@ -57,8 +59,14 @@ export async function over(email, kod) {
   if (d && d.token) ulozUcet({ token: d.token, email: d.email, exp: Date.now() + 90 * 24 * 3600 * 1000 });
   return d;
 }
-/* { email, nakupy, predplatne, portal_url }. */
+/* { email, nakupy, predplatne, portal_url }. Od O-04 (30. 9. 2026) má nákup
+ * namiesto session_id len nepriehľadné id; starší worker ešte vracia session_id. */
 export async function ja() { return volaj('/v1/ucet/ja'); }
+/* session_id jedného nákupu podľa jeho id z ja(), len pre prihláseného
+ * majiteľa (Bearer). Vráti { session_id, produkt }. Pýtať až pri kliknutí. */
+export async function pristupNakupu(id) {
+  return volaj('/v1/ucet/nakup-pristup', { method: 'POST', body: { id } });
+}
 export async function odhlas() {
   try { await volaj('/v1/ucet/odhlasit', { method: 'POST' }); } catch (e) { /* odhlásime sa lokálne aj tak */ }
   zmazUcet();

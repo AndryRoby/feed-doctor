@@ -237,26 +237,34 @@ document.documentElement.classList.add('js');
     // Poradie názvov a ciest je to isté ako NAV a CTA v ops/design/obal.mjs
     // (stráži to test). Katalóg v paneli ostáva v jazyku, v ktorom stránku
     // postavil obal; tri jeho preklady by tento súbor zväčšili na každej stránke.
+    // Od 18. 10. 2026 (ARLing 2.0) je tlačidlom bezplatná kontrola obchodu (obal.mjs CTA, uvod-v6-texty.mjs KONTROLA_OBCHODU).
+    // Odkazy lišty majú dve sady: v4 (Nástroje, Piloty, Návody, O firme) a v6 (Shopify, Financie, Lab, O firme). Sadu určuje
+    // stránka atribútom data-site-nav-sada na lište (obal.mjs NAV_SADA), lebo prepnutie v6 je súbor na disku, nie údaj v prehliadači.
     var texty = {
-      sk: { menu:'Menu', produkty:'Produkty', domov:'ARLing: úvod', nav:'Hlavná navigácia', stranka:'Na tejto stránke', skip:'Prejsť na obsah', cta:'Skontrolovať e-faktúru zadarmo', nazvy:['Nástroje','Piloty','Návody','O firme'] },
+      sk: { menu:'Menu', produkty:'Produkty', domov:'ARLing: úvod', nav:'Hlavná navigácia', stranka:'Na tejto stránke', skip:'Prejsť na obsah', cta:'Skontrolovať obchod zadarmo', nazvy:['Nástroje','Piloty','Návody','O firme'], nazvy6:['Shopify','Financie','Lab','O firme'] },
       // „Piloten“ znamená pilotov lietadiel a „Pilots“ je nejasné (audit jazykov 29. 9. 2026); čeština má vlastné názvy.
-      en: { menu:'Menu', produkty:'Products', domov:'ARLing home', nav:'Main navigation', stranka:'On this page', skip:'Skip to content', cta:'Shop', nazvy:['Tools','Pilot programs','Guides','Company'] },
-      de: { menu:'Menü', produkty:'Produkte', domov:'ARLing Startseite', nav:'Hauptnavigation', stranka:'Auf dieser Seite', skip:'Zum Inhalt springen', cta:'E-Rechnung kostenlos prüfen', nazvy:['Werkzeuge','Pilotprojekte','Anleitungen','Unternehmen'] },
-      cs: { menu:'Menu', produkty:'Produkty', domov:'ARLing: úvod', nav:'Hlavní navigace', stranka:'Na této stránce', skip:'Přejít na obsah', cta:'Zkontrolovat e-fakturu zdarma', nazvy:['Nástroje','Pilotní projekty','Návody','O firmě'] }
+      en: { menu:'Menu', produkty:'Products', domov:'ARLing home', nav:'Main navigation', stranka:'On this page', skip:'Skip to content', cta:'Check your store free', nazvy:['Tools','Pilot programs','Guides','Company'], nazvy6:['Shopify','Finance','Lab','Company'] },
+      de: { menu:'Menü', produkty:'Produkte', domov:'ARLing Startseite', nav:'Hauptnavigation', stranka:'Auf dieser Seite', skip:'Zum Inhalt springen', cta:'Shop kostenlos prüfen', nazvy:['Werkzeuge','Pilotprojekte','Anleitungen','Unternehmen'], nazvy6:['Shopify','Finanzen','Lab','Unternehmen'] },
+      cs: { menu:'Menu', produkty:'Produkty', domov:'ARLing: úvod', nav:'Hlavní navigace', stranka:'Na této stránce', skip:'Přejít na obsah', cta:'Zkontrolovat obchod zdarma', nazvy:['Nástroje','Pilotní projekty','Návody','O firmě'], nazvy6:['Shopify','Finance','Lab','O firmě'] }
     };
     function jazyk() {
       var kod = (document.documentElement.lang || 'sk').slice(0,2).toLowerCase();
       var t = texty[kod] || texty.sk;
       var cast = kod === 'en' || kod === 'de' ? kod + '/' : '';
-      // Čeština nemá úvod ani /how-we-work/cs/, ale má /notes/cs/ (obal.mjs NAV_CS).
-      var cesty = ['/'+cast+'#nastroje', '/'+cast+'#piloty', '/notes/'+(kod === 'cs' ? 'cs/' : cast), '/how-we-work/'+cast];
-      // Tlačidlo vedie na produkt s cenou v jazyku stránky (obal.mjs CTA, 25. 9. 2026), nie na Proof.
-      var proof = kod === 'en' ? '/shop/' : kod === 'de' ? '/efaktura/de/' : kod === 'cs' ? '/efaktura/cs/' : '/efaktura/';
+      var lista = hlavicka.querySelector('[data-site-nav-sada]');
+      var v6 = !!(lista && lista.getAttribute && lista.getAttribute('data-site-nav-sada') === 'v6');
+      // Čeština nemá úvod ani /how-we-work/cs/, ale má /notes/cs/ (obal.mjs NAV_CS); Lab má len /lab/, /en/lab/ a /de/lab/.
+      // O firme vedie v sade v6 na sekciu úvodu o firme (#ako-pracujeme), nie na starú /how-we-work/ (19. 10. 2026).
+      var cesty = v6 ? ['/'+cast+'#shopify', '/'+cast+'#financie', '/'+cast+'lab/', '/'+cast+'#ako-pracujeme']
+        : ['/'+cast+'#nastroje', '/'+cast+'#piloty', '/notes/'+(kod === 'cs' ? 'cs/' : cast), '/how-we-work/'+cast];
+      var nazvy = v6 ? t.nazvy6 : t.nazvy;
+      // Tlačidlo vedie na bezplatnú kontrolu obchodu v jazyku stránky (čeština na slovenskú verziu).
+      var proof = kod === 'en' ? '/feed-doctor/agent-ready/' : kod === 'de' ? '/feed-doctor/agent-ready/de/' : '/feed-doctor/agent-ready/sk/';
       hlavicka.querySelectorAll('[data-site-nav]').forEach(function (a) {
         var i = Number(a.getAttribute('data-site-nav'));
         if (!cesty[i]) return;
         a.href = 'https://arling.sk' + cesty[i];
-        a.textContent = t.nazvy[i];
+        a.textContent = nazvy[i];
       });
       // Stránka produktu môže mať vlastné tlačidlo (obal.mjs CTA_STRANKY); to sa neprepisuje.
       hlavicka.querySelectorAll('[data-site-cta]').forEach(function (a) {
